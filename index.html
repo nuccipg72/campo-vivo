@@ -1488,6 +1488,9 @@ function groundMarks(root, raggio){
 const baseCreature = (root, nome, latino, vel) => ({
   root, nome, latino, vel, stato:'ferma', t:Math.random()*3, fase:Math.random()*6.28,
   meta:null, guarda:null, socialCon:null, impulso:0, flip:1, socialOff:0,
+  /* Indole: verso lo 0 curiosa, verso l'1 diffidente. Decide se ti viene
+     incontro o si scosta quando ti avvicini. */
+  indole: Math.random(), indoleT: Math.random()*6,
   pos:root.position.clone(), standY:root.position.y, dir:new THREE.Vector3(0,0,1),
   jump:null, agile:1, raggio:.22,
   ancora:root.position.clone(), fermaDa:0,
@@ -2090,18 +2093,44 @@ function updateCreature(c, dt, camPos){
   if(c.stato === 'vaga') moveDir = stepMove(c, dt);
   else if(c.stato === 'sociale') moveDir = avvicina(c, dt);
 
-  /* Una creatura a mezzo metro dagli occhi copre mezzo schermo e finisce
-     sotto la soglia utile della profondita': la si tiene a distanza. */
+  /* Distanza minima ridotta a 30 cm: serve solo a non farle finire dentro
+     l'obiettivo. A 90 cm, com'era prima, non riuscivi mai ad avvicinarti
+     abbastanza da vederle grandi, e la prospettiva sembrava non funzionare. */
   if(c.stato !== 'salto'){
     const dcam = Math.hypot(c.pos.x - camPos.x, c.pos.z - camPos.z);
-    if(dcam < 0.9 && dcam > 1e-3){
+    if(dcam < .30 && dcam > 1e-3){
       const kx = (c.pos.x - camPos.x)/dcam, kz = (c.pos.z - camPos.z)/dcam;
-      const nx = camPos.x + kx*0.95, nz = camPos.z + kz*0.95;
+      const nx = camPos.x + kx*.32, nz = camPos.z + kz*.32;
       if(!blockerAt(nx, nz, c.standY, c.raggio*.5)){
         c.pos.x = nx; c.pos.z = nz;
         c.standY = surfaceAt(nx, nz, Infinity); c.pos.y = c.standY;
-        if(c.stato === 'vaga') c.meta = null;
       }
+    }
+
+    /* Indole. Le diffidenti si scostano quando ti avvicini, le curiose ti
+       vengono incontro e restano a guardarti da vicino. Senza questo la
+       vicinanza dipende solo dal caso, e in pratica non capita mai. */
+    c.indoleT -= dt;
+    if((c.stato === 'vaga' || c.stato === 'ferma') && c.indoleT <= 0){
+      const kx = (c.pos.x - camPos.x)/Math.max(dcam, 1e-3);
+      const kz = (c.pos.z - camPos.z)/Math.max(dcam, 1e-3);
+      if(c.indole > .62 && dcam < .9 + c.indole*.9){
+        const via = 2.0 + Math.random()*1.4;
+        c.meta = new THREE.Vector3(camPos.x + kx*via, 0, camPos.z + kz*via);
+        c.stato = 'vaga'; c.t = 3 + Math.random()*2;
+        c.indoleT = 5 + Math.random()*4;
+      } else if(c.indole < .34 && dcam > 1.4 && Math.random() < dt*.14){
+        const presso = .42 + Math.random()*.3;
+        c.meta = new THREE.Vector3(camPos.x + kx*presso, 0, camPos.z + kz*presso);
+        c.stato = 'vaga'; c.t = 7 + Math.random()*3;
+        c.indoleT = 9 + Math.random()*6;
+      }
+    }
+    /* Arrivata addosso a te, la curiosa si ferma e ti guarda invece di
+       ripartire subito con una nuova meta. */
+    if(c.indole < .34 && dcam < .75 && c.stato === 'vaga' && c.indoleT > 3){
+      c.stato = 'ferma'; c.meta = null; c.t = 2 + Math.random()*2.5;
+      c.guarda = camPos;
     }
   }
 
@@ -2342,7 +2371,9 @@ function updateTape(){
                || near.stato;
     const quota = near.standY > WORLD.floorY + .1
       ? ' &middot; su un rialzo' : '';
+    const indole = near.indole < .34 ? 'curiosa' : (near.indole > .62 ? 'diffidente' : '');
     els.tMeta.innerHTML = nearD.toFixed(1) + ' m &middot; ' + st + quota +
+      (indole ? ' &middot; ' + indole : '') +
       ' <em>&middot; ' + near.latino + '</em>';
   }
 }
@@ -2624,7 +2655,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v29';
+const BUILD = 'v30';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
