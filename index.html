@@ -402,7 +402,8 @@ const QUALITA = {det: 2};
 
 const STEP_UP   = 0.06;    // dislivello ignorabile: soglia, non ostacolo
 const JUMP_MAX  = 0.80;    // salita massima superabile con un salto (m)
-const DROP_MAX  = 1.30;    // discesa massima affrontabile senza paura (m)
+const DROP_MAX  = 1.30;
+const SONDA     = 0.30;    // quanto avanti guarda prima di sbatterci    // discesa massima affrontabile senza paura (m)
 
 /* ==========================================================================
    BESTIARIO — sedici specie, ognuna una ricetta di pezzi.
@@ -1431,6 +1432,7 @@ const baseCreature = (root, nome, latino, vel) => ({
   pos:root.position.clone(), standY:root.position.y, dir:new THREE.Vector3(0,0,1),
   jump:null, agile:1, raggio:.22,
   ancora:root.position.clone(), fermaDa:0,
+  ultimoValido:root.position.clone(),
 });
 
 function makeMesh(spec, pos){
@@ -1489,7 +1491,8 @@ function freeSpot(origin){
     const x = origin.x + Math.sin(ang)*dist;
     const z = origin.z - Math.cos(ang)*dist;
     const y = surfaceAt(x, z, Infinity);
-    if(!blockerAt(x, z, y, .12)) return new THREE.Vector3(x, y, z);
+    if(!blockerAt(x, z, y, .12) && raggiungibile(origin.x, origin.z, x, z))
+      return new THREE.Vector3(x, y, z);
   }
   return new THREE.Vector3(origin.x, WORLD.floorY, origin.z - 2.4);
 }
@@ -1532,6 +1535,7 @@ function nasce(camPos, camQ){
       const z = camPos.z - Math.cos(ang)*dist;
       const y = surfaceAt(x, z, Infinity);
       if(blockerAt(x, z, y, .15)) continue;
+      if(!raggiungibile(camPos.x, camPos.z, x, z)) continue;   // niente nascite oltre il muro
       if(creatures.some(c => Math.hypot(c.pos.x-x, c.pos.z-z) < P.sep)) continue;
       aggiungi(new THREE.Vector3(x, y, z));
       return true;
@@ -1603,10 +1607,37 @@ function seed(n){
    7. MOTORE DI COLLISIONE E COMPORTAMENTO
    ========================================================================== */
 
+/* Un muro di quindici centimetri sta comodamente fra due campioni distanti
+   venticinque: campionare fitto e' l'unico modo per non attraversarlo. */
+function tragittoLibero(ax, az, bx, bz, liv, pad){
+  const dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz);
+  if(len < 1e-4) return true;
+  const passi = Math.max(2, Math.ceil(len / .08));
+  for(let i = 1; i <= passi; i++){
+    const t = i/passi;
+    if(blockerAt(ax + dx*t, az + dz*t, liv, pad)) return false;
+  }
+  return true;
+}
+
+const percorsoLibero = (c, da, a) =>
+  tragittoLibero(da.x, da.z, a.x, a.z, Math.max(da.y, a.y) + (c.hover||0), c.raggio*.3);
+
+/* Un punto e' buono solo se ci si arriva. Controllare che sia vuoto non basta:
+   anche l'altra stanza e' vuota, e la creatura ci finiva teletrasportata
+   attraverso il muro. La verifica corre a un metro d'altezza, cosi' i mobili
+   non sbarrano la strada ma le pareti si. */
+const raggiungibile = (ox, oz, x, z) =>
+  tragittoLibero(ox, oz, x, z, WORLD.floorY + 1.0, .10);
+
 function startJump(c, to, arc){
+  /* Se la traiettoria attraversa un solido, il salto non si fa: meglio una
+     creatura che rinuncia di una che passa dentro il muro. */
+  if(!percorsoLibero(c, c.pos, to)){ direzioneLibera(c); return false; }
   c.jump = {from:c.pos.clone(), to:to.clone(), u:0,
             dur: Math.max(.36, c.pos.distanceTo(to)*.42), arc: arc};
   c.stato = 'salto';
+  return true;
 }
 
 /* Punto di atterraggio sopra l'ostacolo: entro dal bordo e avanzo quanto basta
@@ -1615,7 +1646,7 @@ function landingOnTop(c, ob, from, dir){
   const top = WORLD.floorY + ob.top;
   const step = c.raggio + .18;
   let best = null;
-  for(let d = step; d <= (ob.hw + ob.hd) * 2 + step; d += .12){
+  for(let d = step; d <= (ob.hw + ob.hd) * 2 + step; d += .08){
     const x = from.x + dir.x*d, z = from.z + dir.z*d;
     if(inFoot(ob, x, z, -Math.min(step, Math.min(ob.hw, ob.hd)*.6))){
       best = new THREE.Vector3(x, top, z); break;
@@ -1628,7 +1659,7 @@ function landingOnTop(c, ob, from, dir){
 /* Dall'alto di un mobile al pavimento di la': proseguo lungo la direzione
    finche' esco dal footprint, poi ancora un po'. E' il "salta dall'altra parte". */
 function landingBeyond(c, from, dir, fromY){
-  for(let d = .2; d <= 3.2; d += .14){
+  for(let d = .16; d <= 3.2; d += .09){
     const x = from.x + dir.x*d, z = from.z + dir.z*d;
     const y = surfaceAt(x, z, Infinity);
     if(y < fromY - STEP_UP && !blockerAt(x, z, y, c.raggio*.5)){
@@ -1656,8 +1687,13 @@ function pushOut(c, ob){
   c.pos.z = ob.cz + (-lx*sa + lz*ca);
   c.standY = surfaceAt(c.pos.x, c.pos.z, Infinity);
   c.pos.y = c.standY;
-  /* Solo se l'ha davvero spostata: azzerare stato e destinazione a ogni
-     fotogramma la inchiodava sul posto, immobile per sempre. */
+  /* Se l'uscita calcolata e' comunque occupata, torna all'ultimo punto in cui
+     stava legittimamente: e' la rete che impedisce di finire fuori dai muri. */
+  if(blockerAt(c.pos.x, c.pos.z, c.standY + (c.hover||0), c.raggio*.4) && c.ultimoValido){
+    c.pos.copy(c.ultimoValido);
+    c.standY = surfaceAt(c.pos.x, c.pos.z, Infinity);
+    c.pos.y = c.standY;
+  }
   if(c.pos.distanceTo(prima) > .01){
     c.meta = null; c.stato = 'ferma'; c.t = .4 + Math.random();
   }
@@ -1673,6 +1709,51 @@ function unstick(c){
     pushOut(c, ob);
   }
   return true;
+}
+
+/* Un ostacolo deve fermarle, non deviarle. Se lo avvistano si bloccano e lo
+   guardano; se ci arrivano addosso rinculano. In entrambi i casi ripartono
+   solo dopo una pausa, verso una direzione scelta perche' e' libera. */
+const saltabile = (ob, c) => ob.walkable &&
+  (WORLD.floorY + ob.top) - c.standY > 0 &&
+  (WORLD.floorY + ob.top) - c.standY <= JUMP_MAX * c.agile &&
+  Math.min(ob.hw, ob.hd) > c.raggio * .9;
+
+function avvista(c, ob){
+  c.stato = 'avvista';
+  c.reagisceTot = c.reagisce = .5 + Math.random()*.7;
+  c.meta = null;
+  c.guarda = new THREE.Vector3(ob.cx, c.pos.y, ob.cz);
+}
+
+function impatta(c, ob){
+  c.stato = 'urto';
+  c.reagisceTot = c.reagisce = .8 + Math.random()*.6;
+  c.meta = null;
+  c.impulso = Math.max(c.impulso, .85);
+  c.guarda = new THREE.Vector3(ob.cx, c.pos.y, ob.cz);
+}
+
+/* Fra otto direzioni sceglie quella con piu' strada libera davanti, cosi'
+   dopo la sosta non riparte contro lo stesso muro. */
+function direzioneLibera(c){
+  const livello = c.standY + (c.hover || 0);
+  let best = null, bestD = -1;
+  const base = Math.atan2(c.dir.x, c.dir.z);
+  for(let i=1;i<=8;i++){
+    const a = base + Math.PI*2*(i/8) + (Math.random()-.5)*.28;
+    const dx = Math.sin(a), dz = Math.cos(a);
+    let libero = 0;
+    for(let d = .25; d <= 2.4; d += .12){
+      if(blockerAt(c.pos.x+dx*d, c.pos.z+dz*d, livello, c.raggio*.6)) break;
+      libero = d;
+    }
+    if(libero > bestD){ bestD = libero; best = {dx, dz}; }
+  }
+  if(best && bestD > .3){
+    c.dir.set(best.dx, 0, best.dz).normalize();
+    c.meta = c.pos.clone().addScaledVector(c.dir, Math.max(.6, bestD*.85));
+  } else newWanderTarget(c);
 }
 
 function turnAway(c){
@@ -1713,17 +1794,23 @@ function stepMove(c, dt){
   const adv = c.vel * dt;
   const nx = c.pos.x + d.x*adv, nz = c.pos.z + d.z*adv;
 
-  /* Un volatile non salta il divano: ci passa sopra. La quota di volo entra
-     nel test come se fosse altezza del suolo. */
-  const ob = blockerAt(nx, nz, c.standY + (c.hover || 0), c.raggio*.55);
+  const livello = c.standY + (c.hover || 0);
+
+  /* Sonda in avanti: se c'e' un muro poco piu' in la' si ferma prima di
+     toccarlo, invece di curvare come se non ci fosse. */
+  const davanti = blockerAt(c.pos.x + d.x*(c.raggio + SONDA),
+                            c.pos.z + d.z*(c.raggio + SONDA), livello, c.raggio*.35);
+  if(davanti && !saltabile(davanti, c)){ avvista(c, davanti); return null; }
+
+  /* Un volatile non salta il divano: ci passa sopra. */
+  const ob = blockerAt(nx, nz, livello, c.raggio*.55);
   if(ob){
-    const rise = (WORLD.floorY + ob.top) - c.standY;
-    if(ob.walkable && rise > 0 && rise <= JUMP_MAX * c.agile &&
-       Math.min(ob.hw, ob.hd) > c.raggio * .9){
+    if(saltabile(ob, c)){
+      const rise = (WORLD.floorY + ob.top) - c.standY;
       startJump(c, landingOnTop(c, ob, c.pos, d), Math.max(.22, rise*.55));
       return d;
     }
-    turnAway(c);                       // troppo alto o e' un muro: lo aggiro
+    impatta(c, ob);                    // ci e' arrivata addosso davvero
     return null;
   }
 
@@ -1762,6 +1849,25 @@ function updateCreature(c, dt, camPos){
   c.fase += dt;
 
   if(c.stato === 'salto'){ updateJump(c, dt); }
+  else if(c.stato === 'urto' || c.stato === 'avvista'){
+    c.reagisce -= dt;
+    /* Rinculo nei primi due decimi: si stacca dal muro invece di restarci
+       appoggiata contro. */
+    if(c.stato === 'urto' && c.reagisce > c.reagisceTot - .22){
+      const k = dt * 1.1;
+      const nx = c.pos.x - c.dir.x*k, nz = c.pos.z - c.dir.z*k;
+      if(!blockerAt(nx, nz, c.standY + (c.hover||0), c.raggio*.5)){
+        c.pos.x = nx; c.pos.z = nz;
+        const t = surfaceAt(nx, nz, Infinity);
+        if(Math.abs(t - c.standY) < .3){ c.standY = t; c.pos.y = t; }
+      }
+    }
+    if(c.reagisce <= 0){
+      direzioneLibera(c);
+      c.stato = 'vaga';
+      c.t = 2 + Math.random()*3;
+    }
+  }
   else {
     c.t -= dt;
     if(c.t <= 0){
@@ -1777,7 +1883,7 @@ function updateCreature(c, dt, camPos){
        riagganciavano subito dopo essersi lasciate, e restavano ferme a
        guardarsi per sempre. Era la causa delle creature statiche. */
     if(c.socialOff > 0) c.socialOff -= dt;
-    if(c.stato !== 'sociale' && c.socialOff <= 0){
+    if(c.stato !== 'sociale' && c.stato !== 'urto' && c.stato !== 'avvista' && c.socialOff <= 0){
       for(const o of creatures){
         if(o === c || o.stato === 'salto' || o.socialOff > 0) continue;
         if(Math.abs(o.standY - c.standY) < .3 &&
@@ -1832,6 +1938,11 @@ function updateCreature(c, dt, camPos){
   if(c.stato==='sociale' && c.socialCon) c.guarda = c.socialCon.pos;
   else if(c.stato==='ferma' && c.pos.distanceTo(camPos) < 4.5) c.guarda = camPos;
   else if(c.stato==='salto') c.guarda = null;
+
+  /* Ogni fotogramma in cui non e' dentro niente, questa posizione diventa il
+     punto di ritorno sicuro. */
+  if(c.stato !== 'salto' && !blockerAt(c.pos.x, c.pos.z, c.standY + (c.hover||0), c.raggio*.4))
+    c.ultimoValido.copy(c.pos);
 
   c.root.position.copy(c.pos);
 
@@ -1912,7 +2023,11 @@ function animate(c, dt){
 
     } else {
       bob = Math.sin(c.fase*1.9)*s.scala*.06;
-      if(P.zampe) P.zampe.forEach(z => { z.rotation.x += (0 - z.rotation.x)*Math.min(1, dt*5); });
+      /* Dopo un urto si tira indietro; avvistando, si irrigidisce in avanti. */
+      if(c.stato === 'urto')    pitch = .22 * Math.max(0, c.reagisce/(c.reagisceTot||1));
+      if(c.stato === 'avvista') pitch = -.10;
+      const rZ = c.stato === 'urto' ? .35 : 0;
+      if(P.zampe) P.zampe.forEach(z => { z.rotation.x += (rZ - z.rotation.x)*Math.min(1, dt*7); });
     }
 
     /* Ali: battito veloce in volo, lento da fermi, quasi chiuse a terra. */
@@ -2032,7 +2147,8 @@ function updateTape(){
   if(near){
     els.tName.textContent = near.nome;
     const st = {ferma:'in attesa', vaga:'in movimento', sociale:'contatto sociale',
-                salto:'in volo'}[near.stato];
+                salto:'in volo', avvista:'ostacolo in vista', urto:'ha urtato'}[near.stato]
+               || near.stato;
     const quota = near.standY > WORLD.floorY + .1
       ? ' &middot; su un rialzo' : '';
     els.tMeta.innerHTML = nearD.toFixed(1) + ' m &middot; ' + st + quota +
@@ -2313,7 +2429,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v22';
+const BUILD = 'v25';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
