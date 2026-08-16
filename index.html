@@ -1086,11 +1086,59 @@ function syncPlanes(frame, dt){
    ========================================================================== */
 const DEPTH = {attiva:false, uso:null, w:0, h:0, letture:0, errori:0,
                flipY:false, margine:.25, campioni:0, occluse:0,
-               accesa:true, minDist:1.5, centro:0, scarti:0};
+               accesa:true, minDist:1.5, centro:0, scarti:0,
+               tarata:false, votiA:0, votiB:0, provini:0};
 const MIN_VALIDI = 4;      // sotto questa soglia la lettura non decide nulla
 const SOGLIA_OCC = 4;      // punti coperti su 5 perche' sparisca davvero
 
-const _dp = new THREE.Vector3();
+const _dp = new THREE.Vector3(), _dr = new THREE.Vector3();
+
+/* Taratura dell'asse verticale della profondita'.
+   La specifica non dice se l'origine sia in alto o in basso, e sbagliarla
+   significa leggere il pavimento sotto i piedi al posto della creatura
+   lontana: sparisce appena la inquadri bene. Il pavimento e' l'unica cosa di
+   cui conosco la geometria, quindi lo uso come metro: proietto alcuni punti
+   dello schermo sul piano del pavimento, calcolo quanto dovrebbero distare, e
+   confronto le due convenzioni. Vince quella che ci azzecca. */
+const PROVINI = [[.5,.78],[.34,.70],[.66,.70],[.5,.66],[.42,.82],[.58,.82]];
+
+function taraProfondita(info, cam, camPos){
+  if(DEPTH.tarata) return;
+  for(const [nx, ny] of PROVINI){
+    _dr.set(nx*2-1, 1-ny*2, .5).unproject(cam).sub(camPos);
+    if(_dr.lengthSq() < 1e-6) continue;
+    _dr.normalize();
+    if(_dr.y > -.15) continue;                       // punta troppo in alto
+    const t = (WORLD.floorY - camPos.y) / _dr.y;
+    if(!(t > .4 && t < 7)) continue;                 // fuori portata utile
+    let a, b;
+    try { a = info.getDepthInMeters(nx, ny); b = info.getDepthInMeters(nx, 1-ny); }
+    catch(e){ continue; }
+    const buono = v => v > .3 && v < 20 && Math.abs(v - t) < .45;
+    if(buono(a)) DEPTH.votiA++;
+    if(buono(b)) DEPTH.votiB++;
+    DEPTH.provini++;
+  }
+  if(DEPTH.provini >= 60){
+    const A = DEPTH.votiA, B = DEPTH.votiB;
+    if(Math.max(A,B) >= 12 && Math.abs(A-B) >= Math.max(4, Math.max(A,B)*.25)){
+      DEPTH.flipY = B > A;
+      DEPTH.tarata = true;
+      els.optFlip.checked = DEPTH.flipY;
+      ev('asse profondita tarato: ' + (DEPTH.flipY ? 'invertito' : 'normale') +
+         ' (' + A + ' contro ' + B + ')');
+    } else if(DEPTH.provini >= 400){
+      /* Nessuna delle due convenzioni combacia col pavimento: la profondita'
+         non e' attendibile qui. Meglio spegnerla che far sparire le creature. */
+      DEPTH.accesa = false; DEPTH.tarata = true;
+      els.optOcc.checked = false;
+      ev('profondita incoerente col pavimento: occlusione spenta');
+      window.__fatal('occlusione disattivata',
+        'le letture di profondita non corrispondono al pavimento noto (' +
+        A + '/' + B + ' su ' + DEPTH.provini + '): meglio spegnerla che far sparire le creature');
+    }
+  }
+}
 
 /* Piu' punti sulla sagoma, non solo il centro: cosi' una creatura per meta'
    dietro al bracciolo sfuma invece di sparire di colpo. */
@@ -1112,6 +1160,8 @@ function occlusione(frame, camPos){
   }
   if(!info) return;
   DEPTH.letture++; DEPTH.w = info.width; DEPTH.h = info.height;
+  taraProfondita(info, cam, camPos);
+  if(!DEPTH.tarata) return;          // finche' non e' tarata non nasconde nulla
 
   let occl = 0, camp = 0;
   /* Lettura di controllo al centro dello schermo: serve a te e a me per
@@ -1125,11 +1175,15 @@ function occlusione(frame, camPos){
     const dist = c.pos.distanceTo(camPos);
     /* Sotto il metro e mezzo ARCore restituisce valori inaffidabili: era
        questo a dissolvere una creatura che stava in primo piano. */
-    if(dist > 9 || dist < DEPTH.minDist){ applicaVisibilita(c, 1); continue; }
+    if(dist > 9 || dist < DEPTH.minDist){
+      c.visObiettivo = 1; c.occStreak = 0;
+      applicaVisibilita(c, 1); continue;
+    }
     const raggio = Math.max(.18, c.raggio);
     const alt = c.kind === 'sprite' ? c.asset.altezza * (c.taglia||1)
                                     : c.spec.scala * 2 * (c.taglia||1);
 
+    if(c.occStreak === undefined){ c.occStreak = 0; c.libStreak = 0; }
     let dietro = 0, validi = 0;
     for(const [ox, oy] of SAGOMA){
       _dp.set(c.pos.x + ox*raggio, c.pos.y + (c.hover||0) + alt*.5 + oy*alt, c.pos.z);
@@ -1146,14 +1200,19 @@ function occlusione(frame, camPos){
       if(reale + DEPTH.margine < d) dietro++;
     }
     camp += validi;
-    /* Con pochi campioni buoni la misura non e' attendibile: in dubbio si
-       mostra. Meglio una creatura di troppo che una che svanisce a caso. */
-    if(validi < MIN_VALIDI){ applicaVisibilita(c, 1); continue; }
-    /* Netta, non sfumata: la trasparenza parziale si legge come un errore
-       grafico, non come "sta dietro qualcosa". O c'e' o non c'e'. */
+    /* Con pochi campioni buoni si tiene la decisione precedente invece di
+       forzare la comparsa: era questo a far apparire la creatura al bordo
+       dello schermo e sparire appena la centravi. */
+    if(validi < MIN_VALIDI){ applicaVisibilita(c, c.visObiettivo === undefined ? 1 : c.visObiettivo); continue; }
+    /* Netta, non sfumata, e con isteresi: servono tre letture d'accordo per
+       nascondere e due per rimostrare. Una lettura sporca non basta piu' a
+       far lampeggiare una creatura. */
     const coperta = dietro >= SOGLIA_OCC;
-    if(coperta) occl++;
-    applicaVisibilita(c, coperta ? 0 : 1);
+    if(coperta){ c.occStreak++; c.libStreak = 0; } else { c.libStreak++; c.occStreak = 0; }
+    if(c.occStreak >= 3) c.visObiettivo = 0;
+    else if(c.libStreak >= 2) c.visObiettivo = 1;
+    if(c.visObiettivo === 0) occl++;
+    applicaVisibilita(c, c.visObiettivo === undefined ? 1 : c.visObiettivo);
   }
   DEPTH.campioni = camp; DEPTH.occluse = occl;
 }
@@ -1508,24 +1567,19 @@ let spawnClock = 0;
 
 const settoreDi = az => ((Math.floor(((az + Math.PI) / (Math.PI*2)) * SETTORI) % SETTORI) + SETTORI) % SETTORI;
 
-function nasce(camPos, camQ){
+/* Un punto dove far comparire una creatura: preferibilmente fuori dal campo
+   visivo, a distanza ragionevole, non addosso alle altre e raggiungibile. */
+function puntoNuovo(camPos, camQ, sepBase){
   const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(camQ);
-  const azCam = Math.atan2(fwd.x, -fwd.z);
-  const mio = settoreDi(azCam);
-
-  /* Preferisco far comparire le creature fuori dal campo visivo: vederle
-     materializzarsi davanti agli occhi rompe l'illusione. */
+  const mio = settoreDi(Math.atan2(fwd.x, -fwd.z));
   const buoni = [...esplorati].filter(sx => {
     let d = Math.abs(sx - mio); if(d > SETTORI/2) d = SETTORI - d;
     return d >= 3;
   });
   const pool = buoni.length ? buoni : [...esplorati];
-  if(!pool.length) return false;
-
-  /* Due passate: la seconda accetta distanze piu' corte e meno spazio fra le
-     creature. In una stanza piccola e piena di mobili la prima puo' fallire
-     sempre, e il risultato sarebbe una scena che non si popola mai. */
-  const passate = [{dMin:1.3, dVar:2.7, sep:1.0}, {dMin:0.9, dVar:1.6, sep:0.6}];
+  if(!pool.length) return null;
+  const sep = sepBase || 1.0;
+  const passate = [{dMin:1.3, dVar:2.7, sep:sep}, {dMin:0.9, dVar:1.6, sep:sep*.6}];
   for(const P of passate){
     for(let tent = 0; tent < 14; tent++){
       const sx  = pool[Math.floor(Math.random()*pool.length)];
@@ -1535,14 +1589,19 @@ function nasce(camPos, camQ){
       const z = camPos.z - Math.cos(ang)*dist;
       const y = surfaceAt(x, z, Infinity);
       if(blockerAt(x, z, y, .15)) continue;
-      if(!raggiungibile(camPos.x, camPos.z, x, z)) continue;   // niente nascite oltre il muro
+      if(!raggiungibile(camPos.x, camPos.z, x, z)) continue;
       if(creatures.some(c => Math.hypot(c.pos.x-x, c.pos.z-z) < P.sep)) continue;
-      aggiungi(new THREE.Vector3(x, y, z));
-      return true;
+      return new THREE.Vector3(x, y, z);
     }
   }
-  DEPTH.scarti += 0;
-  return false;
+  return null;
+}
+
+function nasce(camPos, camQ){
+  const q = puntoNuovo(camPos, camQ);
+  if(!q) return false;
+  aggiungi(q);
+  return true;
 }
 
 function aggiungi(pos){
@@ -1560,27 +1619,54 @@ function aggiungi(pos){
   return c;
 }
 
+/* Celle di due metri: contano il terreno percorso, non solo quello guardato.
+   Girandosi in salotto cresce l'esplorazione angolare; camminando per strada
+   cresce questa. Senza, un viale dritto vale un solo settore e la scena
+   resta vuota per chilometri. */
+const CELLA = 2.0;
+const celle = new Set();
+const cellaDi = p => Math.round(p.x/CELLA) + ',' + Math.round(p.z/CELLA);
+
 function popolazioneObiettivo(){
-  /* Cresce con la porzione di ambiente che hai davvero guardato, e si ferma:
-     un salotto non puo' contenerne trenta senza sembrare un formicaio. */
-  return Math.min(WORLD.count, Math.round(2 + esplorati.size * 0.62));
+  const percorse = Math.min(celle.size - 1, 24);
+  return Math.min(WORLD.count, Math.round(2 + esplorati.size*0.62 + percorse*0.9));
 }
+
+const RAGGIO_VIVO = 9;      // oltre questo non le vedresti comunque
 
 function updatePopulation(dt, camPos, camQ){
   const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(camQ);
   const sx = settoreDi(Math.atan2(fwd.x, -fwd.z));
-  if(!esplorati.has(sx)){
-    esplorati.add(sx);
-    if(esplorati.size % 6 === 0) ev('esplorato ' + Math.round(esplorati.size/SETTORI*100) + '% intorno');
+  if(!esplorati.has(sx)) esplorati.add(sx);
+  const cella = cellaDi(camPos);
+  if(!celle.has(cella)){
+    celle.add(cella);
+    if(celle.size % 5 === 0) ev('percorse ' + celle.size + ' celle · obiettivo ' + popolazioneObiettivo());
   }
+
   spawnClock -= dt;
   if(spawnClock > 0) return;
   spawnClock = .55;
+
+  /* Chi resta troppo indietro viene richiamato davanti: camminando, altrimenti,
+     la popolazione ti rimane alle spalle e ti trovi il deserto davanti. */
+  for(const c of creatures){
+    if(c.stato === 'salto') continue;
+    if(Math.hypot(c.pos.x - camPos.x, c.pos.z - camPos.z) < RAGGIO_VIVO) continue;
+    const q = puntoNuovo(camPos, camQ, 1.0);
+    if(!q) break;
+    c.pos.copy(q); c.standY = q.y; c.pos.y = q.y;
+    c.ultimoValido.copy(q); c.ancora.copy(q); c.fermaDa = 0;
+    c.jump = null; c.stato = 'vaga'; c.socialCon = null;
+    newWanderTarget(c); c.t = 2 + Math.random()*3;
+    break;                              // una per volta, senza scatti
+  }
+
   if(creatures.length < popolazioneObiettivo()) nasce(camPos, camQ);
 }
 
 function seed(n){
-  esplorati.clear();
+  esplorati.clear(); celle.clear();
   n = (n !== undefined) ? n : 2;
   creatures.forEach(c => scene.remove(c.root));
   creatures = [];
@@ -2333,12 +2419,15 @@ function updateDiag(){
     'profondita   <b>' + (DEPTH.attiva ? DEPTH.w + 'x' + DEPTH.h : 'non attiva') + '</b>' +
       (DEPTH.accesa ? '' : ' (spenta)') +
       (DEPTH.errori ? '  ' + flag(DEPTH.errori + ' errori') : '') + '\n' +
+    'asse         <b>' + (DEPTH.tarata ? (DEPTH.flipY ? 'invertito' : 'normale') : 'in taratura')
+      + '</b> · voti ' + DEPTH.votiA + '/' + DEPTH.votiB + ' su ' + DEPTH.provini + '\n' +
     'lettura al centro <b>' + (DEPTH.centro ? DEPTH.centro.toFixed(2) + ' m' : 'nessuna') + '</b>  ' +
       flag(DEPTH.attiva && !DEPTH.centro ? 'NESSUN DATO' : '') + '\n' +
     'campioni     <b>' + DEPTH.campioni + '</b> validi · <b>' + DEPTH.occluse + '</b> occluse · ' +
       DEPTH.scarti + ' scartati\n' +
     'creature     <b>' + creatures.length + ' / ' + popolazioneObiettivo() + '</b> (tetto ' + WORLD.count + ')\n' +
-    'esplorato    <b>' + Math.round(esplorati.size/SETTORI*100) + '%</b> intorno a te\n' +
+    'esplorato    <b>' + Math.round(esplorati.size/SETTORI*100) + '%</b> intorno · <b>' +
+      celle.size + '</b> celle percorse\n' +
     'ostacoli     <b>' + WORLD.obstacles.length + '</b>\n' +
     'orientamento <b>' + (orientEnabled ? 'attivo' : 'assente') + '</b>' +
       (devOrient ? ' α' + Math.round(devOrient.alpha||0) + ' β' + Math.round(devOrient.beta||0) : '') + '\n' +
@@ -2406,7 +2495,8 @@ function initSheet(){
   });
   els.optFlip.addEventListener('change', () => {
     DEPTH.flipY = els.optFlip.checked;
-    ev('asse profondita ' + (DEPTH.flipY ? 'invertito' : 'normale'));
+    DEPTH.tarata = true;                    // scelta manuale: basta tarature
+    ev('asse profondita forzato a mano: ' + (DEPTH.flipY ? 'invertito' : 'normale'));
   });
   els.optWire.addEventListener('change', () => {
     WORLD.wire = els.optWire.checked; applyWire();
@@ -2429,7 +2519,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v25';
+const BUILD = 'v27';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
