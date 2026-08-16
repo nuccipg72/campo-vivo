@@ -915,12 +915,13 @@ const UNIT_BOX   = new THREE.BoxGeometry(1, 1, 1);
 const UNIT_EDGES = new THREE.EdgesGeometry(UNIT_BOX);
 const MAX_OBSTACLES = 48;
 
-function makeObstacle(cx, cz, hw, hd, rotY, top, label, src){
+function makeObstacle(cx, cz, hw, hd, rotY, top, label, src, base){
   if(WORLD.obstacles.length >= MAX_OBSTACLES) return null;
   const ob = {
     id:'o'+Math.random().toString(36).slice(2,7),
     cx, cz, hw:Math.max(.05,hw), hd:Math.max(.05,hd), rotY,
-    top, label: label || 'ostacolo', src: src || 'manuale',
+    top, base: (base === undefined ? 0 : base),
+    label: label || 'ostacolo', src: src || 'manuale',
     /* Calpestabile solo se e' basso E abbastanza largo: ARCore rileva anche
        mensole e bordi di 20 cm, e appollaiarcisi sopra sembra un errore. */
     /* 85 cm: ci stanno divano, pouf, tavolino. Restano fuori schienali,
@@ -940,14 +941,28 @@ function makeObstacle(cx, cz, hw, hd, rotY, top, label, src){
   return ob;
 }
 
-/* Aggiorna solo posizione, scala e rotazione: nessuna riallocazione. */
+/* Il volume di COLLISIONE va dal pavimento alla quota del piano: serve a
+   impedire il passaggio. L'OCCLUSORE invece deve somigliare alla superficie
+   vera, non a un blocco pieno inventato: un ripiano a un metro e mezzo non e'
+   un muro che parte da terra, e usarlo come tale ritagliava le creature dietro
+   lungo linee dritte. Da qui in poi occlude solo la lastra effettiva. */
+const SPESS_OCC = .16;
+
 function placeObstacle(ob){
-  const y = WORLD.floorY + ob.top/2;
-  ob.occ.position.set(ob.cx, y, ob.cz);
-  ob.occ.scale.set(ob.hw*2, Math.max(.02, ob.top), ob.hd*2);
+  const base = WORLD.floorY + (ob.base || 0);
+  const cima = WORLD.floorY + ob.top;
+  /* Solo i PIANI orizzontali rilevati diventano lastre sottili: sono
+     superfici, non blocchi. Pareti e volumi marcati a mano occludono per
+     tutta la loro estensione, perche' sono corpi pieni davvero. */
+  const spess = ob.lastra ? Math.max(.03, Math.min(cima - base, SPESS_OCC))
+                          : Math.max(.03, cima - base);
+  ob.occ.position.set(ob.cx, cima - spess/2, ob.cz);
+  ob.occ.scale.set(ob.hw*2, spess, ob.hd*2);
   ob.occ.rotation.y = ob.rotY;
-  ob.wire.position.copy(ob.occ.position);
-  ob.wire.scale.copy(ob.occ.scale);
+  /* Il reticolo continua a mostrare il volume di collisione, cosi' vedi la
+     differenza fra cosa blocca e cosa nasconde. */
+  ob.wire.position.set(ob.cx, WORLD.floorY + ob.top/2, ob.cz);
+  ob.wire.scale.set(ob.hw*2, Math.max(.02, ob.top), ob.hd*2);
   ob.wire.rotation.y = ob.rotY;
 }
 
@@ -1279,7 +1294,7 @@ function syncPlanes(frame, dt){
     }
 
     const vert = plane.orientation === 'vertical';
-    let top;
+    let top, baseV = 0;
     if(vert){
       /* Prima ogni superficie verticale diventava un muro da 2,2 m. Ma lo
          schienale di un divano e' verticale e alto 85 cm: portando i vertici
@@ -1293,6 +1308,7 @@ function syncPlanes(frame, dt){
         if(wy < yMin) yMin = wy;
       }
       top = Math.max(.25, Math.min(2.6, yMax - WORLD.floorY));
+      baseV = Math.max(0, Math.min(top - .1, yMin - WORLD.floorY));
       // il lato lungo del poligono e' la larghezza del muro/schienale
       hw = Math.max(hw, hd);
       hd = .07;
@@ -1330,12 +1346,17 @@ function syncPlanes(frame, dt){
         Math.hypot(o.cx - cx, o.cz - cz) < Math.max(.35, Math.max(hw, hd) * .8));
       if(ob){
         ob.cx = cx; ob.cz = cz; ob.hw = Math.max(.05, hw); ob.hd = Math.max(.05, hd);
-        ob.rotY = rotY; ob.top = top; ob.orfano = false;
+        ob.rotY = rotY; ob.top = top;
+        ob.base = vert ? baseV : Math.max(0, top - SPESS_OCC);
+        ob.lastra = !vert;
+        ob.orfano = false;
         ob.walkable = !vert && top <= .85 && Math.min(ob.hw, ob.hd) >= .28;
         placeObstacle(ob);
       } else {
         ob = makeObstacle(cx, cz, hw, hd, rotY, top,
-          plane.semanticLabel || (vert ? 'parete' : 'piano ' + top.toFixed(2) + ' m'), 'webxr');
+          plane.semanticLabel || (vert ? 'parete' : 'piano ' + top.toFixed(2) + ' m'), 'webxr',
+          vert ? baseV : Math.max(0, top - SPESS_OCC));
+        if(ob) ob.lastra = !vert;
         if(ob && vert) ob.walkable = false;
       }
       seenPlanes.set(plane, {stamp:plane.lastChangedTime, ob});
@@ -3007,7 +3028,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v38';
+const BUILD = 'v40';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
