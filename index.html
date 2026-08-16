@@ -323,7 +323,8 @@
   </div>
   <footer>
     <button id="mapStart">Mappa ambiente</button>
-    <button id="popola" class="key">Popola la scena</button>
+    <button id="mescola">Metti in scena</button>
+    <button id="popola" class="key">Rigenera tutto</button>
   </footer>
 </div>
 
@@ -535,7 +536,7 @@ const els = {};
 ['gate','start','err','feed','ticks','tName','tMeta','reseed','toast','sheet','scrim',
  'openSheet','closeSheet','drop','file','optKey','lib','empty','popola','capText',
  'chipMode','chipGeo','mapbar','mapStep','mapHint','presets','mapUndo','mapExit',
- 'mapStart','crosshair','obs','eyeH','eyeHv','optWire','mapBlurb','chipFps','diag','chip','arAgain','nCre','nCrev','optFlip','optOcc','optTondo','installa','quotaImp','quotaImpv']
+ 'mapStart','crosshair','obs','eyeH','eyeHv','optWire','mapBlurb','chipFps','diag','chip','arAgain','nCre','nCrev','optFlip','optOcc','optTondo','installa','quotaImp','quotaImpv','mescola']
  .forEach(k => els[k] = $(k));
 
 /* ==========================================================================
@@ -551,21 +552,79 @@ function fitCanvas(img){
   return c;
 }
 
-function keyOut(canvas, tol = 46){
+/* Ritaglio dello sfondo. Il metodo precedente confrontava ogni pixel con la
+   media dei quattro angoli e rinunciava se gli angoli differivano: su un fondo
+   sfumato — quasi tutte le illustrazioni — non toglieva nulla, e restava il
+   quadrato. Questo invece parte dai bordi e si espande per contiguita': toglie
+   solo cio' che e' collegato al bordo, quindi non buca il soggetto anche se ha
+   colori simili al fondo, e segue le sfumature perche' il confronto e' con il
+   vicino, non con una media globale. */
+function keyOut(canvas, tol = 58){
   const ctx = canvas.getContext('2d', {willReadFrequently:true});
-  const im = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const d = im.data, w = canvas.width, h = canvas.height;
-  const corner = (x,y) => { const i = (y*w+x)*4; return [d[i], d[i+1], d[i+2], d[i+3]]; };
-  const cs = [corner(0,0), corner(w-1,0), corner(0,h-1), corner(w-1,h-1)];
-  if(cs.every(c => c[3] < 12)) return canvas;
-  const key = [0,1,2].map(k => cs.reduce((s,c) => s + c[k], 0)/4);
-  const spread = Math.max(...cs.map(c => Math.hypot(c[0]-key[0], c[1]-key[1], c[2]-key[2])));
-  if(spread > 70) return canvas;
-  const soft = tol*.42;
-  for(let i=0;i<d.length;i+=4){
-    const dist = Math.hypot(d[i]-key[0], d[i+1]-key[1], d[i+2]-key[2]);
-    if(dist < tol - soft) d[i+3] = 0;
-    else if(dist < tol) d[i+3] = Math.round(d[i+3] * (dist-(tol-soft))/soft);
+  const w = canvas.width, h = canvas.height;
+  const im = ctx.getImageData(0, 0, w, h), d = im.data;
+
+  let opachi = 0;
+  for(let i = 3; i < d.length; i += 4) if(d[i] > 12) opachi++;
+  if(opachi < w*h*.92) return canvas;              // ha gia' la trasparenza sua
+
+  const idx = (x, y) => (y*w + x)*4;
+  const sfondo = new Uint8Array(w*h);
+  const pila = [];
+  const semi = [];
+  const spingi = (x, y) => {
+    const p = y*w + x;
+    if(sfondo[p]) return;
+    sfondo[p] = 1; pila.push(p);
+    const i = idx(x,y); semi.push([d[i], d[i+1], d[i+2]]);
+  };
+  for(let x = 0; x < w; x++){ spingi(x, 0); spingi(x, h-1); }
+  for(let y = 0; y < h; y++){ spingi(0, y); spingi(w-1, y); }
+
+  /* Colore di riferimento: mediana dei bordi, robusta a un angolo diverso. */
+  const canale = k => { const a = semi.map(s => s[k]).sort((p,q)=>p-q); return a[a.length>>1]; };
+  const rif = [canale(0), canale(1), canale(2)];
+  const lontano = (i, c) => Math.hypot(d[i]-c[0], d[i+1]-c[1], d[i+2]-c[2]);
+  const dist3 = (a, c) => Math.hypot(a[0]-c[0], a[1]-c[1], a[2]-c[2]);
+
+  /* Quanto e' sfumato il fondo: la soglia globale si adatta all'immagine
+     invece di essere un numero fisso buono per una sola. */
+  const scarti = semi.map(v => dist3(v, rif)).sort((a,b)=>a-b);
+  const spread = scarti[Math.floor(scarti.length*.92)] || 0;
+  const tolGlob = Math.min(160, Math.max(70, spread*1.5 + 42));
+  if(spread > 120) return canvas;                  // bordi troppo discordi: non e' sfondo
+
+  while(pila.length){
+    const p = pila.pop();
+    const x = p % w, y = (p - x) / w;
+    const qui = idx(x, y);
+    for(const [dx, dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const nx2 = x + dx, ny2 = y + dy;
+      if(nx2 < 0 || ny2 < 0 || nx2 >= w || ny2 >= h) continue;
+      const q = ny2*w + nx2;
+      if(sfondo[q]) continue;
+      const j = idx(nx2, ny2);
+      /* Entrambe le condizioni, non una o l'altra: il passo dev'essere piccolo
+         rispetto al vicino (per seguire le sfumature) MA restare nella
+         famiglia del colore di fondo. Con l'OR il riempimento scendeva lungo
+         la rampa antialiasata del bordo e finiva dentro il soggetto. */
+      if(lontano(j, [d[qui], d[qui+1], d[qui+2]]) < tol*.52 && lontano(j, rif) < tolGlob){
+        sfondo[q] = 1; pila.push(q);
+      }
+    }
+  }
+
+  /* Bordo sfumato: un taglio netto lascia una frangia che in AR si nota. */
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const p = y*w + x;
+    if(!sfondo[p]) continue;
+    let vicinoPieno = 0;
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]]){
+      const nx2 = x+dx, ny2 = y+dy;
+      if(nx2<0||ny2<0||nx2>=w||ny2>=h) continue;
+      if(!sfondo[ny2*w+nx2]) vicinoPieno++;
+    }
+    d[idx(x,y)+3] = vicinoPieno >= 3 ? 110 : (vicinoPieno ? 45 : 0);
   }
   ctx.putImageData(im, 0, 0);
   return canvas;
@@ -588,6 +647,74 @@ function trimAlpha(canvas){
   out.width = pw; out.height = ph;
   out.getContext('2d', {willReadFrequently:true}).drawImage(canvas, x0, y0, pw, ph, 0, 0, pw, ph);
   return out;
+}
+
+/* ==========================================================================
+   ARCHIVIO PERSISTENTE
+   La libreria viveva solo in memoria: uscivi e le immagini sparivano. Ora sta
+   in IndexedDB, sul telefono, e si ricarica da sola all'avvio. Niente rete.
+   ========================================================================== */
+const DB = {nome:'campo-vivo', store:'schede', db:null};
+
+function apriDB(){
+  return new Promise((ok, no) => {
+    if(DB.db) return ok(DB.db);
+    if(!window.indexedDB) return no(new Error('IndexedDB assente'));
+    const r = indexedDB.open(DB.nome, 1);
+    r.onupgradeneeded = () => {
+      if(!r.result.objectStoreNames.contains(DB.store))
+        r.result.createObjectStore(DB.store, {keyPath:'id'});
+    };
+    r.onsuccess = () => { DB.db = r.result; ok(DB.db); };
+    r.onerror = () => no(r.error);
+  });
+}
+
+function scriviScheda(a){
+  return apriDB().then(db => new Promise((ok, no) => {
+    const t = db.transaction(DB.store, 'readwrite');
+    t.objectStore(DB.store).put({id:a.id, nome:a.nome, altezza:a.altezza,
+                                 png:a.canvas.toDataURL('image/png')});
+    t.oncomplete = ok; t.onerror = () => no(t.error);
+  })).catch(e => ev('archivio non scritto: ' + (e && e.name)));
+}
+
+function cancellaScheda(id){
+  return apriDB().then(db => new Promise(ok => {
+    const t = db.transaction(DB.store, 'readwrite');
+    t.objectStore(DB.store).delete(id); t.oncomplete = ok; t.onerror = ok;
+  })).catch(() => {});
+}
+
+async function caricaArchivio(){
+  let righe;
+  try {
+    const db = await apriDB();
+    righe = await new Promise((ok, no) => {
+      const r = db.transaction(DB.store, 'readonly').objectStore(DB.store).getAll();
+      r.onsuccess = () => ok(r.result || []); r.onerror = () => no(r.error);
+    });
+  } catch(e){ ev('archivio non leggibile: ' + (e && e.name)); return; }
+  for(const r of righe){
+    try {
+      const img = await new Promise((ok, no) => {
+        const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = r.png;
+      });
+      const cv = document.createElement('canvas');
+      cv.width = img.width; cv.height = img.height;
+      cv.getContext('2d', {willReadFrequently:true}).drawImage(img, 0, 0);
+      const tex = new THREE.CanvasTexture(cv);
+      tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
+      tex.generateMipmaps = false;
+      library.push({id:r.id, nome:r.nome, canvas:cv, tex, aspect:cv.width/cv.height,
+                    altezza:r.altezza, thumb:r.png});
+    } catch(e){ /* scheda illeggibile: la salto */ }
+  }
+  if(library.length){
+    renderLibrary();
+    ev('archivio: ' + library.length + ' schede ritrovate');
+    toast(library.length + ' schede ritrovate nell\'archivio');
+  }
 }
 
 const prettyName = f =>
@@ -619,6 +746,7 @@ async function ingest(files){
         altezza: 0.6,
         thumb: cv.toDataURL('image/png'),
       });
+      scriviScheda(library[library.length-1]);
     } catch(e){
       toast('immagine illeggibile: ' + f.name.slice(0,18));
     } finally { URL.revokeObjectURL(url); }
@@ -652,8 +780,12 @@ function renderLibrary(){
       label.textContent = a.altezza.toFixed(2);
       creatures.filter(c => c.asset === a).forEach(resizeSprite);
     });
+    slider.addEventListener('change', () => scriviScheda(a));
     card.querySelector('.kill').addEventListener('click', () => {
+      creatures.filter(c => c.asset === a).forEach(c => { scene.remove(c.root); if(c.pip) c.pip.remove(); });
+      creatures = creatures.filter(c => c.asset !== a);
       library = library.filter(x => x !== a);
+      cancellaScheda(a.id);
       renderLibrary();
     });
     els.lib.appendChild(card);
@@ -1081,16 +1213,32 @@ function syncPlanes(frame, dt){
       placeObstacle(ob);
       known.stamp = plane.lastChangedTime;
     } else {
-      const ob = makeObstacle(cx, cz, hw, hd, rotY, top,
-        plane.semanticLabel || (vert ? 'parete' : 'piano ' + top.toFixed(2) + ' m'), 'webxr');
-      if(ob && vert) ob.walkable = false;
+      /* Se un volume orfano sta praticamente li', e' lo stesso mobile
+         ritrovato: lo riaggancio invece di sovrapporne un altro. */
+      let ob = WORLD.obstacles.find(o => o.orfano && o.src === 'webxr' &&
+        Math.abs((WORLD.floorY + o.top) - (WORLD.floorY + top)) < .18 &&
+        Math.hypot(o.cx - cx, o.cz - cz) < Math.max(.35, Math.max(hw, hd) * .8));
+      if(ob){
+        ob.cx = cx; ob.cz = cz; ob.hw = Math.max(.05, hw); ob.hd = Math.max(.05, hd);
+        ob.rotY = rotY; ob.top = top; ob.orfano = false;
+        ob.walkable = !vert && top <= .85 && Math.min(ob.hw, ob.hd) >= .28;
+        placeObstacle(ob);
+      } else {
+        ob = makeObstacle(cx, cz, hw, hd, rotY, top,
+          plane.semanticLabel || (vert ? 'parete' : 'piano ' + top.toFixed(2) + ' m'), 'webxr');
+        if(ob && vert) ob.walkable = false;
+      }
       seenPlanes.set(plane, {stamp:plane.lastChangedTime, ob});
     }
   });
 
+  /* Quando ARCore perde di vista un piano NON si cancella il volume: il
+     divano non smette di esistere solo perche' hai girato la testa. Resta in
+     memoria come "orfano", e se il piano riappare lo si riaggancia invece di
+     crearne un doppione. Era questa la solidita' a intermittenza. */
   seenPlanes.forEach((v, plane) => {
     if(!live.has(plane)){
-      if(v.ob) dropObstacle(v.ob);
+      if(v.ob) v.ob.orfano = true;
       seenPlanes.delete(plane);
     }
   });
@@ -2607,7 +2755,8 @@ function updateDiag(){
         library.length + ' schede' : '') + '\n' +
     'esplorato    <b>' + Math.round(esplorati.size/SETTORI*100) + '%</b> intorno · <b>' +
       celle.size + '</b> celle percorse\n' +
-    'ostacoli     <b>' + WORLD.obstacles.length + '</b>\n' +
+    'ostacoli     <b>' + WORLD.obstacles.length + '</b> · ' +
+      WORLD.obstacles.filter(o=>o.orfano).length + ' a memoria\n' +
     'orientamento <b>' + (orientEnabled ? 'attivo' : 'assente') + '</b>' +
       (devOrient ? ' α' + Math.round(devOrient.alpha||0) + ' β' + Math.round(devOrient.beta||0) : '') + '\n' +
     'memoria js   <b>' + mem + '</b>\n' +
@@ -2640,6 +2789,26 @@ function initSheet(){
   els.closeSheet.addEventListener('click', shut);
   els.scrim.addEventListener('click', shut);
   els.popola.addEventListener('click', () => { seed(); shut(); });
+  els.mescola.addEventListener('click', () => {
+    /* Rimpiazza qualche creatura procedurale con le tue schede, senza
+       azzerare la scena. */
+    let messe = 0;
+    for(let i = creatures.length-1; i >= 0 && messe < 6; i--){
+      const c = creatures[i];
+      if(c.kind !== 'mesh') continue;
+      const pos = c.pos.clone();
+      scene.remove(c.root); if(c.pip) c.pip.remove();
+      creatures.splice(i,1);
+      const nuovo = makeSprite(library[Math.floor(Math.random()*library.length)], pos);
+      nuovo.pos.copy(pos); nuovo.standY = pos.y; nuovo.ultimoValido.copy(pos);
+      const pip = document.createElement('div'); pip.className='pip';
+      pip.innerHTML='<i></i><b></b>'; pip.querySelector('b').textContent = nuovo.nome;
+      els.ticks.parentNode.appendChild(pip); nuovo.pip = pip;
+      creatures.push(nuovo); messe++;
+    }
+    toast(messe ? messe + ' schede messe in scena' : 'nessuna scheda da mettere');
+    shut();
+  });
   els.mapStart.addEventListener('click', () => { shut(); mapEnter(); });
 
   els.file.addEventListener('change', e => { ingest(e.target.files); e.target.value = ''; });
@@ -2704,7 +2873,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v33';
+const BUILD = 'v35';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
@@ -2982,6 +3151,7 @@ setInterval(() => {
 
 initScene(); initDrag(); initTap(); initSheet(); initMapUI();
 buildTicks(); renderLibrary(); renderObstacleList(); initPWA(); announce();
+caricaArchivio();
 renderer.setAnimationLoop(loop);
 els.installa.addEventListener('click', async () => {
   const p = window.__installa;
