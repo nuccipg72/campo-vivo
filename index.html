@@ -2,9 +2,34 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
+<script>
+/* Scavalco automatico della cache. Se l'indirizzo non porta gia' un marcatore
+   univoco, la pagina si ricarica una volta sola aggiungendolo: per il browser
+   diventa un URL mai visto, quindi lo riscarica per forza. Da qui in avanti
+   niente piu' ?v= a mano ne' finestre in incognito.
+   Il guard su sessionStorage impedisce il ciclo infinito se qualcosa lungo la
+   strada dovesse ripulire la query. */
+(function(){
+  try{
+    var k = 'cv-bust';
+    if(/[?&]t=/.test(location.search)){ sessionStorage.removeItem(k); return; }
+    if(sessionStorage.getItem(k)) return;
+    sessionStorage.setItem(k, '1');
+    location.replace(location.pathname + '?t=' + Date.now() + location.hash);
+  }catch(e){}
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Campo Vivo — rilevatore di fauna</title>
 <meta name="theme-color" content="#0C1116">
+<!-- Chiedono al browser di non conservare la pagina. Non e' garantito
+     (dipende anche dagli header del server) ma riduce le versioni fantasma. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAADD0lEQVR4nO3asU1cQRRA0cVyiAMSROIG3IMroQGXRANUQg80QOKcAnBkWSLxLvz9M7P3nJhgEHPfG31xdX1z+3aAqC+jDwAjCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEMNjrw93oI6QJgDQBDPR3+tsC4wiANAGQJoBB3j97PIPGEABpAhjAtJ+HACYijP0JgDQB7Ox/U94W2JcASBMAaQLY0bHPG8+g/QiANAHsxFSfkwAmJZh9CIA0AezANJ+XACYmnPObPoCX56f7l+en+9Hn4HQr/O2mD2B1pvjcBDA5AZ2XAM7I5Z2fABYgpPMRAGkCeGerLxczTu0VvsrsTQCLmDGoSyAA0gRwBqb1OgSwEGFtTwCkCWBjpvRaBLAYgW1LABtyOdcjANIEsCCbZjsC2IhLuSYBkCaARdk42xDABlzGdQlgYcL7PAF8kku4NgGQ9nX0AWbz/cfPx9FnOMXrw93h26/fR/3sar/bHmyAT/D8WZ8ASBPABbCJPk4AH+TSXQYBkHZ1fXP7NvoQq5l1+h/7NYh/bADSBECaAE406/PncJj7bLMSAGkCuDC2wGkEcAKX6/IIgDQBHGml6b/SWUcTAGkCIE0AR1jxSbHimUcQAGn+GY40G4A0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANL+AG5daoFLAiV5AAAAAElFTkSuQmCC">
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAYAAABS3GwHAAADD0lEQVR4nO3asU1cQRRA0cVyiAMSROIG3IMroQGXRANUQg80QOKcAnBkWSLxLvz9M7P3nJhgEHPfG31xdX1z+3aAqC+jDwAjCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEMNjrw93oI6QJgDQBDPR3+tsC4wiANAGQJoBB3j97PIPGEABpAhjAtJ+HACYijP0JgDQB7Ox/U94W2JcASBMAaQLY0bHPG8+g/QiANAHsxFSfkwAmJZh9CIA0AezANJ+XACYmnPObPoCX56f7l+en+9Hn4HQr/O2mD2B1pvjcBDA5AZ2XAM7I5Z2fABYgpPMRAGkCeGerLxczTu0VvsrsTQCLmDGoSyAA0gRwBqb1OgSwEGFtTwCkCWBjpvRaBLAYgW1LABtyOdcjANIEsCCbZjsC2IhLuSYBkCaARdk42xDABlzGdQlgYcL7PAF8kku4NgGQ9nX0AWbz/cfPx9FnOMXrw93h26/fR/3sar/bHmyAT/D8WZ8ASBPABbCJPk4AH+TSXQYBkHZ1fXP7NvoQq5l1+h/7NYh/bADSBECaAE406/PncJj7bLMSAGkCuDC2wGkEcAKX6/IIgDQBHGml6b/SWUcTAGkCIE0AR1jxSbHimUcQAGn+GY40G4A0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANIEQJoASBMAaQIgTQCkCYA0AZAmANL+AG5daoFLAiV5AAAAAElFTkSuQmCC">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -58,6 +83,13 @@
     pointer-events:none;display:flex;gap:7px;align-items:center}
   #chip b{color:var(--sodium);font-weight:500;letter-spacing:.22em}
   #chip u{text-decoration:none;color:var(--probe)}
+  #chip i{font-style:normal;color:var(--bone)}
+  #chip.bad{border-color:var(--contact)}
+  #chip.bad b{color:var(--contact)}
+  #diag{font-size:10.5px;line-height:1.8;color:var(--dim);white-space:pre;
+    overflow-x:auto;margin-top:10px;border:1px solid var(--line);padding:10px}
+  #diag b{color:var(--bone);font-weight:500}
+  #diag u{text-decoration:none;color:var(--contact)}
 
   /* ---------- barra inferiore ---------- */
   #readout{position:fixed;left:0;right:0;bottom:0;padding:14px 16px;
@@ -177,16 +209,23 @@
     text-transform:uppercase;border-radius:2px;opacity:0;pointer-events:none;
     transition:opacity .25s,transform .25s;z-index:25;max-width:80vw;text-align:center}
   #toast.on{opacity:1;transform:translate(-50%,0)}
+  #fatal{position:fixed;left:0;right:0;top:0;z-index:60;background:rgba(58,12,9,.97);
+    border-bottom:1px solid var(--contact);color:#FFD9D2;font-size:11px;line-height:1.65;
+    padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;display:none;
+    max-height:60vh;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+  #fatal.on{display:block}
+  #fatal b{color:#FF553B;font-weight:500;letter-spacing:.1em;text-transform:uppercase}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 
+<div id="fatal"></div>
 <video id="feed" playsinline muted autoplay></video>
 <canvas id="gl"></canvas>
 
 <div id="tape" aria-hidden="true"><div id="ticks"></div><div id="centerline"></div></div>
-<div id="chip"><span>modo</span><b id="chipMode">—</b><u id="chipGeo"></u></div>
+<div id="chip"><span>modo</span><b id="chipMode">—</b><u id="chipGeo"></u><i id="chipFps"></i></div>
 
 <div id="crosshair"></div>
 
@@ -213,6 +252,7 @@
     <div id="tMeta"><em>ruota su te stesso per cercare</em></div>
   </div>
   <div class="actions">
+    <button id="arAgain" class="key" style="display:none">Riprendi AR</button>
     <button id="openSheet">Schedario</button>
     <button id="reseed" class="ghost">Rigenera</button>
   </div>
@@ -246,9 +286,27 @@
       <p id="mapBlurb">Gli ostacoli mappati bloccano il passaggio, reggono le creature che ci salgono sopra e le nascondono quando ci passano dietro.</p>
       <div id="obs"></div>
       <div class="calib">
+        <span>Massimo</span>
+        <input type="range" id="nCre" min="4" max="30" step="1" value="16">
+        <span id="nCrev">16</span>
+      </div>
+      <div class="calib">
         <span>Altezza occhio</span>
         <input type="range" id="eyeH" min="1.0" max="1.95" step="0.01" value="1.45">
         <span id="eyeHv">1.45 m</span>
+      </div>
+      <div id="diag">in attesa…</div>
+      <div class="optrow">
+        <input type="checkbox" id="optTondo" checked>
+        <label for="optTondo">Corpi tondeggianti da cartone animato. Togli la spunta per la versione sfaccettata e più leggera, se il telefono arranca.</label>
+      </div>
+      <div class="optrow">
+        <input type="checkbox" id="optOcc" checked>
+        <label for="optOcc">Occlusione dalla profondità: nasconde le creature dietro gli oggetti reali. Togli la spunta per confrontare.</label>
+      </div>
+      <div class="optrow">
+        <input type="checkbox" id="optFlip">
+        <label for="optFlip">Inverti l'asse verticale della profondità. Spunta solo se le creature spariscono quando dovrebbero vedersi e viceversa.</label>
       </div>
       <div class="optrow">
         <input type="checkbox" id="optWire">
@@ -267,6 +325,7 @@
   <div class="rule"></div>
   <p>Le creature vivono nella tua stanza: camminano sul pavimento vero, non attraversano i mobili, ci saltano sopra e scendono dall'altra parte.</p>
   <div id="cap">Rilevamento capacità: <b id="capText">in corso…</b></div>
+  <button id="installa" class="ghost" style="display:none">Installa sul telefono</button>
   <ol>
     <li data-n="A">Consenti fotocamera e sensori di movimento</li>
     <li data-n="B">Mappa divano e tavolo, una volta sola</li>
@@ -286,22 +345,37 @@
 </script>
 
 <script>
-/* Rete di sicurezza: se qualcosa esplode prima del boot, l'utente deve
-   leggerlo sulla schermata iniziale invece di restare su "in corso..." */
+/* Rete di sicurezza. Il pannello resta visibile anche dopo che la schermata
+   iniziale sparisce: un errore scritto in un elemento nascosto e' un errore
+   perso, e a schermo resta solo una scena congelata senza spiegazione. */
 (function(){
-  var cap = document.getElementById('capText'), err = document.getElementById('err');
-  function fatal(msg){
-    if(cap) cap.textContent = 'errore di avvio';
-    if(err){ err.style.display = 'block'; err.textContent = msg; }
-  }
+  var box = document.getElementById('fatal'), seen = {};
+  window.__fatal = function(titolo, msg){
+    if(!box) return;
+    var key = titolo + '|' + String(msg).slice(0, 120);
+    if(seen[key]) return;
+    seen[key] = 1;
+    var d = document.createElement('div');
+    var t = document.createElement('b');
+    t.textContent = titolo;
+    d.appendChild(t);
+    d.appendChild(document.createTextNode('\n' + String(msg) + '\n\n'));
+    box.appendChild(d);
+    box.classList.add('on');
+    var cap = document.getElementById('capText');
+    if(cap) cap.textContent = 'errore rilevato';
+  };
   addEventListener('error', function(e){
-    fatal((e.message || 'errore') + (e.lineno ? ' — riga ' + e.lineno : ''));
+    window.__fatal('eccezione', (e.message || 'errore') +
+      (e.lineno ? '\nriga ' + e.lineno + ':' + (e.colno || 0) : ''));
   });
   addEventListener('unhandledrejection', function(e){
-    fatal('promise non gestita: ' + ((e.reason && e.reason.message) || e.reason));
+    var r = e.reason;
+    window.__fatal('promise non gestita',
+      (r && (r.message || r.name)) ? ((r.name || '') + ' ' + (r.message || '')) : String(r));
   });
   if(typeof THREE === 'undefined')
-    fatal('three.js non disponibile: il motore 3D non è stato caricato.');
+    window.__fatal('avvio', 'three.js non disponibile: motore 3D non caricato.');
 })();
 </script>
 
@@ -322,17 +396,106 @@
 const V = THREE.MathUtils;
 const TAPE_SPAN = 75;      // semi-apertura bussola (gradi)
 const MAX_TEX   = 512;     // lato massimo texture importate
+/* Dettaglio dei corpi. 2 = tondeggiante da cartone, 1 = sfaccettato e leggero.
+   Regolabile dallo schedario se il telefono arranca. */
+const QUALITA = {det: 2};
+
 const STEP_UP   = 0.06;    // dislivello ignorabile: soglia, non ostacolo
 const JUMP_MAX  = 0.80;    // salita massima superabile con un salto (m)
 const DROP_MAX  = 1.30;    // discesa massima affrontabile senza paura (m)
 
+/* ==========================================================================
+   BESTIARIO — sedici specie, ognuna una ricetta di pezzi.
+   Ispirate ad animali veri e deformate per simpatia: una specie animale non
+   appartiene a nessuno, un disegno inventato da altri si'. Qui non si parte
+   da nessuna immagine, la geometria nasce dai numeri qui sotto.
+   ========================================================================== */
 const SPECIES = [
-  {id:'muschide', nome:'Muschide', latino:'Muscida saltans',
-   corpo:0x6FA07A, dettaglio:0xE4D9B6, scala:.42, salto:true, vel:.28, emissivo:0, agile:1.15},
-  {id:'lampiro', nome:'Lampiro', latino:'Lampyra cava',
-   corpo:0x2C3A44, dettaglio:0xFFC061, scala:.34, fluttua:true, vel:.42, emissivo:.9, agile:1.4},
-  {id:'corridore', nome:'Corridore', latino:'Sabulo currens',
-   corpo:0xB4763F, dettaglio:0x2A211B, scala:.5, vel:.85, emissivo:0, agile:.85},
+  {id:'muschide', nome:'Muschide', latino:'Muscida saltans', corpo:0x6FA07A, dettaglio:0xE4D9B6,
+   scala:.20, vel:.28, agile:1.15, emissivo:0, salto:true,
+   forma:{corpo:{tipo:'icosa',d:1,sx:1,sy:.82,sz:1,y:.85}, testa:{r:.34,y:.95,z:-1.05},
+          orecchie:{tipo:'punta',r:.22,h:.6}, zampe:{n:4,lung:.42,sp:.09,ax:.34,az:.28,y:.42}}},
+
+  {id:'lampiro', nome:'Lampiro', latino:'Lampyra cava', corpo:0x2C3A44, dettaglio:0xFFC061,
+   scala:.15, vel:.42, agile:1.4, emissivo:.9, vola:true, hover:.42,
+   forma:{corpo:{tipo:'icosa',d:0,sx:1,sy:1,sz:1,y:2.2}, testa:{r:.4,y:2.2,z:-.5},
+          lanterna:true, ali:{n:2,w:1.5,h:1.2,tipo:'velo',y:2.5,z:0}}},
+
+  {id:'corridore', nome:'Corridore', latino:'Sabulo currens', corpo:0xB4763F, dettaglio:0x2A211B,
+   scala:.24, vel:.85, agile:.85, emissivo:0,
+   forma:{corpo:{tipo:'capsula',r:.46,lung:1.1,y:.8}, testa:{r:.42,y:1.05,z:-.62,muso:.45},
+          coda:{tipo:'cono',lung:.8,r:.16,y:1.0,z:.55}, zampe:{n:4,lung:.62,sp:.1,ax:.3,az:.38,y:.62}}},
+
+  {id:'alavolpe', nome:'Alavolpe', latino:'Vulpala nubila', corpo:0xD98452, dettaglio:0xFFE3C4,
+   scala:.17, vel:.62, agile:1.5, emissivo:.15, vola:true, hover:.62,
+   forma:{corpo:{tipo:'icosa',d:1,sx:.8,sy:.75,sz:1.25,y:1.1}, testa:{r:.5,y:1.45,z:-.85,muso:.5},
+          orecchie:{tipo:'punta',r:.2,h:.55}, ali:{n:2,w:1.9,h:1.0,tipo:'membrana',y:1.3,z:.1},
+          coda:{tipo:'ciuffo',lung:1.1,r:.26,y:1.05,z:1.0}, zampe:{n:2,lung:.5,sp:.07,ax:.3,az:.2,y:.8}}},
+
+  {id:'scudonte', nome:'Scudonte', latino:'Scutum tardum', corpo:0x4E5A63, dettaglio:0x9AA7A0,
+   scala:.19, vel:.20, agile:.55, emissivo:0,
+   forma:{corpo:{tipo:'icosa',d:0,sx:1.5,sy:.6,sz:1.2,y:.62}, guscio:{sx:1.35,sy:.42,sz:1.05,y:.85},
+          testa:{r:.34,y:.62,z:-1.55}, zampe:{n:6,lung:.4,sp:.08,ax:.62,az:.45,y:.4}}},
+
+  {id:'zampalunga', nome:'Zampalunga', latino:'Crurio gracilis', corpo:0xC9B7D6, dettaglio:0x574766,
+   scala:.14, vel:.55, agile:1.25, emissivo:0,
+   forma:{corpo:{tipo:'icosa',d:1,sx:1,sy:.85,sz:1.1,y:2.3}, collo:{r:.18,lung:1.0,y:2.9,z:-.3},
+          testa:{r:.34,y:3.4,z:-.6,muso:.55}, zampe:{n:4,lung:2.0,sp:.07,ax:.34,az:.3,y:2.0}}},
+
+  {id:'bombolotto', nome:'Bombolotto', latino:'Erinacea rotunda', corpo:0x8A6B52, dettaglio:0x3E3128,
+   scala:.18, vel:.32, agile:.8, emissivo:0,
+   forma:{corpo:{tipo:'icosa',d:1,sx:1.1,sy:.95,sz:1.1,y:.9}, aculei:{n:16,lung:.5,r:.07},
+          testa:{r:.34,y:.85,z:-1.3,muso:.4}, zampe:{n:4,lung:.32,sp:.08,ax:.4,az:.34,y:.36}}},
+
+  {id:'vellutino', nome:'Vellutino', latino:'Talpina velutina', corpo:0x3B3A44, dettaglio:0xE0B7A0,
+   scala:.15, vel:.30, agile:.7, emissivo:0,
+   forma:{corpo:{tipo:'uovo',sx:.9,sy:.85,sz:1.4,y:.65}, testa:{r:.32,y:.68,z:-1.5,muso:.6},
+          zampe:{n:4,lung:.3,sp:.13,ax:.42,az:.3,y:.34}}},
+
+  {id:'fischietto', nome:'Fischietto', latino:'Passerella arguta', corpo:0xE8D66B, dettaglio:0xC4622F,
+   scala:.13, vel:.5, agile:1.35, emissivo:0, salto:true,
+   forma:{corpo:{tipo:'uovo',sx:.95,sy:1.1,sz:1,y:1.15}, testa:{r:.42,y:1.85,z:-.18,muso:.45},
+          cresta:true, ali:{n:2,w:1.0,h:.75,tipo:'piuma',y:1.25,z:.05},
+          coda:{tipo:'cono',lung:.7,r:.2,y:1.1,z:.55}, zampe:{n:2,lung:.62,sp:.06,ax:.22,az:0,y:.62}}},
+
+  {id:'girinolo', nome:'Girinolo', latino:'Axolotus ridens', corpo:0xF2A9C4, dettaglio:0xFFE0EC,
+   scala:.15, vel:.34, agile:.9, emissivo:.12,
+   forma:{corpo:{tipo:'uovo',sx:1,sy:.85,sz:1.5,y:.6}, testa:{r:.4,y:.72,z:-1.65},
+          branchie:true, coda:{tipo:'pinna',lung:1.3,r:.5,y:.62,z:1.1},
+          zampe:{n:4,lung:.3,sp:.06,ax:.4,az:.3,y:.32}}},
+
+  {id:'cornetta', nome:'Cornetta', latino:'Capretta cornuta', corpo:0xEDE3D0, dettaglio:0x7A6247,
+   scala:.17, vel:.48, agile:1.2, emissivo:0, salto:true,
+   forma:{corpo:{tipo:'capsula',r:.4,lung:.95,y:1.0}, testa:{r:.34,y:1.25,z:-.72,muso:.4},
+          corna:{lung:.5,r:.09}, orecchie:{tipo:'lunga',r:.14,h:.5},
+          coda:{tipo:'cono',lung:.3,r:.12,y:1.05,z:.5}, zampe:{n:4,lung:.85,sp:.08,ax:.28,az:.34,y:.85}}},
+
+  {id:'palmizio', nome:'Palmizio', latino:'Cancer pigrus', corpo:0xD1553F, dettaglio:0xF4C89B,
+   scala:.20, vel:.38, agile:.75, emissivo:0,
+   forma:{corpo:{tipo:'disco',r:.9,h:.55,y:1.0}, testa:{r:.26,y:1.05,z:-.72},
+          chele:true, zampe:{n:6,lung:.9,sp:.07,ax:.8,az:.5,y:.9}}},
+
+  {id:'nottolina', nome:'Nottolina', latino:'Vespera minima', corpo:0x4A3C55, dettaglio:0xB79FD1,
+   scala:.13, vel:.72, agile:1.6, emissivo:.2, vola:true, hover:.85,
+   forma:{corpo:{tipo:'uovo',sx:.8,sy:1,sz:.9,y:1.0}, testa:{r:.42,y:1.5,z:-.3,muso:.3},
+          orecchie:{tipo:'lunga',r:.22,h:.85}, ali:{n:2,w:2.2,h:.95,tipo:'membrana',y:1.15,z:0},
+          zampe:{n:2,lung:.35,sp:.05,ax:.22,az:0,y:.7}}},
+
+  {id:'ranocchiello', nome:'Ranocchiello', latino:'Ranula saliens', corpo:0x7FBF6A, dettaglio:0xEDF5C9,
+   scala:.16, vel:.30, agile:1.7, emissivo:0, salto:true,
+   forma:{corpo:{tipo:'uovo',sx:1.25,sy:.85,sz:1.15,y:.62}, testa:{r:.44,y:.82,z:-1.25,occhioni:true},
+          zampe:{n:4,lung:.55,sp:.08,ax:.5,az:.42,y:.55}}},
+
+  {id:'bruchetto', nome:'Bruchetto', latino:'Eruca festiva', corpo:0x9CCB5A, dettaglio:0x4B6B22,
+   scala:.13, vel:.26, agile:.6, emissivo:0,
+   forma:{segmenti:{n:5,r:.5,passo:.75,y:.5}, testa:{r:.42,y:.55,z:-2.15},
+          orecchie:{tipo:'antenna',r:.06,h:.6}, zampe:{n:8,lung:.24,sp:.05,ax:.32,az:.8,y:.26}}},
+
+  {id:'piumotto', nome:'Piumotto', latino:'Strigula soffice', corpo:0xC9A87C, dettaglio:0x5E4633,
+   scala:.16, vel:.34, agile:1.1, emissivo:0, vola:true, hover:.35,
+   forma:{corpo:{tipo:'icosa',d:1,sx:1.05,sy:1.15,sz:1,y:1.0}, testa:{r:.62,y:1.75,z:-.1,occhioni:true},
+          orecchie:{tipo:'punta',r:.16,h:.38}, ali:{n:2,w:1.4,h:1.0,tipo:'piuma',y:1.15,z:.05},
+          zampe:{n:2,lung:.4,sp:.07,ax:.24,az:0,y:.5}}},
 ];
 
 /* Il mondo condiviso. floorY cambia col modo: in WebXR il pavimento e'
@@ -344,6 +507,7 @@ const WORLD = {
   eyeH:1.45,
   obstacles:[],
   wire:false,
+  count:16,
 };
 
 let renderer, scene, camera, clock, raycaster;
@@ -351,6 +515,7 @@ let creatures = [], library = [];
 let orientEnabled = false, devOrient = null;
 let dragYaw = 0, dragPitch = 0;
 let xrSession = null, xrRefSpace = null, xrHitSource = null, xrViewerSpace = null;
+let XR_OK = false;   // rilevato al caricamento, non dentro il gesto utente
 let obsGroup, wireGroup;
 
 const $ = id => document.getElementById(id);
@@ -358,7 +523,7 @@ const els = {};
 ['gate','start','err','feed','ticks','tName','tMeta','reseed','toast','sheet','scrim',
  'openSheet','closeSheet','drop','file','optKey','lib','empty','popola','capText',
  'chipMode','chipGeo','mapbar','mapStep','mapHint','presets','mapUndo','mapExit',
- 'mapStart','crosshair','obs','eyeH','eyeHv','optWire','mapBlurb']
+ 'mapStart','crosshair','obs','eyeH','eyeHv','optWire','mapBlurb','chipFps','diag','chip','arAgain','nCre','nCrev','optFlip','optOcc','optTondo','installa']
  .forEach(k => els[k] = $(k));
 
 /* ==========================================================================
@@ -489,47 +654,63 @@ function renderLibrary(){
    semi-profondita', rotazione attorno a Y, quota superiore.
    ========================================================================== */
 
+/* Geometrie condivise da tutti gli ostacoli: una scatola unitaria che viene
+   solo scalata. In WebXR i piani cambiano di continuo e riallocare
+   BoxGeometry + EdgesGeometry a ogni aggiornamento bloccava il telefono. */
+const UNIT_BOX   = new THREE.BoxGeometry(1, 1, 1);
+const UNIT_EDGES = new THREE.EdgesGeometry(UNIT_BOX);
+const MAX_OBSTACLES = 48;
+
 function makeObstacle(cx, cz, hw, hd, rotY, top, label, src){
+  if(WORLD.obstacles.length >= MAX_OBSTACLES) return null;
   const ob = {
     id:'o'+Math.random().toString(36).slice(2,7),
     cx, cz, hw:Math.max(.05,hw), hd:Math.max(.05,hd), rotY,
     top, label: label || 'ostacolo', src: src || 'manuale',
-    walkable: top <= 1.2,          // sopra 1.2 m e' un muro, non ci si sale
+    /* Calpestabile solo se e' basso E abbastanza largo: ARCore rileva anche
+       mensole e bordi di 20 cm, e appollaiarcisi sopra sembra un errore. */
+    /* 85 cm: ci stanno divano, pouf, tavolino. Restano fuori schienali,
+       mensole e ripiani alti, dove una creatura sembra incollata al muro. */
+    walkable: top <= .85 && Math.min(hw, hd) >= .28,
   };
-  buildObstacleMeshes(ob);
+  ob.occ = new THREE.Mesh(UNIT_BOX, new THREE.MeshBasicMaterial({colorWrite:false}));
+  ob.occ.renderOrder = -10;
+  obsGroup.add(ob.occ);
+  ob.wire = new THREE.LineSegments(UNIT_EDGES,
+    new THREE.LineBasicMaterial({color:0x5FD3C4, transparent:true, opacity:.55}));
+  ob.wire.visible = WORLD.wire;
+  wireGroup.add(ob.wire);
+  placeObstacle(ob);
   WORLD.obstacles.push(ob);
-  renderObstacleList();
+  scheduleObstacleList();
   return ob;
 }
 
-/* L'occlusore e' il pezzo forte: non disegna colori, scrive solo la profondita'.
-   Risultato: quello che gli passa dietro viene scartato dal depth test e
-   sparisce, esattamente come se il divano vero lo coprisse. */
-function buildObstacleMeshes(ob){
-  const g = new THREE.BoxGeometry(ob.hw*2, ob.top, ob.hd*2);
-
-  const occ = new THREE.Mesh(g, new THREE.MeshBasicMaterial({colorWrite:false}));
-  occ.renderOrder = -10;
-  occ.position.set(ob.cx, WORLD.floorY + ob.top/2, ob.cz);
-  occ.rotation.y = ob.rotY;
-  obsGroup.add(occ);
-  ob.occ = occ;
-
-  const wire = new THREE.LineSegments(
-    new THREE.EdgesGeometry(g),
-    new THREE.LineBasicMaterial({color:0x5FD3C4, transparent:true, opacity:.55}));
-  wire.position.copy(occ.position);
-  wire.rotation.y = ob.rotY;
-  wire.visible = WORLD.wire;
-  wireGroup.add(wire);
-  ob.wire = wire;
+/* Aggiorna solo posizione, scala e rotazione: nessuna riallocazione. */
+function placeObstacle(ob){
+  const y = WORLD.floorY + ob.top/2;
+  ob.occ.position.set(ob.cx, y, ob.cz);
+  ob.occ.scale.set(ob.hw*2, Math.max(.02, ob.top), ob.hd*2);
+  ob.occ.rotation.y = ob.rotY;
+  ob.wire.position.copy(ob.occ.position);
+  ob.wire.scale.copy(ob.occ.scale);
+  ob.wire.rotation.y = ob.rotY;
 }
 
 function dropObstacle(ob){
+  if(!ob) return;
   obsGroup.remove(ob.occ); wireGroup.remove(ob.wire);
-  ob.occ.geometry.dispose(); ob.wire.geometry.dispose();
+  ob.occ.material.dispose(); ob.wire.material.dispose();   // le geometrie sono condivise
   WORLD.obstacles = WORLD.obstacles.filter(o => o !== ob);
-  renderObstacleList();
+  scheduleObstacleList();
+}
+
+/* La lista nello schedario e' DOM: ricostruirla a ogni piano aggiornato
+   era metà del problema. Accorpata a colpi di 400 ms. */
+let obsListTimer = null;
+function scheduleObstacleList(){
+  if(obsListTimer) return;
+  obsListTimer = setTimeout(() => { obsListTimer = null; renderObstacleList(); }, 400);
 }
 
 /* Punto dentro il footprint, in coordinate locali della scatola. */
@@ -583,10 +764,7 @@ function renderObstacleList(){
 function refreshFloorGeometry(){
   // l'altezza occhio cambia dove sta il pavimento: rigenera tutto
   WORLD.floorY = (WORLD.mode === 'xr') ? 0 : -WORLD.eyeH;
-  WORLD.obstacles.forEach(ob => {
-    ob.occ.position.y = WORLD.floorY + ob.top/2;
-    ob.wire.position.y = ob.occ.position.y;
-  });
+  WORLD.obstacles.forEach(placeObstacle);
   creatures.forEach(c => {
     c.standY = surfaceAt(c.pos.x, c.pos.z, Infinity);
     c.pos.y = c.standY;
@@ -675,19 +853,18 @@ function boxFromPoints(h){
 }
 
 function clearPreview(){
-  if(MAP.preview){ wireGroup.remove(MAP.preview); MAP.preview.geometry.dispose(); MAP.preview = null; }
+  if(MAP.preview){ wireGroup.remove(MAP.preview); MAP.preview.material.dispose(); MAP.preview = null; }
 }
 
 function buildPreview(h){
   clearPreview();
   const b = boxFromPoints(h);
   if(!b) return;
-  const g = new THREE.BoxGeometry(b.hw*2, b.top, b.hd*2);
-  const m = new THREE.LineSegments(new THREE.EdgesGeometry(g),
+  const m = new THREE.LineSegments(UNIT_EDGES,
     new THREE.LineBasicMaterial({color:0xFFA92E}));
   m.position.set(b.cx, WORLD.floorY + b.top/2, b.cz);
+  m.scale.set(b.hw*2, b.top, b.hd*2);
   m.rotation.y = b.rotY;
-  g.dispose();
   wireGroup.add(m);
   MAP.preview = m;
   MAP.previewH = h;
@@ -717,7 +894,7 @@ async function detectCaps(){
 }
 
 async function enterXR(){
-  const opt = ['plane-detection','hit-test','dom-overlay','anchors','light-estimation'];
+  const opt = ['depth-sensing','plane-detection','hit-test','dom-overlay','anchors','light-estimation'];
   let session = null;
   // provo con tutto, poi sfoltisco: un browser che non conosce una feature rifiuta l'intera sessione
   for(let i = opt.length; i >= 0; i--){
@@ -726,6 +903,11 @@ async function enterXR(){
         requiredFeatures:['local-floor'],
         optionalFeatures: opt.slice(0, i),
         domOverlay:{root:document.body},
+        /* Obbligatorio quando si chiede depth-sensing, innocuo altrimenti. */
+        depthSensing:{
+          usagePreference:['cpu-optimized'],
+          dataFormatPreference:['luminance-alpha','float32'],
+        },
       });
       break;
     } catch(e){ /* riprovo con meno richieste */ }
@@ -739,16 +921,38 @@ async function enterXR(){
   await renderer.xr.setSession(session);
 
   xrRefSpace = renderer.xr.getReferenceSpace();
+  DEPTH.uso = session.depthUsage || null;
+  DEPTH.attiva = DEPTH.uso === 'cpu-optimized';
+  ev(DEPTH.attiva ? 'profondita attiva (' + (session.depthDataFormat||'?') + ')'
+                  : 'profondita non concessa');
   try {
     xrViewerSpace = await session.requestReferenceSpace('viewer');
     xrHitSource = await session.requestHitTestSource({space:xrViewerSpace});
   } catch(e){ xrHitSource = null; }
 
   session.addEventListener('select', onXRSelect);
+  /* Uscire dallo schermo intero chiude la sessione AR. Prima si finiva in
+     modalita' giroscopio con la fotocamera spenta: scena nera e immobile,
+     indistinguibile da un blocco. Ora si recupera e si offre di rientrare. */
   session.addEventListener('end', () => {
-    xrSession = null; xrHitSource = null;
+    xrSession = null; xrHitSource = null; lastHitPose = null;
     WORLD.mode = 'gyro'; WORLD.floorY = -WORLD.eyeH;
+    seenPlanes.forEach(v => { if(v.ob) dropObstacle(v.ob); });
+    seenPlanes.clear();
+    refreshFloorGeometry();
     setChip();
+    if(XR_OK) els.arAgain.style.display = 'block';
+    reopenFeed();
+    ev('SESSIONE AR TERMINATA');
+    window.__fatal('sessione AR terminata',
+      'chiusa dopo ' + (performance.now()/1000).toFixed(1) + ' s\n' +
+      'pose valide ' + PERF.pose + ', nulle ' + PERF.noPose +
+      '\nfps minimo ' + PERF.fpsMin + ', ostacoli ' + WORLD.obstacles.length);
+  });
+
+  session.addEventListener('visibilitychange', () => {
+    ev('visibilita xr: ' + session.visibilityState);
+    if(session.visibilityState !== 'visible') toast('AR sospesa: ' + session.visibilityState);
   });
   return true;
 }
@@ -767,13 +971,23 @@ function onXRSelect(){
 /* Conversione XRPlane -> scatola. Il poligono e' nello spazio del piano:
    ne prendo i limiti, poi porto centro e imbardata nel mondo. */
 const seenPlanes = new Map();
-function syncPlanes(frame){
+let planeClock = 0;
+
+/* ARCore rivede i piani in continuazione mentre ti guardi intorno. Prima qui
+   si buttava via l'ostacolo e se ne creava uno nuovo a ogni singolo cambiamento:
+   due volte al secondo bastano, e l'aggiornamento avviene sul posto. */
+function syncPlanes(frame, dt){
   if(!frame.detectedPlanes) return;
+  planeClock -= dt;
+  if(planeClock > 0) return;
+  planeClock = .5;
+
   const live = new Set();
   frame.detectedPlanes.forEach(plane => {
     live.add(plane);
     const known = seenPlanes.get(plane);
     if(known && known.stamp === plane.lastChangedTime) return;
+
     const pose = frame.getPose(plane.planeSpace, xrRefSpace);
     if(!pose) return;
     const poly = plane.polygon;
@@ -784,39 +998,178 @@ function syncPlanes(frame){
       if(p.x<x0)x0=p.x; if(p.x>x1)x1=p.x;
       if(p.z<z0)z0=p.z; if(p.z>z1)z1=p.z;
     }
-    const hw = (x1-x0)/2, hd = (z1-z0)/2;
+    let hw = (x1-x0)/2, hd = (z1-z0)/2;
     if(hw < .08 || hd < .08) return;
 
-    const q = new THREE.Quaternion(pose.transform.orientation.x, pose.transform.orientation.y,
-                                   pose.transform.orientation.z, pose.transform.orientation.w);
+    const o = pose.transform.orientation;
+    const q = new THREE.Quaternion(o.x, o.y, o.z, o.w);
     const local = new THREE.Vector3((x0+x1)/2, 0, (z0+z1)/2).applyQuaternion(q);
     const cx = pose.transform.position.x + local.x;
     const cy = pose.transform.position.y + local.y;
     const cz = pose.transform.position.z + local.z;
-    const rotY = new THREE.Euler().setFromQuaternion(q, 'YXZ').y;
-
-    if(known) dropObstacle(known.ob);
-
-    let ob;
+    let rotY = new THREE.Euler().setFromQuaternion(q, 'YXZ').y;
     if(plane.orientation === 'vertical'){
-      // parete: sottile e alta, mai calpestabile
-      ob = makeObstacle(cx, cz, Math.max(hw,hd), .06, rotY, 2.2,
-        plane.semanticLabel || 'parete', 'webxr');
-      ob.walkable = false;
-    } else {
-      const top = cy - WORLD.floorY;
-      if(top < .12){ seenPlanes.set(plane, {stamp:plane.lastChangedTime, ob:null}); return; } // il pavimento stesso
-      ob = makeObstacle(cx, cz, hw, hd, rotY, top,
-        plane.semanticLabel || 'piano ' + top.toFixed(2) + ' m', 'webxr');
+      /* Per un piano verticale la normale e' orizzontale: allineo l'asse
+         sottile della scatola alla normale, altrimenti il muro sta di traverso. */
+      const nrm = new THREE.Vector3(0,1,0).applyQuaternion(q);
+      if(Math.hypot(nrm.x, nrm.z) > 1e-4) rotY = Math.atan2(nrm.x, nrm.z);
     }
-    seenPlanes.set(plane, {stamp:plane.lastChangedTime, ob});
+
+    const vert = plane.orientation === 'vertical';
+    let top;
+    if(vert){
+      /* Prima ogni superficie verticale diventava un muro da 2,2 m. Ma lo
+         schienale di un divano e' verticale e alto 85 cm: portando i vertici
+         nel mondo e leggendo la quota massima, il divano acquista lo spessore
+         che ai piani orizzontali manca. */
+      let yMax = -Infinity, yMin = Infinity;
+      for(const pt of poly){
+        const wp = new THREE.Vector3(pt.x, pt.y || 0, pt.z).applyQuaternion(q);
+        const wy = pose.transform.position.y + wp.y;
+        if(wy > yMax) yMax = wy;
+        if(wy < yMin) yMin = wy;
+      }
+      top = Math.max(.25, Math.min(2.6, yMax - WORLD.floorY));
+      // il lato lungo del poligono e' la larghezza del muro/schienale
+      hw = Math.max(hw, hd);
+      hd = .07;
+    } else {
+      top = cy - WORLD.floorY;
+    }
+    if(!vert && top < .12){                       // e' il pavimento stesso
+      seenPlanes.set(plane, {stamp:plane.lastChangedTime, ob:null});
+      return;
+    }
+    /* Un volume alto che ti contiene e' fisicamente impossibile: se ARCore
+       ti mette dentro un mobile, e' un falso positivo. Sarebbe un occlusore
+       gigante che nasconde tutta la scena. */
+    if(!vert && top > .35){
+      const vp = camPose().p;
+      if(inFoot({cx, cz, hw, hd, rotY}, vp.x, vp.z, -.05)){
+        seenPlanes.set(plane, {stamp:plane.lastChangedTime, ob:null});
+        return;
+      }
+    }
+
+    if(known && known.ob){
+      const ob = known.ob;                        // sul posto: zero allocazioni
+      ob.cx = cx; ob.cz = cz;
+      ob.hw = Math.max(.05, hw); ob.hd = Math.max(.05, hd);
+      ob.rotY = rotY; ob.top = top;
+      ob.walkable = !vert && top <= .85 && Math.min(ob.hw, ob.hd) >= .28;
+      placeObstacle(ob);
+      known.stamp = plane.lastChangedTime;
+    } else {
+      const ob = makeObstacle(cx, cz, hw, hd, rotY, top,
+        plane.semanticLabel || (vert ? 'parete' : 'piano ' + top.toFixed(2) + ' m'), 'webxr');
+      if(ob && vert) ob.walkable = false;
+      seenPlanes.set(plane, {stamp:plane.lastChangedTime, ob});
+    }
   });
-  // i piani spariti dal tracking se ne vanno con la loro scatola
+
   seenPlanes.forEach((v, plane) => {
     if(!live.has(plane)){
       if(v.ob) dropObstacle(v.ob);
       seenPlanes.delete(plane);
     }
+  });
+  scheduleObstacleList();
+}
+
+/* ==========================================================================
+   4bis. OCCLUSIONE DA PROFONDITA'
+   ARCore non consegna una mesh della stanza, ma per ogni fotogramma dice
+   quanto dista cio' che stai inquadrando. Confrontando quella distanza con
+   quella della creatura si capisce se e' dietro un oggetto reale: schienali,
+   poltrone, tende funzionano senza modellarli.
+   ========================================================================== */
+const DEPTH = {attiva:false, uso:null, w:0, h:0, letture:0, errori:0,
+               flipY:false, margine:.25, campioni:0, occluse:0,
+               accesa:true, minDist:1.5, centro:0, scarti:0};
+const MIN_VALIDI = 4;      // sotto questa soglia la lettura non decide nulla
+const SOGLIA_OCC = 4;      // punti coperti su 5 perche' sparisca davvero
+
+const _dp = new THREE.Vector3();
+
+/* Piu' punti sulla sagoma, non solo il centro: cosi' una creatura per meta'
+   dietro al bracciolo sfuma invece di sparire di colpo. */
+const SAGOMA = [[0,0],[-.45,0],[.45,0],[0,.5],[0,-.35]];
+
+function occlusione(frame, camPos){
+  if(!DEPTH.attiva || !DEPTH.accesa || !frame) return;
+  let info = null, cam = null;
+  try {
+    const vp = frame.getViewerPose(xrRefSpace);
+    if(!vp || !vp.views.length) return;
+    info = frame.getDepthInformation(vp.views[0]);
+    const xc = renderer.xr.getCamera(camera);
+    cam = (xc && xc.cameras && xc.cameras[0]) || xc || camera;
+  } catch(e){
+    DEPTH.errori++;
+    if(DEPTH.errori > 30){ DEPTH.attiva = false; ev('profondita disattivata dopo errori'); }
+    return;
+  }
+  if(!info) return;
+  DEPTH.letture++; DEPTH.w = info.width; DEPTH.h = info.height;
+
+  let occl = 0, camp = 0;
+  /* Lettura di controllo al centro dello schermo: serve a te e a me per
+     capire se la pipeline legge distanze sensate o numeri a caso. */
+  try {
+    const dc = info.getDepthInMeters(.5, DEPTH.flipY ? .5 : .5);
+    DEPTH.centro = (dc > 0 && dc < 20) ? dc : 0;
+  } catch(e){ DEPTH.centro = 0; }
+
+  for(const c of creatures){
+    const dist = c.pos.distanceTo(camPos);
+    /* Sotto il metro e mezzo ARCore restituisce valori inaffidabili: era
+       questo a dissolvere una creatura che stava in primo piano. */
+    if(dist > 9 || dist < DEPTH.minDist){ applicaVisibilita(c, 1); continue; }
+    const raggio = Math.max(.18, c.raggio);
+    const alt = c.kind === 'sprite' ? c.asset.altezza * (c.taglia||1)
+                                    : c.spec.scala * 2 * (c.taglia||1);
+
+    let dietro = 0, validi = 0;
+    for(const [ox, oy] of SAGOMA){
+      _dp.set(c.pos.x + ox*raggio, c.pos.y + (c.hover||0) + alt*.5 + oy*alt, c.pos.z);
+      const d = _dp.distanceTo(camPos);
+      _dp.project(cam);
+      if(_dp.x < -1 || _dp.x > 1 || _dp.y < -1 || _dp.y > 1 || _dp.z > 1) continue;
+      const nx = (_dp.x + 1) / 2;
+      let ny = (1 - _dp.y) / 2;
+      if(DEPTH.flipY) ny = 1 - ny;
+      let reale;
+      try { reale = info.getDepthInMeters(nx, ny); } catch(e){ continue; }
+      if(!(reale > .3) || reale > 20){ DEPTH.scarti++; continue; }   // lettura non valida
+      validi++;
+      if(reale + DEPTH.margine < d) dietro++;
+    }
+    camp += validi;
+    /* Con pochi campioni buoni la misura non e' attendibile: in dubbio si
+       mostra. Meglio una creatura di troppo che una che svanisce a caso. */
+    if(validi < MIN_VALIDI){ applicaVisibilita(c, 1); continue; }
+    /* Netta, non sfumata: la trasparenza parziale si legge come un errore
+       grafico, non come "sta dietro qualcosa". O c'e' o non c'e'. */
+    const coperta = dietro >= SOGLIA_OCC;
+    if(coperta) occl++;
+    applicaVisibilita(c, coperta ? 0 : 1);
+  }
+  DEPTH.campioni = camp; DEPTH.occluse = occl;
+}
+
+/* Sfumatura morbida: un passaggio netto sfarfalla a ogni tremolio della mano. */
+function applicaVisibilita(c, obiettivo){
+  if(c.vis === undefined) c.vis = 1;
+  c.vis += (obiettivo - c.vis) * .35;
+  const v = c.vis;
+  c.root.visible = v > .04;
+  if(!c.root.visible) return;
+  c.root.traverse(o => {
+    if(!o.material || o.userData.noFade) return;
+    const m = o.material;
+    if(m.userData.op0 === undefined) m.userData.op0 = m.opacity;
+    m.opacity = m.userData.op0 * v;
+    m.transparent = m.transparent || v < .99;
   });
 }
 
@@ -824,60 +1177,240 @@ function syncPlanes(frame){
    5. CREATURE  (corpi invariati)
    ========================================================================== */
 
+/* Costruttore generico: legge la ricetta della specie e assembla i pezzi.
+   Le parti mobili finiscono in un registro, cosi' l'animazione muove quello
+   che trova senza sapere quale creatura sta muovendo. */
 function buildBody(spec){
   const g = new THREE.Group();
-  const matCorpo = new THREE.MeshStandardMaterial({color:spec.corpo, flatShading:true,
-    roughness:.75, metalness:.05, emissive:new THREE.Color(spec.dettaglio),
-    emissiveIntensity:spec.emissivo*.35});
-  const matDett = new THREE.MeshStandardMaterial({color:spec.dettaglio, flatShading:true,
-    roughness:.5, emissive:new THREE.Color(spec.dettaglio), emissiveIntensity:spec.emissivo});
-  const s = spec.scala;
+  const P = {testa:null, ali:[], zampe:[], coda:null, corpo:null, segmenti:[],
+             occhi:[], orecchie:[]};
+  const F = spec.forma, s = spec.scala;
 
-  if(spec.id === 'muschide'){
-    const b = new THREE.Mesh(new THREE.IcosahedronGeometry(s,1), matCorpo);
-    b.scale.set(1,.82,1); b.position.y = s*.85; g.add(b);
-    for(const dir of [-1,1]){
-      const o = new THREE.Mesh(new THREE.ConeGeometry(s*.22, s*.6, 4), matCorpo);
-      o.position.set(dir*s*.42, s*1.35, -s*.1); o.rotation.z = dir*.35; g.add(o);
+  const tondo = QUALITA.det >= 2, D = QUALITA.det;
+  /* Dorso scuro e ventre chiaro dipinti nei vertici: e' il trucco che da'
+     volume ai personaggi disegnati, senza texture ne' luci in piu'. */
+  const cAlto  = new THREE.Color(spec.corpo).multiplyScalar(.72);
+  const cBasso = new THREE.Color(spec.corpo).lerp(new THREE.Color(0xffffff), .42);
+  const tinta = geo => {
+    const pos = geo.attributes.position, c = new THREE.Color();
+    const col = new Float32Array(pos.count*3);
+    let y0 = Infinity, y1 = -Infinity;
+    for(let i=0;i<pos.count;i++){ const y = pos.getY(i); if(y<y0)y0=y; if(y>y1)y1=y; }
+    const h = Math.max(1e-6, y1-y0);
+    for(let i=0;i<pos.count;i++){
+      c.copy(cBasso).lerp(cAlto, (pos.getY(i)-y0)/h);
+      col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b;
     }
-    for(let i=0;i<4;i++){
-      const z = new THREE.Mesh(new THREE.CylinderGeometry(s*.09, s*.07, s*.42, 5), matDett);
-      z.position.set((i<2?-1:1)*s*.34, s*.21, (i%2?-1:1)*s*.28); g.add(z);
+    geo.setAttribute('color', new THREE.BufferAttribute(col,3));
+    return geo;
+  };
+  const matCorpo = new THREE.MeshStandardMaterial({color:0xffffff, vertexColors:true,
+    flatShading:!tondo, roughness:.72, metalness:.03,
+    emissive:new THREE.Color(spec.dettaglio), emissiveIntensity:spec.emissivo*.35});
+  const matPiatto = new THREE.MeshStandardMaterial({color:spec.corpo, flatShading:!tondo,
+    roughness:.78, metalness:.03});
+  const matDett = new THREE.MeshStandardMaterial({color:spec.dettaglio, flatShading:!tondo,
+    roughness:.55, emissive:new THREE.Color(spec.dettaglio), emissiveIntensity:spec.emissivo});
+  const matOcchio = new THREE.MeshPhongMaterial({color:0x141A20, shininess:90, specular:0x8899aa});
+  const matLuce = new THREE.MeshBasicMaterial({color:0xffffff});
+
+  const add = (m, parent) => { (parent || g).add(m); return m; };
+
+  /* --- tronco --- */
+  if(F.segmenti){
+    const S = F.segmenti;
+    for(let i=0;i<S.n;i++){
+      const r = S.r * (1 - i*.09);
+      const m = new THREE.Mesh(i%2 ? new THREE.IcosahedronGeometry(s*r, D)
+                                   : tinta(new THREE.IcosahedronGeometry(s*r, D)),
+                               i%2 ? matDett : matCorpo);
+      m.position.set(0, s*S.y, s*(S.passo*i - S.passo*(S.n-1)/2));
+      add(m); P.segmenti.push(m);
+      if(i === 0) P.corpo = m;
     }
-  } else if(spec.id === 'lampiro'){
-    const b = new THREE.Mesh(new THREE.IcosahedronGeometry(s,0), matCorpo);
-    b.position.y = s*2.2; g.add(b);
-    const n = new THREE.Mesh(new THREE.SphereGeometry(s*.55,10,8), matDett);
-    n.position.y = s*2.2; g.add(n);
-    const l = new THREE.PointLight(spec.dettaglio, 1.1, 3.2); l.position.y = s*2.2; g.add(l);
-    for(const dir of [-1,1]){
-      const a = new THREE.Mesh(new THREE.CircleGeometry(s*.85,6,0,Math.PI),
-        new THREE.MeshStandardMaterial({color:spec.dettaglio, transparent:true, opacity:.28,
-          side:THREE.DoubleSide, flatShading:true}));
-      a.position.set(dir*s*.5, s*2.5, 0); a.rotation.y = dir*.7; a.name='ala'; g.add(a);
-    }
-  } else {
-    const t = new THREE.Mesh(new THREE.CylinderGeometry(s*.42, s*.5, s*1.1, 7), matCorpo);
-    t.rotation.z = Math.PI/2; t.position.y = s*.8; g.add(t);
-    const h = new THREE.Mesh(new THREE.IcosahedronGeometry(s*.42,0), matCorpo);
-    h.position.set(0, s*1.05, -s*.72); g.add(h);
-    const m = new THREE.Mesh(new THREE.ConeGeometry(s*.22, s*.45, 5), matDett);
-    m.rotation.x = -Math.PI/2; m.position.set(0, s*.98, -s*1.05); g.add(m);
-    const c = new THREE.Mesh(new THREE.ConeGeometry(s*.16, s*.8, 5), matDett);
-    c.rotation.x = Math.PI/2.6; c.position.set(0, s*1.0, s*.7); g.add(c);
-    for(let i=0;i<4;i++){
-      const z = new THREE.Mesh(new THREE.CylinderGeometry(s*.1, s*.06, s*.66, 5), matDett);
-      z.position.set((i<2?-1:1)*s*.3, s*.33, (i%2?-1:1)*s*.38); z.name='zampa'; g.add(z);
+  } else if(F.corpo){
+    const C = F.corpo;
+    let geo;
+    if(C.tipo === 'capsula')      geo = new THREE.CylinderGeometry(s*C.r*.9, s*C.r, s*C.lung, tondo?14:8);
+    else if(C.tipo === 'disco')   geo = new THREE.CylinderGeometry(s*C.r, s*C.r*.92, s*C.h, tondo?16:9);
+    else if(C.tipo === 'uovo')    geo = new THREE.SphereGeometry(s, tondo?18:9, tondo?14:7);
+    else                          geo = new THREE.IcosahedronGeometry(s, Math.max(C.d===undefined?1:C.d, D));
+    const m = new THREE.Mesh(tinta(geo), matCorpo);
+    if(C.tipo === 'capsula') m.rotation.z = Math.PI/2;
+    if(C.sx) m.scale.set(C.sx, C.sy, C.sz);
+    m.position.y = s*C.y;
+    add(m); P.corpo = m;
+  }
+
+  if(F.guscio){
+    const G = F.guscio;
+    const m = new THREE.Mesh(new THREE.IcosahedronGeometry(s*.95, Math.max(0,D-1)), matDett);
+    m.scale.set(G.sx, G.sy, G.sz); m.position.y = s*G.y; add(m);
+  }
+
+  if(F.collo){
+    const C = F.collo;
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(s*C.r*.8, s*C.r, s*C.lung, 6), matDett);
+    m.position.set(0, s*C.y, s*C.z); m.rotation.x = .35; add(m);
+  }
+
+  if(F.aculei){
+    const A = F.aculei;
+    for(let i=0;i<A.n;i++){
+      const u = (i/A.n)*Math.PI*2, v = .3 + (i%3)*.35;
+      const m = new THREE.Mesh(new THREE.ConeGeometry(s*A.r, s*A.lung, 4), matDett);
+      m.position.set(Math.sin(u)*s*.92, s*(1.0 + v*.4), Math.cos(u)*s*.92);
+      m.rotation.set(Math.cos(u)*.7, 0, -Math.sin(u)*.7);
+      add(m);
     }
   }
 
-  const matOcchio = new THREE.MeshBasicMaterial({color:0x0C1116});
-  const hy = spec.id==='lampiro' ? s*2.35 : (spec.id==='corridore' ? s*1.12 : s*1.02);
-  const hz = spec.id==='corridore' ? -s*.95 : -s*.72;
-  for(const dir of [-1,1]){
-    const o = new THREE.Mesh(new THREE.SphereGeometry(s*.1,8,6), matOcchio);
-    o.position.set(dir*s*.2, hy, hz); g.add(o);
+  /* --- testa e ciò che ci sta sopra --- */
+  if(F.testa){
+    const T = F.testa;
+    const t = new THREE.Group(); t.position.set(0, s*T.y, s*T.z);
+    add(t); P.testa = t;
+    const h = new THREE.Mesh(tinta(new THREE.IcosahedronGeometry(s*T.r, D)), matCorpo);
+    t.add(h);
+    if(T.muso){
+      const m = new THREE.Mesh(new THREE.ConeGeometry(s*T.r*.45, s*T.muso, 5), matDett);
+      m.rotation.x = -Math.PI/2; m.position.z = -s*(T.r*.5 + T.muso*.4); t.add(m);
+    }
+    /* Occhi grandi e lucidi con il riflesso: e' quello che separa un
+       personaggio da un sasso con le zampe. Il gruppo si schiaccia per l'ammicco. */
+    const ro = (T.occhioni ? s*T.r*.42 : s*T.r*.32) * (tondo ? 1.12 : 1);
+    for(const d of [-1,1]){
+      const gO = new THREE.Group();
+      gO.position.set(d*s*T.r*.5, s*T.r*(T.occhioni ? .26 : .14), -s*T.r*.7);
+      if(T.occhioni){
+        const bulbo = new THREE.Mesh(new THREE.SphereGeometry(ro*1.3, tondo?14:8, tondo?10:6), matDett);
+        bulbo.position.z = ro*.45; gO.add(bulbo);
+      }
+      gO.add(new THREE.Mesh(new THREE.SphereGeometry(ro, tondo?16:8, tondo?12:6), matOcchio));
+      const luce = new THREE.Mesh(new THREE.SphereGeometry(ro*.3, 7, 6), matLuce);
+      luce.position.set(-d*ro*.34, ro*.34, -ro*.72); gO.add(luce);
+      t.add(gO); P.occhi.push(gO);
+    }
+    if(F.orecchie){
+      const O = F.orecchie;
+      for(const d of [-1,1]){
+        let m;
+        if(O.tipo === 'antenna'){
+          m = new THREE.Mesh(new THREE.CylinderGeometry(s*O.r, s*O.r*.6, s*O.h, 4), matDett);
+          m.position.set(d*s*T.r*.4, s*(T.r*.6 + O.h*.5), -s*T.r*.3);
+          m.rotation.z = d*.5;
+        } else if(O.tipo === 'lunga'){
+          m = new THREE.Mesh(new THREE.ConeGeometry(s*O.r, s*O.h, tondo?8:5), matDett);
+          m.position.set(d*s*T.r*.7, s*(T.r*.5 + O.h*.35), 0);
+          m.rotation.z = d*.9;
+        } else {
+          m = new THREE.Mesh(new THREE.ConeGeometry(s*O.r, s*O.h, tondo?7:4), matPiatto);
+          m.position.set(d*s*T.r*.55, s*(T.r*.55 + O.h*.35), s*.05);
+          m.rotation.z = d*.3;
+        }
+        m.userData.riposo = m.rotation.x;
+        P.orecchie.push(m);
+        t.add(m);
+      }
+    }
+    if(F.corna){
+      const K = F.corna;
+      for(const d of [-1,1]){
+        const m = new THREE.Mesh(new THREE.ConeGeometry(s*K.r, s*K.lung, 5), matDett);
+        m.position.set(d*s*T.r*.5, s*(T.r*.7 + K.lung*.35), s*.1);
+        m.rotation.set(-.5, 0, d*.45); t.add(m);
+      }
+    }
+    if(F.cresta){
+      for(let i=0;i<3;i++){
+        const m = new THREE.Mesh(new THREE.ConeGeometry(s*.1, s*(.34 - i*.06), 4), matDett);
+        m.position.set(0, s*(F.testa.r*.85), s*(-.1 + i*.16)); t.add(m);
+      }
+    }
+    if(F.branchie){
+      for(const d of [-1,1]) for(let i=0;i<3;i++){
+        const m = new THREE.Mesh(new THREE.ConeGeometry(s*.09, s*.42, 4), matDett);
+        m.position.set(d*s*.42, s*(.1 + i*.12), s*.18);
+        m.rotation.set(0, 0, d*(1.0 + i*.22)); t.add(m);
+      }
+    }
   }
+
+  if(F.lanterna){
+    const nu = new THREE.Mesh(new THREE.SphereGeometry(s*.55, 10, 8), matDett);
+    nu.position.y = s*2.2; add(nu);
+    const l = new THREE.PointLight(spec.dettaglio, 1.1, 3.2); l.position.y = s*2.2; add(l);
+  }
+
+  if(F.chele){
+    for(const d of [-1,1]){
+      const b = new THREE.Group(); b.position.set(d*s*.95, s*.6, -s*.5); add(b);
+      const br = new THREE.Mesh(new THREE.CylinderGeometry(s*.08, s*.08, s*.5, 5), matDett);
+      br.rotation.z = d*1.1; br.position.set(d*s*.2, 0, 0); b.add(br);
+      const ch = new THREE.Mesh(new THREE.IcosahedronGeometry(s*.26, 0), matDett);
+      ch.scale.set(1.3,.7,.9); ch.position.set(d*s*.45, s*.12, -s*.1); b.add(ch);
+      P.zampe.push(b);
+    }
+  }
+
+  /* --- ali --- */
+  if(F.ali){
+    const A = F.ali;
+    const matAla = A.tipo === 'velo'
+      ? new THREE.MeshStandardMaterial({color:spec.dettaglio, transparent:true, opacity:.3,
+          side:THREE.DoubleSide, flatShading:true})
+      : new THREE.MeshStandardMaterial({color:A.tipo === 'membrana' ? spec.dettaglio : spec.corpo,
+          flatShading:true, side:THREE.DoubleSide, transparent:true, opacity:.9, roughness:.6});
+    for(let i=0;i<A.n;i++){
+      const d = (i%2) ? 1 : -1, fila = Math.floor(i/2);
+      const p = new THREE.Group();
+      const geo = A.tipo === 'piuma'
+        ? new THREE.CircleGeometry(s*A.w*.5, 7, 0, Math.PI)
+        : new THREE.PlaneGeometry(s*A.w, s*A.h);
+      const m = new THREE.Mesh(geo, matAla);
+      if(A.tipo === 'piuma') m.rotation.z = -Math.PI/2;
+      m.position.x = d*s*A.w*.5;
+      p.add(m);
+      p.position.set(d*s*.4, s*(A.y - fila*.35), s*(A.z + fila*.3));
+      p.userData.dir = d;
+      add(p); P.ali.push(p);
+    }
+  }
+
+  /* --- coda --- */
+  if(F.coda){
+    const C = F.coda;
+    const cd = new THREE.Group(); cd.position.set(0, s*C.y, s*C.z); add(cd); P.coda = cd;
+    let m;
+    if(C.tipo === 'pinna'){
+      m = new THREE.Mesh(new THREE.CircleGeometry(s*C.r, 8, 0, Math.PI), matDett);
+      m.rotation.y = Math.PI/2; m.position.z = s*C.lung*.4;
+    } else if(C.tipo === 'ciuffo'){
+      m = new THREE.Mesh(new THREE.IcosahedronGeometry(s*C.r, D), matDett);
+      m.scale.set(.8,.8,C.lung/C.r*.5); m.position.z = s*C.lung*.4;
+    } else {
+      m = new THREE.Mesh(new THREE.ConeGeometry(s*C.r, s*C.lung, 5), matDett);
+      m.rotation.x = -Math.PI/2.4; m.position.z = s*C.lung*.4;
+    }
+    cd.add(m);
+  }
+
+  /* --- zampe --- */
+  if(F.zampe){
+    const Z = F.zampe;
+    const righe = Math.max(1, Math.round(Z.n/2));
+    for(let i=0;i<Z.n;i++){
+      const lato = (i%2) ? 1 : -1, fila = Math.floor(i/2);
+      const z = righe > 1 ? (fila/(righe-1) - .5) * s*Z.az*2 : 0;
+      const p = new THREE.Group();
+      p.position.set(lato*s*Z.ax, s*Z.y, z);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(s*Z.sp, s*Z.sp*.72, s*Z.lung, tondo?8:5), matDett);
+      m.position.y = -s*Z.lung/2; p.add(m);
+      add(p); P.zampe.push(p);
+    }
+  }
+
+  g.userData.parti = P;
   return g;
 }
 
@@ -894,19 +1427,27 @@ function groundMarks(root, raggio){
 
 const baseCreature = (root, nome, latino, vel) => ({
   root, nome, latino, vel, stato:'ferma', t:Math.random()*3, fase:Math.random()*6.28,
-  meta:null, guarda:null, socialCon:null, impulso:0, flip:1,
+  meta:null, guarda:null, socialCon:null, impulso:0, flip:1, socialOff:0,
   pos:root.position.clone(), standY:root.position.y, dir:new THREE.Vector3(0,0,1),
   jump:null, agile:1, raggio:.22,
+  ancora:root.position.clone(), fermaDa:0,
 });
 
 function makeMesh(spec, pos){
   const root = new THREE.Group(); root.position.copy(pos);
   const body = buildBody(spec); root.add(body);
+  /* Taglia diversa per ogni esemplare: una nidiata tutta identica si legge
+     come una ripetizione, non come una popolazione. */
+  const k = 0.72 + Math.random()*0.66;
+  body.scale.setScalar(k);
   const marks = groundMarks(root, spec.scala*1.15);
+  marks.ombra.scale.setScalar(k); marks.anello.scale.setScalar(k);
   scene.add(root);
-  const c = Object.assign(baseCreature(root, spec.nome, spec.latino, spec.vel),
+  const c = Object.assign(baseCreature(root, spec.nome, spec.latino, spec.vel * (1.15 - k*.25)),
     {kind:'mesh', spec, body, anello:marks.anello, ombra:marks.ombra,
-     markBase:1, agile:spec.agile, raggio:spec.scala*.8});
+     markBase:k, agile:spec.agile, raggio:spec.scala*.8*k, taglia:k,
+     parti: body.userData.parti,
+     hover: spec.vola ? spec.hover * k : 0});
   return c;
 }
 
@@ -922,13 +1463,13 @@ function makeSprite(asset, pos){
   const c = Object.assign(
     baseCreature(root, asset.nome, 'esemplare importato', .3 + Math.random()*.5),
     {kind:'sprite', asset, pivot, quad, anello:marks.anello, ombra:marks.ombra,
-     markBase:1, agile:1});
+     markBase:1, agile:1, taglia: 0.72 + Math.random()*0.66});
   resizeSprite(c);
   return c;
 }
 
 function resizeSprite(c){
-  const h = c.asset.altezza, w = h * c.asset.aspect;
+  const h = c.asset.altezza * (c.taglia || 1), w = h * c.asset.aspect;
   c.quad.scale.set(w * c.flip, h, 1);
   c.quad.position.y = h/2;
   const r = Math.max(.16, w*.5);
@@ -944,7 +1485,7 @@ function resizeSprite(c){
 function freeSpot(origin){
   for(let k=0;k<40;k++){
     const ang  = Math.random()*Math.PI*2;
-    const dist = 1.4 + Math.random()*4.2;
+    const dist = 1.1 + Math.random()*2.9;      // entro 4 m: oltre finisce in un'altra stanza
     const x = origin.x + Math.sin(ang)*dist;
     const z = origin.z - Math.cos(ang)*dist;
     const y = surfaceAt(x, z, Infinity);
@@ -953,7 +1494,90 @@ function freeSpot(origin){
   return new THREE.Vector3(origin.x, WORLD.floorY, origin.z - 2.4);
 }
 
-function seed(n = 7){
+/* ==========================================================================
+   POPOLAMENTO PROGRESSIVO
+   Le creature non nascono tutte all'avvio: compaiono man mano che esplori
+   l'ambiente, e si fermano quando la zona esplorata e' satura.
+   ========================================================================== */
+const SETTORI = 24;                 // 15 gradi ciascuno
+const esplorati = new Set();
+let spawnClock = 0;
+
+const settoreDi = az => ((Math.floor(((az + Math.PI) / (Math.PI*2)) * SETTORI) % SETTORI) + SETTORI) % SETTORI;
+
+function nasce(camPos, camQ){
+  const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(camQ);
+  const azCam = Math.atan2(fwd.x, -fwd.z);
+  const mio = settoreDi(azCam);
+
+  /* Preferisco far comparire le creature fuori dal campo visivo: vederle
+     materializzarsi davanti agli occhi rompe l'illusione. */
+  const buoni = [...esplorati].filter(sx => {
+    let d = Math.abs(sx - mio); if(d > SETTORI/2) d = SETTORI - d;
+    return d >= 3;
+  });
+  const pool = buoni.length ? buoni : [...esplorati];
+  if(!pool.length) return false;
+
+  /* Due passate: la seconda accetta distanze piu' corte e meno spazio fra le
+     creature. In una stanza piccola e piena di mobili la prima puo' fallire
+     sempre, e il risultato sarebbe una scena che non si popola mai. */
+  const passate = [{dMin:1.3, dVar:2.7, sep:1.0}, {dMin:0.9, dVar:1.6, sep:0.6}];
+  for(const P of passate){
+    for(let tent = 0; tent < 14; tent++){
+      const sx  = pool[Math.floor(Math.random()*pool.length)];
+      const ang = (sx + Math.random()) / SETTORI * Math.PI*2 - Math.PI;
+      const dist = P.dMin + Math.random()*P.dVar;
+      const x = camPos.x + Math.sin(ang)*dist;
+      const z = camPos.z - Math.cos(ang)*dist;
+      const y = surfaceAt(x, z, Infinity);
+      if(blockerAt(x, z, y, .15)) continue;
+      if(creatures.some(c => Math.hypot(c.pos.x-x, c.pos.z-z) < P.sep)) continue;
+      aggiungi(new THREE.Vector3(x, y, z));
+      return true;
+    }
+  }
+  DEPTH.scarti += 0;
+  return false;
+}
+
+function aggiungi(pos){
+  const c = library.length
+    ? makeSprite(library[Math.floor(Math.random()*library.length)], pos)
+    : makeMesh(SPECIES[Math.floor(Math.random()*SPECIES.length)], pos);
+  c.pos.copy(pos); c.standY = pos.y; c.ancora.copy(pos);
+  const pip = document.createElement('div');
+  pip.className = 'pip';
+  pip.innerHTML = '<i></i><b></b>';
+  pip.querySelector('b').textContent = c.nome;
+  els.ticks.parentNode.appendChild(pip);
+  c.pip = pip;
+  creatures.push(c);
+  return c;
+}
+
+function popolazioneObiettivo(){
+  /* Cresce con la porzione di ambiente che hai davvero guardato, e si ferma:
+     un salotto non puo' contenerne trenta senza sembrare un formicaio. */
+  return Math.min(WORLD.count, Math.round(2 + esplorati.size * 0.62));
+}
+
+function updatePopulation(dt, camPos, camQ){
+  const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(camQ);
+  const sx = settoreDi(Math.atan2(fwd.x, -fwd.z));
+  if(!esplorati.has(sx)){
+    esplorati.add(sx);
+    if(esplorati.size % 6 === 0) ev('esplorato ' + Math.round(esplorati.size/SETTORI*100) + '% intorno');
+  }
+  spawnClock -= dt;
+  if(spawnClock > 0) return;
+  spawnClock = .55;
+  if(creatures.length < popolazioneObiettivo()) nasce(camPos, camQ);
+}
+
+function seed(n){
+  esplorati.clear();
+  n = (n !== undefined) ? n : 2;
   creatures.forEach(c => scene.remove(c.root));
   creatures = [];
   document.querySelectorAll('.pip').forEach(p => p.remove());
@@ -972,7 +1596,7 @@ function seed(n = 7){
     c.pip = pip;
     creatures.push(c);
   }
-  toast(n + (library.length ? ' esemplari in scena' : ' contatti nell\'area'));
+  toast('area azzerata, girati per popolarla');
 }
 
 /* ==========================================================================
@@ -1017,6 +1641,40 @@ function landingBeyond(c, from, dir, fromY){
   return null;
 }
 
+/* I piani arrivano dopo che le creature sono gia' in scena: chi si ritrova
+   sepolto in un volume appena nato va tirato fuori, non lasciato invisibile. */
+function pushOut(c, ob){
+  const prima = c.pos.clone();
+  const dx = c.pos.x - ob.cx, dz = c.pos.z - ob.cz;
+  const ca = Math.cos(ob.rotY), sa = Math.sin(ob.rotY);
+  let lx = dx*ca - dz*sa, lz = dx*sa + dz*ca;
+  const ox = ob.hw + c.raggio + .06 - Math.abs(lx);
+  const oz = ob.hd + c.raggio + .06 - Math.abs(lz);
+  if(ox < oz) lx += (lx < 0 ? -ox : ox);      // esce dal lato piu' vicino
+  else        lz += (lz < 0 ? -oz : oz);
+  c.pos.x = ob.cx + (lx*ca + lz*sa);
+  c.pos.z = ob.cz + (-lx*sa + lz*ca);
+  c.standY = surfaceAt(c.pos.x, c.pos.z, Infinity);
+  c.pos.y = c.standY;
+  /* Solo se l'ha davvero spostata: azzerare stato e destinazione a ogni
+     fotogramma la inchiodava sul posto, immobile per sempre. */
+  if(c.pos.distanceTo(prima) > .01){
+    c.meta = null; c.stato = 'ferma'; c.t = .4 + Math.random();
+  }
+}
+
+function unstick(c){
+  const ob = blockerAt(c.pos.x, c.pos.z, c.standY);
+  if(!ob) return false;
+  const top = WORLD.floorY + ob.top;
+  if(ob.walkable && top - c.standY <= JUMP_MAX * c.agile * 1.8){
+    c.standY = top; c.pos.y = top;            // se e' basso, ci finisce sopra
+  } else {
+    pushOut(c, ob);
+  }
+  return true;
+}
+
 function turnAway(c){
   const a = (Math.random() < .5 ? 1 : -1) * (0.9 + Math.random()*1.4);
   const ca = Math.cos(a), sa = Math.sin(a);
@@ -1029,8 +1687,20 @@ function turnAway(c){
 
 function newWanderTarget(c){
   const onTop = c.standY > WORLD.floorY + STEP_UP;
+  /* Chi e' salito su un mobile punta spesso fuori dal suo perimetro: cosi'
+     scende invece di restare appollaiato per sempre sul tavolino. */
+  if(onTop && Math.random() < .6){
+    const ob = WORLD.obstacles.find(o =>
+      Math.abs(WORLD.floorY + o.top - c.standY) < .05 && inFoot(o, c.pos.x, c.pos.z));
+    if(ob){
+      const a = Math.random()*Math.PI*2;
+      const r = Math.max(ob.hw, ob.hd) + .5 + Math.random()*.8;
+      c.meta = new THREE.Vector3(ob.cx + Math.sin(a)*r, 0, ob.cz + Math.cos(a)*r);
+      return;
+    }
+  }
   const a = Math.random()*Math.PI*2;
-  const r = onTop ? (.6 + Math.random()*1.9) : (.6 + Math.random()*2.1);
+  const r = .6 + Math.random()*2.1;
   c.meta = new THREE.Vector3(c.pos.x + Math.sin(a)*r, 0, c.pos.z + Math.cos(a)*r);
 }
 
@@ -1043,10 +1713,13 @@ function stepMove(c, dt){
   const adv = c.vel * dt;
   const nx = c.pos.x + d.x*adv, nz = c.pos.z + d.z*adv;
 
-  const ob = blockerAt(nx, nz, c.standY, c.raggio*.55);
+  /* Un volatile non salta il divano: ci passa sopra. La quota di volo entra
+     nel test come se fosse altezza del suolo. */
+  const ob = blockerAt(nx, nz, c.standY + (c.hover || 0), c.raggio*.55);
   if(ob){
     const rise = (WORLD.floorY + ob.top) - c.standY;
-    if(ob.walkable && rise > 0 && rise <= JUMP_MAX * c.agile){
+    if(ob.walkable && rise > 0 && rise <= JUMP_MAX * c.agile &&
+       Math.min(ob.hw, ob.hd) > c.raggio * .9){
       startJump(c, landingOnTop(c, ob, c.pos, d), Math.max(.22, rise*.55));
       return d;
     }
@@ -1054,7 +1727,7 @@ function stepMove(c, dt){
     return null;
   }
 
-  const top = surfaceAt(nx, nz, c.standY, -c.raggio*.35);
+  const top = surfaceAt(nx, nz, c.standY, -c.raggio*.95);   // ben dentro il piano
   if(top < c.standY - STEP_UP){
     // bordo: o salto di la', o mi giro
     const drop = c.standY - top;
@@ -1092,14 +1765,21 @@ function updateCreature(c, dt, camPos){
   else {
     c.t -= dt;
     if(c.t <= 0){
-      if(c.stato === 'sociale'){ c.stato='ferma'; c.socialCon=null; c.t=1.5+Math.random()*2; }
+      if(c.stato === 'sociale'){
+        c.stato='ferma'; c.socialCon=null; c.t=1.5+Math.random()*2;
+        c.socialOff = 7 + Math.random()*5;        // poi si separano davvero
+      }
       else if(c.stato === 'vaga'){ c.stato='ferma'; c.meta=null; c.t=1.2+Math.random()*3; }
       else { c.stato='vaga'; newWanderTarget(c); c.t = 2+Math.random()*3; }
     }
 
-    if(c.stato !== 'sociale'){
+    /* Senza attesa fra un contatto e l'altro due creature vicine si
+       riagganciavano subito dopo essersi lasciate, e restavano ferme a
+       guardarsi per sempre. Era la causa delle creature statiche. */
+    if(c.socialOff > 0) c.socialOff -= dt;
+    if(c.stato !== 'sociale' && c.socialOff <= 0){
       for(const o of creatures){
-        if(o === c || o.stato === 'salto') continue;
+        if(o === c || o.stato === 'salto' || o.socialOff > 0) continue;
         if(Math.abs(o.standY - c.standY) < .3 &&
            c.pos.distanceTo(o.pos) < 2.2 && Math.random() < dt*.5){
           c.stato='sociale'; c.socialCon=o; c.meta=null; c.t=2.2+Math.random()*1.5;
@@ -1113,10 +1793,40 @@ function updateCreature(c, dt, camPos){
   let moveDir = null;
   if(c.stato === 'vaga') moveDir = stepMove(c, dt);
 
-  // il terreno puo' sparire sotto i piedi se l'utente cancella un ostacolo
+  /* Una creatura a mezzo metro dagli occhi copre mezzo schermo e finisce
+     sotto la soglia utile della profondita': la si tiene a distanza. */
   if(c.stato !== 'salto'){
+    const dcam = Math.hypot(c.pos.x - camPos.x, c.pos.z - camPos.z);
+    if(dcam < 0.9 && dcam > 1e-3){
+      const kx = (c.pos.x - camPos.x)/dcam, kz = (c.pos.z - camPos.z)/dcam;
+      const nx = camPos.x + kx*0.95, nz = camPos.z + kz*0.95;
+      if(!blockerAt(nx, nz, c.standY, c.raggio*.5)){
+        c.pos.x = nx; c.pos.z = nz;
+        c.standY = surfaceAt(nx, nz, Infinity); c.pos.y = c.standY;
+        if(c.stato === 'vaga') c.meta = null;
+      }
+    }
+  }
+
+  if(c.stato !== 'salto'){
+    unstick(c);                       // sepolta in un piano appena rilevato
     const under = surfaceAt(c.pos.x, c.pos.z, c.standY + .02);
     if(under < c.standY - STEP_UP){ c.standY = under; c.pos.y = under; }
+  }
+
+  /* Chi resta inchiodato fra due volumi va ricollocato, altrimenti resta
+     immobile e sembra un guasto. Sei secondi senza spostarsi bastano. */
+  if(c.stato !== 'salto'){
+    c.fermaDa += dt;
+    if(c.fermaDa > 8){
+      if(c.pos.distanceTo(c.ancora) < .15){
+        const q = freeSpot(camPos);
+        c.pos.copy(q); c.standY = q.y; c.jump = null;
+        c.stato = 'vaga'; newWanderTarget(c); c.t = 2.5;
+        ev('creatura impantanata, ricollocata');
+      }
+      c.ancora.copy(c.pos); c.fermaDa = 0;
+    }
   }
 
   if(c.stato==='sociale' && c.socialCon) c.guarda = c.socialCon.pos;
@@ -1155,51 +1865,146 @@ function updateSpriteLook(c, dt, camPos, moveDir){
     const dot = rif.dot(right);
     if(Math.abs(dot) > .2) c.flip = dot > 0 ? 1 : -1;
   }
-  const w = c.asset.altezza * c.asset.aspect;
+  const w = c.asset.altezza * (c.taglia || 1) * c.asset.aspect;
   c.quad.scale.x += ((w * c.flip) - c.quad.scale.x) * Math.min(1, dt*12);
 }
 
+/* ==========================================================================
+   ANIMAZIONE — nessun riferimento alle specie: muove le parti che il corpo
+   dichiara, cosi' aggiungere una creatura non richiede di toccarla.
+   ========================================================================== */
 function animate(c, dt){
-  const soc = c.stato === 'sociale';
+  const soc   = c.stato === 'sociale';
   const salta = c.stato === 'salto';
+  const vaga  = c.stato === 'vaga';
+
   if(c.kind === 'mesh'){
-    const s = c.spec;
-    let bob = 0, tilt = 0;
-    if(s.fluttua){
-      bob = Math.sin(c.fase*1.6)*.16 + .2;
-      c.body.children.forEach(m => { if(m.name==='ala') m.rotation.z = Math.sin(c.fase*14)*.5; });
-    } else if(salta){
-      bob = .02; tilt = 0;
-      c.body.children.forEach(m => { if(m.name==='zampa') m.rotation.x = -.5; });
-    } else if(s.salto && c.stato==='vaga'){
-      bob = Math.abs(Math.sin(c.fase*4.5))*.22;
-    } else if(c.stato==='vaga'){
-      bob = Math.abs(Math.sin(c.fase*7))*.05; tilt = Math.sin(c.fase*7)*.05;
-      c.body.children.forEach((m,i) => { if(m.name==='zampa') m.rotation.x = Math.sin(c.fase*7+i*1.6)*.5; });
-    } else bob = Math.sin(c.fase*1.9)*.02;
-    if(c.impulso > 0) bob += c.impulso*.5;
-    c.body.position.y = bob;
+    const P = c.parti || {}, s = c.spec, hov = c.hover || 0;
+    const vola = !!s.vola;
+    let bob = 0, tilt = 0, pitch = 0, stiro = 1;
+
+    if(salta){
+      /* Tre tempi leggibili: raccolta, distensione in aria, ammortizzata.
+         Basta poco perche' si capisca che e' un salto. */
+      const u = c.jump ? Math.min(1, c.jump.u) : 1;
+      if(u < .16){ stiro = .74 + u*1.6; bob = -s.scala*.08; pitch = -.25*u; }
+      else if(u < .82){ stiro = 1.14; pitch = -.3 + (u-.16)*.55; }
+      else { const w = (u-.82)/.18; stiro = 1.14 - w*.42; pitch = .1 - w*.1; }
+      if(P.zampe) P.zampe.forEach(z => {
+        const chiusa = u < .82 ? -1.0 : -.2;
+        z.rotation.x += (chiusa - z.rotation.x) * Math.min(1, dt*14);
+      });
+
+    } else if(vola){
+      bob = Math.sin(c.fase*2.1)*hov*.16;
+      pitch = vaga ? -.18 : 0;
+      if(P.zampe) P.zampe.forEach((z,i) => {
+        const r = vaga ? -.5 : Math.sin(c.fase*1.4 + i)*.12;
+        z.rotation.x += (r - z.rotation.x) * Math.min(1, dt*6);
+      });
+
+    } else if(vaga){
+      const passo = c.fase * (7.5 - c.taglia*1.6);
+      bob  = Math.abs(Math.sin(passo))*s.scala*.22;
+      tilt = Math.sin(passo)*.055;
+      if(s.salto) bob = Math.abs(Math.sin(c.fase*4.5))*s.scala*.9;
+      if(P.zampe) P.zampe.forEach((z,i) => { z.rotation.x = Math.sin(passo + i*1.7)*.55; });
+
+    } else {
+      bob = Math.sin(c.fase*1.9)*s.scala*.06;
+      if(P.zampe) P.zampe.forEach(z => { z.rotation.x += (0 - z.rotation.x)*Math.min(1, dt*5); });
+    }
+
+    /* Ali: battito veloce in volo, lento da fermi, quasi chiuse a terra. */
+    if(P.ali && P.ali.length){
+      /* Anche chi non vola sbatte le ali camminando e saltando: un uccellino
+         a terra che le tiene chiuse sembra impagliato. */
+      const rapido = vola ? (vaga ? 22 : 15) : (salta ? 17 : (vaga ? 9 : 3.2));
+      const ampi   = vola ? (vaga ? .85 : .6) : (salta ? .7 : (vaga ? .38 : .12));
+      const f = Math.sin(c.fase*rapido);
+      P.ali.forEach(pz => {
+        pz.rotation.z = pz.userData.dir * (0.15 + f*ampi*0.5);
+        pz.rotation.y = pz.userData.dir * f * .18;
+      });
+    }
+
+    /* La testa segue lo sguardo prima del corpo: e' il dettaglio che fa
+       sembrare che stia guardando qualcosa invece di puntarlo. */
+    if(P.testa){
+      let rel = 0;
+      if(c.guarda){
+        const dx = c.guarda.x - c.pos.x, dz = c.guarda.z - c.pos.z;
+        if(dx*dx + dz*dz > 1e-5){
+          rel = Math.atan2(-dx, -dz) - c.root.rotation.y;
+          while(rel >  Math.PI) rel -= Math.PI*2;
+          while(rel < -Math.PI) rel += Math.PI*2;
+          rel = V.clamp(rel, -.75, .75);
+        }
+      }
+      P.testa.rotation.y += (rel - P.testa.rotation.y) * Math.min(1, dt*5);
+      const inc = salta ? -.22 : (vaga ? .08 : Math.sin(c.fase*1.3)*.06);
+      P.testa.rotation.x += (inc - P.testa.rotation.x) * Math.min(1, dt*4);
+    }
+
+    /* Il bruco avanza per onde: ogni segmento e' sfasato sul precedente. */
+    if(P.segmenti && P.segmenti.length){
+      P.segmenti.forEach((m,i) => {
+        const f = c.fase*(vaga?7:1.6) - i*.85;
+        m.position.y = s.scala*(c.spec.forma.segmenti.y) + Math.sin(f)*s.scala*(vaga?.22:.05);
+        m.scale.setScalar(1 + Math.sin(f)*(vaga?.09:.03));
+      });
+    }
+
+    /* Ammicco a intervalli irregolari e orecchie che rimbalzano in ritardo
+       sul corpo: due dettagli piccoli che tolgono la fissita' da manichino. */
+    if(P.occhi && P.occhi.length){
+      const ciclo = 3.4 + (c.taglia||1)*1.7;
+      const fa = (c.fase % ciclo) / ciclo;
+      const chiuso = fa > .972 ? 1 - Math.abs(fa - .986)/.014 : 0;
+      P.occhi.forEach(o => o.scale.y = 1 - chiuso*.92);
+    }
+    if(P.orecchie && P.orecchie.length){
+      const vel = (c.body.position.y - (c.bobPrec === undefined ? c.body.position.y : c.bobPrec)) / Math.max(dt, 1e-4);
+      c.bobPrec = c.body.position.y;
+      c.orecchieV = (c.orecchieV || 0) * .82 - vel * .045;
+      P.orecchie.forEach((o,i) => {
+        o.rotation.x = (o.userData.riposo || 0) + V.clamp(c.orecchieV, -.6, .6) * (1 + i*.12);
+      });
+    }
+
+    if(P.coda){
+      P.coda.rotation.y = Math.sin(c.fase*(vaga?6:1.8)) * (vaga?.35:.14);
+      P.coda.rotation.x = salta ? -.3 : Math.sin(c.fase*2.2)*.08;
+    }
+
+    if(c.impulso > 0){ bob += c.impulso*s.scala*1.6; stiro *= 1 + c.impulso*.18; }
+
+    c.body.position.y = hov + bob;
     c.body.rotation.z = tilt;
-    c.body.scale.setScalar(soc ? 1+Math.sin(c.fase*7)*.055 : 1);
+    c.body.rotation.x = pitch;
+    const base = c.taglia * (soc ? 1 + Math.sin(c.fase*7)*.05 : 1);
+    c.body.scale.set(base, base*stiro, base);
+
   } else {
-    const h = c.asset.altezza;
-    const hop    = salta ? 0 : (c.stato==='vaga' ? Math.abs(Math.sin(c.fase*5.2))*h*.09 : Math.sin(c.fase*1.7)*h*.014);
-    const squash = (c.stato==='vaga' && !salta) ? 1 - Math.abs(Math.cos(c.fase*5.2))*.045 : 1;
+    const h = c.asset.altezza * (c.taglia || 1);
+    const hop    = salta ? 0 : (vaga ? Math.abs(Math.sin(c.fase*5.2))*h*.09 : Math.sin(c.fase*1.7)*h*.014);
+    const squash = (vaga && !salta) ? 1 - Math.abs(Math.cos(c.fase*5.2))*.045 : 1;
     const pulse  = soc ? 1+Math.sin(c.fase*7)*.05 : 1;
+    const volo   = salta && c.jump ? 1.1 - Math.abs(.5 - Math.min(1,c.jump.u))*.2 : 1;
     c.quad.position.y = h/2 + hop + c.impulso*h*.4;
-    c.quad.scale.y = h * squash * pulse;
-    c.pivot.rotation.z = (c.stato==='vaga' && !salta) ? Math.sin(c.fase*5.2)*.035*c.flip : 0;
+    c.quad.scale.y = h * squash * pulse * volo;
+    c.pivot.rotation.z = (vaga && !salta) ? Math.sin(c.fase*5.2)*.035*c.flip : 0;
   }
+
   if(c.impulso > 0) c.impulso = Math.max(0, c.impulso - dt*2.2);
   c.anello.material.opacity = soc ? .45 : .22;
 
-  /* L'ombra resta incollata alla superficie sotto, non vola col salto.
-     E' il dettaglio che rende leggibile l'altezza. */
   const gy = surfaceAt(c.pos.x, c.pos.z, c.root.position.y + .02);
-  const air = Math.max(0, c.root.position.y - gy);
+  const stacco = c.root.position.y - gy;
+  const air = Math.max(0, stacco) + (c.hover || 0);
   const k = 1/(1 + air*1.5);
-  c.ombra.position.y = -air + .012;
-  c.anello.position.y = -air + .014;
+  c.ombra.position.y  = -stacco + .012;
+  c.anello.position.y = -stacco + .014;
   c.ombra.scale.setScalar(c.markBase * k);
   c.anello.scale.setScalar(c.markBase * k);
   c.ombra.material.opacity = .3 * k;
@@ -1261,14 +2066,20 @@ function applyOrientation(q, alpha, beta, gamma, orient){
 }
 const onOrient = e => { if(e.alpha !== null){ orientEnabled = true; devOrient = e; } };
 
-const _cp = new THREE.Vector3(), _cq = new THREE.Quaternion();
+const _cp = new THREE.Vector3(), _cq = new THREE.Quaternion(), _cs = new THREE.Vector3();
 function camPose(){
   let cam = camera;
   if(renderer && renderer.xr && renderer.xr.isPresenting){
     try { cam = renderer.xr.getCamera(camera) || camera; } catch(e){ cam = camera; }
   }
-  cam.getWorldPosition(_cp);
-  cam.getWorldQuaternion(_cq);
+  /* getWorldPosition/getWorldQuaternion chiamano updateWorldMatrix, che
+     RICALCOLA matrixWorld da position/quaternion. Sulla camera XR quei campi
+     non sono la sorgente di verita': la posa la scrive three.js direttamente
+     in matrixWorld. Ricalcolarla restituiva un orientamento fermo, e con esso
+     un solo settore esplorato per sempre: ecco perche' girandoti non nasceva
+     piu' nessuna creatura. Qui la matrice si legge e basta. */
+  if(cam.matrixWorld) cam.matrixWorld.decompose(_cp, _cq, _cs);
+  else { cam.getWorldPosition(_cp); cam.getWorldQuaternion(_cq); }
   return {p:_cp, q:_cq};
 }
 
@@ -1345,12 +2156,83 @@ function initTap(){
   });
 }
 
+/* Su Android la traccia video muore in silenzio: schermo bloccato, altra app
+   che prende la fotocamera, risparmio energetico. Qui la si riprende. */
+function watchFeed(stream){
+  const tr = stream.getVideoTracks()[0];
+  if(!tr) return;
+  tr.addEventListener('ended', () => { toast('flusso fotocamera interrotto'); reopenFeed(); });
+  tr.addEventListener('mute',  () => toast('fotocamera sospesa dal sistema'));
+  els.feed.addEventListener('pause', () => { if(WORLD.mode !== 'xr') els.feed.play().catch(()=>{}); });
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden && WORLD.mode !== 'xr'){
+      if(els.feed.paused) els.feed.play().catch(()=>{});
+      const t = els.feed.srcObject && els.feed.srcObject.getVideoTracks()[0];
+      if(!t || t.readyState === 'ended') reopenFeed();
+    }
+  });
+}
+
+async function reopenFeed(){
+  if(WORLD.mode === 'xr') return;
+  try {
+    const s = await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:{ideal:'environment'}, width:{ideal:1280}}, audio:false});
+    els.feed.srcObject = s;
+    els.feed.style.display = 'block';
+    await els.feed.play();
+    PERF.vRestart++;
+    watchFeed(s);
+    toast('fotocamera riagganciata');
+  } catch(e){ toast('riaggancio fallito: ' + e.name); }
+}
+
 let toastTimer;
 function toast(msg){
   els.toast.textContent = msg;
   els.toast.classList.add('on');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => els.toast.classList.remove('on'), 2300);
+}
+
+/* Il pannello che mi serve per capire un blocco senza avere il telefono in mano. */
+function updateDiag(){
+  const v = els.feed;
+  const tr = (v.srcObject && v.srcObject.getVideoTracks && v.srcObject.getVideoTracks()[0]) || null;
+  const st = tr ? (tr.readyState + (tr.muted ? ' MUTO' : '') + (tr.enabled ? '' : ' DISATTIVA')) : 'nessuna';
+  const set = tr && tr.getSettings ? tr.getSettings() : {};
+  const mem = performance.memory
+    ? Math.round(performance.memory.usedJSHeapSize/1048576) + ' / ' +
+      Math.round(performance.memory.jsHeapSizeLimit/1048576) + ' MB'
+    : 'non esposta';
+  const flag = x => x ? '<u>' + x + '</u>' : '';
+  els.diag.innerHTML =
+    'fps          <b>' + PERF.fps + '</b>  ' + flag(PERF.fps && PERF.fps < 20 ? 'BASSO' : '') + '\n' +
+    'frame max    <b>' + Math.round(PERF.dtMax*1000) + ' ms</b>  ' + flag(PERF.stallo ? PERF.stallo + ' stalli' : '') + '\n' +
+    'webgl        <b>' + (PERF.lost ? 'CONTESTO PERSO' : 'ok') + '</b>\n' +
+    'video        <b>readyState ' + v.readyState + '</b> · traccia <b>' + st + '</b>\n' +
+    'risoluzione  <b>' + (set.width || '?') + '×' + (set.height || '?') + '</b> @ ' + (set.frameRate || '?') + '\n' +
+    'riavvii feed <b>' + PERF.vRestart + '</b>\n' +
+    'sessione xr  <b>' + (xrSession ? (xrSession.visibilityState || 'attiva') : 'nessuna') + '</b>\n' +
+    'profondita   <b>' + (DEPTH.attiva ? DEPTH.w + 'x' + DEPTH.h : 'non attiva') + '</b>' +
+      (DEPTH.accesa ? '' : ' (spenta)') +
+      (DEPTH.errori ? '  ' + flag(DEPTH.errori + ' errori') : '') + '\n' +
+    'lettura al centro <b>' + (DEPTH.centro ? DEPTH.centro.toFixed(2) + ' m' : 'nessuna') + '</b>  ' +
+      flag(DEPTH.attiva && !DEPTH.centro ? 'NESSUN DATO' : '') + '\n' +
+    'campioni     <b>' + DEPTH.campioni + '</b> validi · <b>' + DEPTH.occluse + '</b> occluse · ' +
+      DEPTH.scarti + ' scartati\n' +
+    'creature     <b>' + creatures.length + ' / ' + popolazioneObiettivo() + '</b> (tetto ' + WORLD.count + ')\n' +
+    'esplorato    <b>' + Math.round(esplorati.size/SETTORI*100) + '%</b> intorno a te\n' +
+    'ostacoli     <b>' + WORLD.obstacles.length + '</b>\n' +
+    'orientamento <b>' + (orientEnabled ? 'attivo' : 'assente') + '</b>' +
+      (devOrient ? ' α' + Math.round(devOrient.alpha||0) + ' β' + Math.round(devOrient.beta||0) : '') + '\n' +
+    'memoria js   <b>' + mem + '</b>\n' +
+    'pose xr      <b>' + PERF.pose + ' valide / ' + PERF.noPose + ' nulle</b>  ' +
+      flag(PERF.noPose > 30 ? 'TRACCIAMENTO PERSO' : '') + '\n' +
+    'fps minimo   <b>' + (PERF.fpsMin === 999 ? '-' : PERF.fpsMin) + '</b>\n' +
+    'schermo      <b>' + innerWidth + '×' + innerHeight + '</b> dpr ' + (window.devicePixelRatio||1).toFixed(2) +
+    '\n\nregistro ' + BUILD + '\n' + LOG.join('\n');
+  PERF.dtMax = 0;
 }
 
 function applyWire(){
@@ -1360,7 +2242,9 @@ function applyWire(){
 
 function setChip(){
   const nomi = {xr:'WebXR', gyro:'Giroscopio', desk:'Desktop'};
-  els.chipMode.textContent = nomi[WORLD.mode] || '—';
+  els.chip.classList.toggle('bad', PERF.lost);
+  if(PERF.lost){ els.chipMode.textContent = 'contesto perso'; els.chipGeo.textContent = ''; return; }
+  els.chipMode.textContent = (nomi[WORLD.mode] || '?') + ' ' + BUILD;
   els.chipGeo.textContent = WORLD.mode === 'xr' ? 'piani automatici'
     : (WORLD.mode === 'desk' ? 'senza fotocamera' : 'mappa manuale');
 }
@@ -1383,10 +2267,30 @@ function initSheet(){
   }));
   els.drop.addEventListener('drop', e => { if(e.dataTransfer) ingest(e.dataTransfer.files); });
 
+  els.nCre.addEventListener('input', () => {
+    WORLD.count = parseInt(els.nCre.value, 10);
+    els.nCrev.textContent = WORLD.count;
+  });
+  els.nCre.addEventListener('change', () => {});
+
   els.eyeH.addEventListener('input', () => {
     WORLD.eyeH = parseFloat(els.eyeH.value);
     els.eyeHv.textContent = WORLD.eyeH.toFixed(2) + ' m';
     if(WORLD.mode !== 'xr') refreshFloorGeometry();
+  });
+  els.optTondo.addEventListener('change', () => {
+    QUALITA.det = els.optTondo.checked ? 2 : 1;
+    ev('dettaglio ' + (QUALITA.det === 2 ? 'alto' : 'basso'));
+    seed();                       // i corpi vanno ricostruiti
+  });
+  els.optOcc.addEventListener('change', () => {
+    DEPTH.accesa = els.optOcc.checked;
+    if(!DEPTH.accesa) creatures.forEach(c => applicaVisibilita(c, 1));
+    ev('occlusione ' + (DEPTH.accesa ? 'accesa' : 'spenta'));
+  });
+  els.optFlip.addEventListener('change', () => {
+    DEPTH.flipY = els.optFlip.checked;
+    ev('asse profondita ' + (DEPTH.flipY ? 'invertito' : 'normale'));
   });
   els.optWire.addEventListener('change', () => {
     WORLD.wire = els.optWire.checked; applyWire();
@@ -1407,11 +2311,40 @@ function initMapUI(){
 /* ==========================================================================
    10. BOOT
    ========================================================================== */
+/* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
+   indistinguibile da mille cause diverse. */
+const BUILD = 'v22';
+const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
+              pose:0, noPose:0, fpsMin:999};
+
+/* Registro con orario: un blocco si ricostruisce dalla sequenza degli eventi,
+   non da una fotografia dello stato finale. */
+const LOG = [];
+function ev(txt){
+  LOG.push((performance.now()/1000).toFixed(1) + 's  ' + txt);
+  if(LOG.length > 14) LOG.shift();
+}
+
 function initScene(){
-  renderer = new THREE.WebGLRenderer({canvas:$('gl'), alpha:true, antialias:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  /* Su un telefono ad alta densita' un pixelRatio 2 con antialias significa
+     oltre due milioni di pixel per fotogramma: e' la prima cosa che scalda
+     la GPU e fa crollare il frame rate fino al blocco apparente. */
+  const dpr = window.devicePixelRatio || 1;
+  renderer = new THREE.WebGLRenderer({canvas:$('gl'), alpha:true, antialias: dpr < 2});
+  renderer.setPixelRatio(Math.min(dpr, 1.5));
   renderer.setSize(innerWidth, innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
+
+  const cv = $('gl');
+  cv.addEventListener('webglcontextlost', e => {
+    e.preventDefault();               // senza questo il contesto non torna mai
+    PERF.lost = true; setChip(); ev('CONTESTO WEBGL PERSO');
+    window.__fatal('contesto webgl perso', 'la GPU ha rilasciato il contesto: scena congelata, tento il ripristino');
+  }, false);
+  cv.addEventListener('webglcontextrestored', () => {
+    PERF.lost = false; setChip(); ev('contesto webgl ripristinato');
+    toast('grafica ripristinata');
+  }, false);
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(66, innerWidth/innerHeight, .05, 120);
@@ -1422,6 +2355,9 @@ function initScene(){
   scene.add(new THREE.HemisphereLight(0xdfefff, 0x40372c, 1.15));
   const sun = new THREE.DirectionalLight(0xfff0dc, 1.05);
   sun.position.set(3,6,2); scene.add(sun);
+  /* Controluce tenue: stacca la sagoma dallo sfondo, come nei cartoni. */
+  const bordo = new THREE.DirectionalLight(0xbfd8ff, .45);
+  bordo.position.set(-2.5,2,-3); scene.add(bordo);
 
   clock = new THREE.Clock();
   raycaster = new THREE.Raycaster();
@@ -1439,20 +2375,69 @@ function syntheticRoom(){
   makeObstacle(0, -2.6, .95, .45, 0, .45, 'divano', 'demo');
   makeObstacle(2.4, .4, .70, .70, .6, .75, 'tavolo', 'demo');
   makeObstacle(-2.2, 1.1, .28, .28, 0, .45, 'sedia', 'demo');
-  makeObstacle(0, -4.4, 2.4, .08, 0, 2.2, 'parete', 'demo').walkable = false;
+  const muro = makeObstacle(0, -4.4, 2.4, .08, 0, 2.2, 'parete', 'demo');
+  if(muro) muro.walkable = false;
 }
 
+let loopErr = 0, lastBeat = 0, stalloDetto = false;
+
+/* Il ciclo non deve poter morire in silenzio: qualunque eccezione viene
+   mostrata a schermo invece di lasciare la scena congelata. */
 function loop(time, frame){
-  const dt = Math.min(clock.getDelta(), .05);
+  lastBeat = performance.now();
+  try { loopBody(time, frame); }
+  catch(e){
+    loopErr++;
+    window.__fatal('errore nel ciclo di disegno #' + loopErr,
+      (e && e.message ? e.message : String(e)) +
+      (e && e.stack ? '\n' + String(e.stack).split('\n').slice(0,3).join('\n') : ''));
+    if(loopErr >= 6){
+      window.__fatal('ciclo interrotto', 'troppi errori consecutivi, disegno fermato');
+      renderer.setAnimationLoop(null);
+    }
+  }
+}
+
+function loopBody(time, frame){
+  const raw = clock.getDelta();
+  const dt = Math.min(raw, .05);
+  PERF.n++; PERF.dtLast = raw;
+  if(raw > PERF.dtMax) PERF.dtMax = raw;
+  if(raw > .5) PERF.stallo++;            // fotogramma perso per mezzo secondo o piu'
+  if(!PERF.t0) PERF.t0 = time || 0;
+  if((time || 0) - PERF.t0 > 500){
+    PERF.fps = Math.round(PERF.n * 1000 / ((time||0) - PERF.t0));
+    PERF.n = 0; PERF.t0 = time || 0;
+    els.chipFps.textContent = PERF.fps + 'fps';
+    if(PERF.fps < PERF.fpsMin) PERF.fpsMin = PERF.fps;
+    if(PERF.fps < 12) ev('fps crollato a ' + PERF.fps);
+    if(els.sheet.classList.contains('open')) updateDiag();
+  }
 
   if(frame && WORLD.mode === 'xr'){
-    syncPlanes(frame);
+    /* Le API XR possono lanciare se uno spazio non e' piu' valido: un errore
+       qui non deve portarsi via tutta la scena. */
+    /* Misura diretta della perdita di tracciamento: se ARCore smette di dare
+       la posa, la scena resta ferma mentre la fotocamera continua a muoversi. */
+    try {
+      const vp = frame.getViewerPose(xrRefSpace);
+      if(vp) PERF.pose++;
+      else { PERF.noPose++; if(PERF.noPose === 1 || PERF.noPose % 120 === 0) ev('posa assente x' + PERF.noPose); }
+    } catch(e){ ev('getViewerPose ha lanciato: ' + ((e && e.name) || e)); }
+
+    try { occlusione(frame, camPose().p); }
+    catch(e){ DEPTH.errori++; }
+
+    try { syncPlanes(frame, dt); }
+    catch(e){ window.__fatal('rilevamento piani', (e && e.message) || String(e)); }
     if(xrHitSource){
-      const res = frame.getHitTestResults(xrHitSource);
-      if(res.length){
-        const pose = res[0].getPose(xrRefSpace);
-        lastHitPose = pose ? pose.transform.position : null;
-      } else lastHitPose = null;
+      try {
+        const res = frame.getHitTestResults(xrHitSource);
+        if(res.length){
+          const pose = res[0].getPose(xrRefSpace);
+          lastHitPose = pose ? pose.transform.position : null;
+        } else lastHitPose = null;
+      } catch(e){ xrHitSource = null; }
     }
   } else if(orientEnabled && devOrient){
     const orient = ((screen.orientation && screen.orientation.angle) || window.orientation || 0) * Math.PI/180;
@@ -1464,7 +2449,8 @@ function loop(time, frame){
 
   if(MAP.on && MAP.pts.length >= 3 && MAP.preview) { /* anteprima gia' viva */ }
 
-  const {p} = camPose();
+  const {p, q} = camPose();
+  updatePopulation(dt, p, q);
   for(const c of creatures) updateCreature(c, dt, p);
   updateTape();
   renderer.render(scene, camera);
@@ -1474,11 +2460,13 @@ async function start(){
   els.err.style.display = 'none';
   els.start.disabled = true;
 
-  const xrOk = await detectCaps();
+  /* Gia' rilevato in announce(): un await qui consumerebbe l'attivazione
+     utente e requestSession verrebbe rifiutata. */
+  const xrOk = XR_OK;
   let entered = false;
 
   if(xrOk){
-    try { await enterXR(); entered = true; WORLD.geo = 'piani ARCore'; }
+    try { await enterXR(); entered = true; WORLD.geo = 'piani ARCore'; ev('sessione AR avviata'); }
     catch(err){
       els.err.style.display = 'block';
       els.err.textContent = 'WebXR disponibile ma la sessione non è partita (' +
@@ -1497,6 +2485,7 @@ async function start(){
       els.feed.style.display = 'block';
       await els.feed.play();
       camOk = true;
+      watchFeed(stream);
     } catch(err){
       els.err.style.display = 'block';
       els.err.textContent = 'Fotocamera non disponibile (' + err.name +
@@ -1524,44 +2513,25 @@ async function start(){
     setTimeout(() => toast('apri lo schedario e tocca "mappa ambiente"'), 2600);
 }
 
+/* Installazione sulla schermata Home. Il manifesto e le icone ora sono file
+   veri accanto alla pagina: quello generato a runtime da un blob funzionava
+   a meta' e Chrome non lo considerava installabile. */
 function initPWA(){
-  const icona = size => {
-    const c = document.createElement('canvas'); c.width = c.height = size;
-    const x = c.getContext('2d'), u = size/512;
-    x.fillStyle = '#0C1116'; x.fillRect(0, 0, size, size);
-    x.strokeStyle = 'rgba(239,231,217,.32)'; x.lineWidth = 7*u;
-    for(let i=-2;i<=2;i++){
-      if(!i) continue;
-      const px = size/2 + i*74*u, h = (i%2 ? 44 : 76)*u;
-      x.beginPath(); x.moveTo(px, size/2 - h/2); x.lineTo(px, size/2 + h/2); x.stroke();
-    }
-    x.fillStyle = '#FFA92E';
-    x.beginPath();
-    x.moveTo(size/2, size/2 - 92*u);
-    x.lineTo(size/2 + 60*u, size/2 + 72*u);
-    x.lineTo(size/2 - 60*u, size/2 + 72*u);
-    x.closePath(); x.fill();
-    return c.toDataURL('image/png');
-  };
-  try {
-    const base = location.origin + location.pathname;
-    const man = {
-      name:'Campo Vivo', short_name:'Campo Vivo',
-      display:'standalone', orientation:'portrait',
-      background_color:'#0C1116', theme_color:'#0C1116',
-      start_url: base, scope: base.replace(/[^/]*$/, ''),
-      icons: [192, 512].map(s => ({src:icona(s), sizes:s+'x'+s, type:'image/png', purpose:'any'}))
-    };
-    const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = URL.createObjectURL(new Blob([JSON.stringify(man)],
-      {type:'application/manifest+json'}));
-    document.head.appendChild(link);
-    const apple = document.createElement('link');
-    apple.rel = 'apple-touch-icon';
-    apple.href = icona(180);
-    document.head.appendChild(apple);
-  } catch(e){ /* extra: se fallisce la pagina funziona uguale */ }
+  if(!('serviceWorker' in navigator)) return;
+  addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(() => ev('service worker registrato'))
+      .catch(e => ev('service worker non registrato: ' + (e && e.name)));
+  });
+  addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    window.__installa = e;
+    els.installa.style.display = 'block';
+  });
+  addEventListener('appinstalled', () => {
+    els.installa.style.display = 'none';
+    toast('installata sulla schermata Home');
+  });
 }
 
 /* Annuncio delle capacita' prima ancora di partire: l'utente deve sapere
@@ -1569,6 +2539,7 @@ function initPWA(){
 async function announce(){
   let xr = false;
   try { xr = await detectCaps(); } catch(e){ xr = false; }
+  XR_OK = xr;
   const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   /* Contesto sicuro: senza HTTPS il browser nega fotocamera e sensori a
@@ -1590,11 +2561,49 @@ async function announce(){
   }
 }
 
+/* Se il ciclo smette di battere, dirlo: e' la differenza fra "si e' bloccato"
+   e sapere che si e' bloccato il disegno e non la fotocamera. */
+setInterval(() => {
+  if(document.hidden || !lastBeat) return;
+  const gap = performance.now() - lastBeat;
+  if(gap > 3000 && !stalloDetto){
+    stalloDetto = true;
+    ev('CICLO FERMO ' + (gap/1000).toFixed(1) + 's');
+    window.__fatal('ciclo fermo', 'nessun fotogramma da ' + (gap/1000).toFixed(1) +
+      ' s\nfps ultimo noto ' + PERF.fps + ' · creature ' + creatures.length +
+      ' · ostacoli ' + WORLD.obstacles.length + ' · webgl ' + (PERF.lost ? 'perso' : 'ok'));
+  }
+  if(gap < 1000) stalloDetto = false;
+}, 2000);
+
 initScene(); initDrag(); initTap(); initSheet(); initMapUI();
 buildTicks(); renderLibrary(); renderObstacleList(); initPWA(); announce();
 renderer.setAnimationLoop(loop);
+els.installa.addEventListener('click', async () => {
+  const p = window.__installa;
+  if(!p) return;
+  els.installa.style.display = 'none';
+  p.prompt();
+  try { await p.userChoice; } catch(e){}
+  window.__installa = null;
+});
 els.start.addEventListener('click', start);
 els.reseed.addEventListener('click', () => seed());
+els.arAgain.addEventListener('click', async () => {
+  els.arAgain.disabled = true;
+  try {
+    const t = els.feed.srcObject;              // libero la fotocamera per l'AR
+    if(t && t.getTracks) t.getTracks().forEach(k => k.stop());
+    els.feed.srcObject = null; els.feed.style.display = 'none';
+    await enterXR();
+    els.arAgain.style.display = 'none';
+    setChip(); refreshFloorGeometry(); seed();
+  } catch(e){
+    window.__fatal('rientro AR fallito', (e && e.message) || String(e));
+    reopenFeed();
+  }
+  els.arAgain.disabled = false;
+});
 </script>
 </body>
 </html>
