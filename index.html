@@ -287,8 +287,8 @@
       <div id="obs"></div>
       <div class="calib">
         <span>Massimo</span>
-        <input type="range" id="nCre" min="4" max="30" step="1" value="16">
-        <span id="nCrev">16</span>
+        <input type="range" id="nCre" min="4" max="34" step="1" value="22">
+        <span id="nCrev">22</span>
       </div>
       <div class="calib">
         <span>Altezza occhio</span>
@@ -413,87 +413,87 @@ const SONDA     = 0.30;    // quanto avanti guarda prima di sbatterci    // disc
    ========================================================================== */
 const SPECIES = [
   {id:'muschide', nome:'Muschide', latino:'Muscida saltans', corpo:0x6FA07A, dettaglio:0xE4D9B6,
-   scala:.20, vel:.28, agile:1.15, emissivo:0, salto:true,
+   scala:.20, vel:.42, agile:1.15, emissivo:0, salto:true,
    forma:{corpo:{tipo:'icosa',d:1,sx:1,sy:.82,sz:1,y:.85}, testa:{r:.34,y:.95,z:-1.05},
           orecchie:{tipo:'punta',r:.22,h:.6}, zampe:{n:4,lung:.42,sp:.09,ax:.34,az:.28,y:.42}}},
 
   {id:'lampiro', nome:'Lampiro', latino:'Lampyra cava', corpo:0x2C3A44, dettaglio:0xFFC061,
-   scala:.15, vel:.42, agile:1.4, emissivo:.9, vola:true, hover:.42,
+   scala:.15, vel:.60, agile:1.4, emissivo:.9, vola:true, hover:.42,
    forma:{corpo:{tipo:'icosa',d:0,sx:1,sy:1,sz:1,y:2.2}, testa:{r:.4,y:2.2,z:-.5},
           lanterna:true, ali:{n:2,w:1.5,h:1.2,tipo:'velo',y:2.5,z:0}}},
 
   {id:'corridore', nome:'Corridore', latino:'Sabulo currens', corpo:0xB4763F, dettaglio:0x2A211B,
-   scala:.24, vel:.85, agile:.85, emissivo:0,
+   scala:.24, vel:1.15, agile:.85, emissivo:0,
    forma:{corpo:{tipo:'capsula',r:.46,lung:1.1,y:.8}, testa:{r:.42,y:1.05,z:-.62,muso:.45},
           coda:{tipo:'cono',lung:.8,r:.16,y:1.0,z:.55}, zampe:{n:4,lung:.62,sp:.1,ax:.3,az:.38,y:.62}}},
 
   {id:'alavolpe', nome:'Alavolpe', latino:'Vulpala nubila', corpo:0xD98452, dettaglio:0xFFE3C4,
-   scala:.17, vel:.62, agile:1.5, emissivo:.15, vola:true, hover:.62,
+   scala:.17, vel:.86, agile:1.5, emissivo:.15, vola:true, hover:.62,
    forma:{corpo:{tipo:'icosa',d:1,sx:.8,sy:.75,sz:1.25,y:1.1}, testa:{r:.5,y:1.45,z:-.85,muso:.5},
           orecchie:{tipo:'punta',r:.2,h:.55}, ali:{n:2,w:1.9,h:1.0,tipo:'membrana',y:1.3,z:.1},
           coda:{tipo:'ciuffo',lung:1.1,r:.26,y:1.05,z:1.0}, zampe:{n:2,lung:.5,sp:.07,ax:.3,az:.2,y:.8}}},
 
   {id:'scudonte', nome:'Scudonte', latino:'Scutum tardum', corpo:0x4E5A63, dettaglio:0x9AA7A0,
-   scala:.19, vel:.20, agile:.55, emissivo:0,
+   scala:.19, vel:.32, agile:.55, emissivo:0,
    forma:{corpo:{tipo:'icosa',d:0,sx:1.5,sy:.6,sz:1.2,y:.62}, guscio:{sx:1.35,sy:.42,sz:1.05,y:.85},
           testa:{r:.34,y:.62,z:-1.55}, zampe:{n:6,lung:.4,sp:.08,ax:.62,az:.45,y:.4}}},
 
   {id:'zampalunga', nome:'Zampalunga', latino:'Crurio gracilis', corpo:0xC9B7D6, dettaglio:0x574766,
-   scala:.14, vel:.55, agile:1.25, emissivo:0,
+   scala:.14, vel:.80, agile:1.25, emissivo:0,
    forma:{corpo:{tipo:'icosa',d:1,sx:1,sy:.85,sz:1.1,y:2.3}, collo:{r:.18,lung:1.0,y:2.9,z:-.3},
           testa:{r:.34,y:3.4,z:-.6,muso:.55}, zampe:{n:4,lung:2.0,sp:.07,ax:.34,az:.3,y:2.0}}},
 
   {id:'bombolotto', nome:'Bombolotto', latino:'Erinacea rotunda', corpo:0x8A6B52, dettaglio:0x3E3128,
-   scala:.18, vel:.32, agile:.8, emissivo:0,
+   scala:.18, vel:.46, agile:.8, emissivo:0,
    forma:{corpo:{tipo:'icosa',d:1,sx:1.1,sy:.95,sz:1.1,y:.9}, aculei:{n:16,lung:.5,r:.07},
           testa:{r:.34,y:.85,z:-1.3,muso:.4}, zampe:{n:4,lung:.32,sp:.08,ax:.4,az:.34,y:.36}}},
 
   {id:'vellutino', nome:'Vellutino', latino:'Talpina velutina', corpo:0x3B3A44, dettaglio:0xE0B7A0,
-   scala:.15, vel:.30, agile:.7, emissivo:0,
+   scala:.15, vel:.44, agile:.7, emissivo:0,
    forma:{corpo:{tipo:'uovo',sx:.9,sy:.85,sz:1.4,y:.65}, testa:{r:.32,y:.68,z:-1.5,muso:.6},
           zampe:{n:4,lung:.3,sp:.13,ax:.42,az:.3,y:.34}}},
 
   {id:'fischietto', nome:'Fischietto', latino:'Passerella arguta', corpo:0xE8D66B, dettaglio:0xC4622F,
-   scala:.13, vel:.5, agile:1.35, emissivo:0, salto:true,
+   scala:.13, vel:.72, agile:1.35, emissivo:0, salto:true,
    forma:{corpo:{tipo:'uovo',sx:.95,sy:1.1,sz:1,y:1.15}, testa:{r:.42,y:1.85,z:-.18,muso:.45},
           cresta:true, ali:{n:2,w:1.0,h:.75,tipo:'piuma',y:1.25,z:.05},
           coda:{tipo:'cono',lung:.7,r:.2,y:1.1,z:.55}, zampe:{n:2,lung:.62,sp:.06,ax:.22,az:0,y:.62}}},
 
   {id:'girinolo', nome:'Girinolo', latino:'Axolotus ridens', corpo:0xF2A9C4, dettaglio:0xFFE0EC,
-   scala:.15, vel:.34, agile:.9, emissivo:.12,
+   scala:.15, vel:.50, agile:.9, emissivo:.12,
    forma:{corpo:{tipo:'uovo',sx:1,sy:.85,sz:1.5,y:.6}, testa:{r:.4,y:.72,z:-1.65},
           branchie:true, coda:{tipo:'pinna',lung:1.3,r:.5,y:.62,z:1.1},
           zampe:{n:4,lung:.3,sp:.06,ax:.4,az:.3,y:.32}}},
 
   {id:'cornetta', nome:'Cornetta', latino:'Capretta cornuta', corpo:0xEDE3D0, dettaglio:0x7A6247,
-   scala:.17, vel:.48, agile:1.2, emissivo:0, salto:true,
+   scala:.17, vel:.70, agile:1.2, emissivo:0, salto:true,
    forma:{corpo:{tipo:'capsula',r:.4,lung:.95,y:1.0}, testa:{r:.34,y:1.25,z:-.72,muso:.4},
           corna:{lung:.5,r:.09}, orecchie:{tipo:'lunga',r:.14,h:.5},
           coda:{tipo:'cono',lung:.3,r:.12,y:1.05,z:.5}, zampe:{n:4,lung:.85,sp:.08,ax:.28,az:.34,y:.85}}},
 
   {id:'palmizio', nome:'Palmizio', latino:'Cancer pigrus', corpo:0xD1553F, dettaglio:0xF4C89B,
-   scala:.20, vel:.38, agile:.75, emissivo:0,
+   scala:.20, vel:.56, agile:.75, emissivo:0,
    forma:{corpo:{tipo:'disco',r:.9,h:.55,y:1.0}, testa:{r:.26,y:1.05,z:-.72},
           chele:true, zampe:{n:6,lung:.9,sp:.07,ax:.8,az:.5,y:.9}}},
 
   {id:'nottolina', nome:'Nottolina', latino:'Vespera minima', corpo:0x4A3C55, dettaglio:0xB79FD1,
-   scala:.13, vel:.72, agile:1.6, emissivo:.2, vola:true, hover:.85,
+   scala:.13, vel:.98, agile:1.6, emissivo:.2, vola:true, hover:.85,
    forma:{corpo:{tipo:'uovo',sx:.8,sy:1,sz:.9,y:1.0}, testa:{r:.42,y:1.5,z:-.3,muso:.3},
           orecchie:{tipo:'lunga',r:.22,h:.85}, ali:{n:2,w:2.2,h:.95,tipo:'membrana',y:1.15,z:0},
           zampe:{n:2,lung:.35,sp:.05,ax:.22,az:0,y:.7}}},
 
   {id:'ranocchiello', nome:'Ranocchiello', latino:'Ranula saliens', corpo:0x7FBF6A, dettaglio:0xEDF5C9,
-   scala:.16, vel:.30, agile:1.7, emissivo:0, salto:true,
+   scala:.16, vel:.44, agile:1.7, emissivo:0, salto:true,
    forma:{corpo:{tipo:'uovo',sx:1.25,sy:.85,sz:1.15,y:.62}, testa:{r:.44,y:.82,z:-1.25,occhioni:true},
           zampe:{n:4,lung:.55,sp:.08,ax:.5,az:.42,y:.55}}},
 
   {id:'bruchetto', nome:'Bruchetto', latino:'Eruca festiva', corpo:0x9CCB5A, dettaglio:0x4B6B22,
-   scala:.13, vel:.26, agile:.6, emissivo:0,
+   scala:.13, vel:.36, agile:.6, emissivo:0,
    forma:{segmenti:{n:5,r:.5,passo:.75,y:.5}, testa:{r:.42,y:.55,z:-2.15},
           orecchie:{tipo:'antenna',r:.06,h:.6}, zampe:{n:8,lung:.24,sp:.05,ax:.32,az:.8,y:.26}}},
 
   {id:'piumotto', nome:'Piumotto', latino:'Strigula soffice', corpo:0xC9A87C, dettaglio:0x5E4633,
-   scala:.16, vel:.34, agile:1.1, emissivo:0, vola:true, hover:.35,
+   scala:.16, vel:.50, agile:1.1, emissivo:0, vola:true, hover:.35,
    forma:{corpo:{tipo:'icosa',d:1,sx:1.05,sy:1.15,sz:1,y:1.0}, testa:{r:.62,y:1.75,z:-.1,occhioni:true},
           orecchie:{tipo:'punta',r:.16,h:.38}, ali:{n:2,w:1.4,h:1.0,tipo:'piuma',y:1.15,z:.05},
           zampe:{n:2,lung:.4,sp:.07,ax:.24,az:0,y:.5}}},
@@ -508,7 +508,7 @@ const WORLD = {
   eyeH:1.45,
   obstacles:[],
   wire:false,
-  count:16,
+  count:22,
 };
 
 let renderer, scene, camera, clock, raycaster;
@@ -1628,8 +1628,8 @@ const celle = new Set();
 const cellaDi = p => Math.round(p.x/CELLA) + ',' + Math.round(p.z/CELLA);
 
 function popolazioneObiettivo(){
-  const percorse = Math.min(celle.size - 1, 24);
-  return Math.min(WORLD.count, Math.round(2 + esplorati.size*0.62 + percorse*0.9));
+  const percorse = Math.min(celle.size - 1, 26);
+  return Math.min(WORLD.count, Math.round(2 + esplorati.size*0.85 + percorse*1.2));
 }
 
 const RAGGIO_VIVO = 9;      // oltre questo non le vedresti comunque
@@ -1842,6 +1842,82 @@ function direzioneLibera(c){
   } else newWanderTarget(c);
 }
 
+/* Prima l'incontro sociale era due creature immobili che si guardavano.
+   Ora si raggiungono e poi si girano attorno: e' movimento, non una pausa. */
+function avvicina(c, dt){
+  const o = c.socialCon;
+  if(!o){ c.stato = 'vaga'; newWanderTarget(c); return null; }
+  const d = new THREE.Vector3().subVectors(o.pos, c.pos); d.y = 0;
+  const dist = d.length();
+  if(dist > 1e-4) d.normalize();
+  const liv = c.standY + (c.hover || 0);
+  const passo = (dir, k) => {
+    const nx = c.pos.x + dir.x*k, nz = c.pos.z + dir.z*k;
+    if(blockerAt(nx, nz, liv, c.raggio*.55)) return false;
+    const top = surfaceAt(nx, nz, c.standY, -c.raggio*.9);
+    if(top < c.standY - STEP_UP) return false;
+    c.pos.set(nx, top, nz); c.standY = top;
+    return true;
+  };
+  if(dist > .8){
+    c.dir.copy(d);
+    passo(d, c.vel*.85*dt);
+    return d;
+  }
+  const perp = new THREE.Vector3(-d.z, 0, d.x).multiplyScalar(c.orbita || 1);
+  if(!passo(perp, c.vel*.5*dt)) c.orbita = -(c.orbita || 1);
+  c.dir.copy(perp).normalize();
+  return c.dir;
+}
+
+/* ---- urti fra creature ----------------------------------------------------
+   Sono corpi solidi: non possono attraversarsi. Chi va addosso a un'altra
+   rincula, e anche l'altra se ne accorge. */
+function creaturaAddosso(c, x, z){
+  for(const o of creatures){
+    if(o === c || o.stato === 'salto') continue;
+    if(c.stato === 'sociale' && c.socialCon === o) continue;   // si stanno cercando
+    if(Math.abs(o.standY - c.standY) > .35) continue;          // quote diverse
+    const dx = o.pos.x - x, dz = o.pos.z - z;
+    const min = (c.raggio + o.raggio) * .95;
+    if(dx*dx + dz*dz < min*min) return o;
+  }
+  return null;
+}
+
+function spostaSePuoi(c, dx, dz){
+  const nx = c.pos.x + dx, nz = c.pos.z + dz;
+  if(blockerAt(nx, nz, c.standY + (c.hover||0), c.raggio*.5)) return false;
+  const top = surfaceAt(nx, nz, c.standY, -c.raggio*.6);
+  if(top < c.standY - STEP_UP) return false;
+  c.pos.set(nx, top, nz); c.standY = top;
+  return true;
+}
+
+/* Rete di sicurezza: due creature non devono MAI restare compenetrate, comunque
+   ci siano finite — un salto, una ricollocazione, un piano apparso sotto. */
+function separaCreature(){
+  for(let i=0;i<creatures.length;i++){
+    const a = creatures[i];
+    if(a.stato === 'salto') continue;
+    for(let j=i+1;j<creatures.length;j++){
+      const b = creatures[j];
+      if(b.stato === 'salto') continue;
+      if(Math.abs(a.standY - b.standY) > .35) continue;
+      const dx = b.pos.x - a.pos.x, dz = b.pos.z - a.pos.z;
+      const d2 = dx*dx + dz*dz;
+      const min = (a.raggio + b.raggio) * .95;
+      if(d2 >= min*min) continue;
+      const d = Math.sqrt(Math.max(d2, 1e-8));
+      const ux = d > 1e-4 ? dx/d : Math.cos(i*2.4);
+      const uz = d > 1e-4 ? dz/d : Math.sin(i*2.4);
+      const spinta = (min - d) * .55;
+      spostaSePuoi(a, -ux*spinta, -uz*spinta);
+      spostaSePuoi(b,  ux*spinta,  uz*spinta);
+    }
+  }
+}
+
 function turnAway(c){
   const a = (Math.random() < .5 ? 1 : -1) * (0.9 + Math.random()*1.4);
   const ca = Math.cos(a), sa = Math.sin(a);
@@ -1867,17 +1943,25 @@ function newWanderTarget(c){
     }
   }
   const a = Math.random()*Math.PI*2;
-  const r = .6 + Math.random()*2.1;
+  const r = 1.3 + Math.random()*3.4;          // prima 0,6-2,7 m: troppo corto
   c.meta = new THREE.Vector3(c.pos.x + Math.sin(a)*r, 0, c.pos.z + Math.cos(a)*r);
 }
 
 function stepMove(c, dt){
   if(!c.meta) return null;
   const d = new THREE.Vector3().subVectors(c.meta, c.pos); d.y = 0;
-  if(d.length() < .14){ c.stato='ferma'; c.meta=null; c.t = 1 + Math.random()*2.5; return null; }
+  if(d.length() < .14){
+    if(Math.random() < .78){ newWanderTarget(c); c.t = 3 + Math.random()*4; }
+    else { c.stato='ferma'; c.meta=null; c.t = .35 + Math.random(); }
+    return null;
+  }
   d.normalize();
   c.dir.copy(d);
-  const adv = c.vel * dt;
+  /* Ogni tanto uno scatto: un'andatura sempre uguale legge come un
+     carrellino su binario, non come un animale. */
+  if(c.scatto > 0) c.scatto -= dt;
+  else if(Math.random() < dt*.06) c.scatto = .6 + Math.random()*.9;
+  const adv = c.vel * (c.scatto > 0 ? 1.9 : 1) * dt;
   const nx = c.pos.x + d.x*adv, nz = c.pos.z + d.z*adv;
 
   const livello = c.standY + (c.hover || 0);
@@ -1897,6 +1981,18 @@ function stepMove(c, dt){
       return d;
     }
     impatta(c, ob);                    // ci e' arrivata addosso davvero
+    return null;
+  }
+
+  /* Un'altra creatura e' un ostacolo come un muro, con la differenza che
+     reagisce anche lei. */
+  const altra = creaturaAddosso(c, nx, nz);
+  if(altra){
+    impatta(c, {cx:altra.pos.x, cz:altra.pos.z});
+    if(altra.stato === 'vaga' || altra.stato === 'ferma'){
+      impatta(altra, {cx:c.pos.x, cz:c.pos.z});
+      altra.impulso = Math.max(altra.impulso, .55);
+    }
     return null;
   }
 
@@ -1958,11 +2054,17 @@ function updateCreature(c, dt, camPos){
     c.t -= dt;
     if(c.t <= 0){
       if(c.stato === 'sociale'){
-        c.stato='ferma'; c.socialCon=null; c.t=1.5+Math.random()*2;
+        c.stato='vaga'; c.socialCon=null; newWanderTarget(c); c.t=3+Math.random()*4;
         c.socialOff = 7 + Math.random()*5;        // poi si separano davvero
       }
-      else if(c.stato === 'vaga'){ c.stato='ferma'; c.meta=null; c.t=1.2+Math.random()*3; }
-      else { c.stato='vaga'; newWanderTarget(c); c.t = 2+Math.random()*3; }
+      else if(c.stato === 'vaga'){
+        /* Tre volte su quattro incatena una nuova meta invece di fermarsi:
+           era la sosta di uno-quattro secondi a ogni arrivo a renderle
+           sedentarie. */
+        if(Math.random() < .75){ newWanderTarget(c); c.t = 4+Math.random()*5; }
+        else { c.stato='ferma'; c.meta=null; c.t = .4+Math.random()*1.1; }
+      }
+      else { c.stato='vaga'; newWanderTarget(c); c.t = 4+Math.random()*5; }
     }
 
     /* Senza attesa fra un contatto e l'altro due creature vicine si
@@ -1974,8 +2076,10 @@ function updateCreature(c, dt, camPos){
         if(o === c || o.stato === 'salto' || o.socialOff > 0) continue;
         if(Math.abs(o.standY - c.standY) < .3 &&
            c.pos.distanceTo(o.pos) < 2.2 && Math.random() < dt*.5){
-          c.stato='sociale'; c.socialCon=o; c.meta=null; c.t=2.2+Math.random()*1.5;
+          c.stato='sociale'; c.socialCon=o; c.meta=null; c.t=3+Math.random()*2.5;
+          c.orbita = Math.random()<.5 ? 1 : -1;
           o.stato='sociale'; o.socialCon=c; o.meta=null; o.t=c.t;
+          o.orbita = -c.orbita;
           break;
         }
       }
@@ -1984,6 +2088,7 @@ function updateCreature(c, dt, camPos){
 
   let moveDir = null;
   if(c.stato === 'vaga') moveDir = stepMove(c, dt);
+  else if(c.stato === 'sociale') moveDir = avvicina(c, dt);
 
   /* Una creatura a mezzo metro dagli occhi copre mezzo schermo e finisce
      sotto la soglia utile della profondita': la si tiene a distanza. */
@@ -2100,7 +2205,7 @@ function animate(c, dt){
         z.rotation.x += (r - z.rotation.x) * Math.min(1, dt*6);
       });
 
-    } else if(vaga){
+    } else if(vaga || soc){
       const passo = c.fase * (7.5 - c.taglia*1.6);
       bob  = Math.abs(Math.sin(passo))*s.scala*.22;
       tilt = Math.sin(passo)*.055;
@@ -2519,7 +2624,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v27';
+const BUILD = 'v29';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
@@ -2658,6 +2763,8 @@ function loopBody(time, frame){
   const {p, q} = camPose();
   updatePopulation(dt, p, q);
   for(const c of creatures) updateCreature(c, dt, p);
+  separaCreature();
+  for(const c of creatures) c.root.position.copy(c.pos);
   updateTape();
   renderer.render(scene, camera);
 }
