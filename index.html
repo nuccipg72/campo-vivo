@@ -304,6 +304,10 @@
       </div>
       <div id="diag">in attesa…</div>
       <div class="optrow">
+        <input type="checkbox" id="optVolumi" checked>
+        <label for="optVolumi">Gonfia le immagini importate in volume 3D invece di tenerle piatte. Togli la spunta per confrontare.</label>
+      </div>
+      <div class="optrow">
         <input type="checkbox" id="optTondo" checked>
         <label for="optTondo">Corpi tondeggianti da cartone animato. Togli la spunta per la versione sfaccettata e più leggera, se il telefono arranca.</label>
       </div>
@@ -520,6 +524,7 @@ const WORLD = {
   wire:false,
   count:22,
   quotaImportate: .5,      // quanta parte della popolazione viene dallo schedario
+  volumi: true,            // immagini importate gonfiate in volume invece che piatte
 };
 
 let renderer, scene, camera, clock, raycaster;
@@ -536,7 +541,7 @@ const els = {};
 ['gate','start','err','feed','ticks','tName','tMeta','reseed','toast','sheet','scrim',
  'openSheet','closeSheet','drop','file','optKey','lib','empty','popola','capText',
  'chipMode','chipGeo','mapbar','mapStep','mapHint','presets','mapUndo','mapExit',
- 'mapStart','crosshair','obs','eyeH','eyeHv','optWire','mapBlurb','chipFps','diag','chip','arAgain','nCre','nCrev','optFlip','optOcc','optTondo','installa','quotaImp','quotaImpv','mescola']
+ 'mapStart','crosshair','obs','eyeH','eyeHv','optWire','mapBlurb','chipFps','diag','chip','arAgain','nCre','nCrev','optFlip','optOcc','optTondo','installa','quotaImp','quotaImpv','mescola','optVolumi']
  .forEach(k => els[k] = $(k));
 
 /* ==========================================================================
@@ -790,6 +795,111 @@ function renderLibrary(){
     });
     els.lib.appendChild(card);
   });
+}
+
+/* ==========================================================================
+   GONFIAGGIO DELLA SAGOMA
+   Da un'immagine ritagliata si ricava geometria vera senza reti neurali:
+   per ogni punto interno si misura quanto dista dal contorno, e quella
+   distanza diventa altezza. Massima al centro, zero sul bordo. Due gusci
+   specchiati danno un volume che prende la luce e ha una sagoma corretta da
+   qualsiasi angolo. Non e' una scultura, ma non e' piu' un adesivo.
+   ========================================================================== */
+function mappaDistanze(canvas, N){
+  const w = N, h = Math.max(10, Math.round(N * canvas.height / canvas.width));
+  const c2 = document.createElement('canvas'); c2.width = w; c2.height = h;
+  const g = c2.getContext('2d', {willReadFrequently:true});
+  g.drawImage(canvas, 0, 0, w, h);
+  const a = g.getImageData(0, 0, w, h).data;
+  const INF = 1e6, d = new Float32Array(w*h);
+  for(let i = 0; i < w*h; i++) d[i] = a[i*4+3] > 96 ? INF : 0;
+  /* Trasformata di distanza a due passate (chamfer): costa due scansioni
+     dell'immagine, cioe' niente. */
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const i = y*w+x; if(d[i] === 0) continue;
+    let m = d[i];
+    if(x > 0)            m = Math.min(m, d[i-1] + 1);
+    if(y > 0)            m = Math.min(m, d[i-w] + 1);
+    if(x > 0 && y > 0)   m = Math.min(m, d[i-w-1] + 1.41);
+    if(x < w-1 && y > 0) m = Math.min(m, d[i-w+1] + 1.41);
+    d[i] = m;
+  }
+  for(let y = h-1; y >= 0; y--) for(let x = w-1; x >= 0; x--){
+    const i = y*w+x; if(d[i] === 0) continue;
+    let m = d[i];
+    if(x < w-1)              m = Math.min(m, d[i+1] + 1);
+    if(y < h-1)              m = Math.min(m, d[i+w] + 1);
+    if(x < w-1 && y < h-1)   m = Math.min(m, d[i+w+1] + 1.41);
+    if(x > 0 && y < h-1)     m = Math.min(m, d[i+w-1] + 1.41);
+    d[i] = m;
+  }
+  /* Livellamento: la trasformata di distanza ha creste lungo l'asse mediano,
+     che sulla superficie diventano pieghe da origami. Tre passate di media coi
+     vicini interni e la sagoma diventa un cuscino invece che una carta piegata. */
+  const tmp = new Float32Array(d.length);
+  for(let pass = 0; pass < 3; pass++){
+    tmp.set(d);
+    for(let y = 1; y < h-1; y++) for(let x = 1; x < w-1; x++){
+      const i = y*w+x;
+      if(tmp[i] <= 0) continue;
+      let somma = 0, quanti = 0;
+      for(const j of [i-1, i+1, i-w, i+w, i-w-1, i-w+1, i+w-1, i+w+1]){
+        if(tmp[j] > 0){ somma += tmp[j]; quanti++; }
+      }
+      if(quanti) d[i] = tmp[i]*.35 + (somma/quanti)*.65;
+    }
+  }
+  let max = 0;
+  for(let i = 0; i < d.length; i++) if(d[i] < INF && d[i] > max) max = d[i];
+  return {w, h, d, max};
+}
+
+function costruisciVolume(asset){
+  if(asset.geo) return asset.geo;
+  /* 56 colonne: 84 davano 28.000 triangoli per creatura, insostenibili con
+     una decina di immagini in scena. La geometria e' condivisa fra tutti gli
+     esemplari della stessa scheda, ma i vertici si elaborano comunque a ogni
+     disegno. */
+  const M = mappaDistanze(asset.canvas, 56);
+  const {w, h, d, max} = M;
+  if(max < 2) return null;                        // sagoma troppo esile
+  const spess = .30;                              // frazione della larghezza
+  const pos = [], uv = [], idx = [];
+  const vFronte = new Int32Array(w*h).fill(-1);
+  const vRetro  = new Int32Array(w*h).fill(-1);
+  const dentro = i => d[i] > 0;
+
+  /* Sul contorno lo spessore va a zero, cosi' i due gusci si saldano invece
+     di lasciare una fessura seghettata lungo tutto il profilo. */
+  const suBordo = i => {
+    const x = i % w, y = (i - x)/w;
+    if(x === 0 || y === 0 || x === w-1 || y === h-1) return true;
+    return !dentro(i-1) || !dentro(i+1) || !dentro(i-w) || !dentro(i+w);
+  };
+  for(let y = 0; y < h; y++) for(let x = 0; x < w; x++){
+    const i = y*w+x;
+    if(!dentro(i)) continue;
+    const u = x/(w-1), v = y/(h-1);
+    /* Radice quadrata invece che lineare: da' una bombatura piena, non una
+       piramide con lo spigolo al centro. */
+    const z = suBordo(i) ? 0 : Math.sqrt(Math.min(1, d[i]/max)) * spess;
+    vFronte[i] = pos.length/3; pos.push(u-.5, .5-v,  z); uv.push(u, 1-v);
+    vRetro[i]  = pos.length/3; pos.push(u-.5, .5-v, -z); uv.push(u, 1-v);
+  }
+  for(let y = 0; y < h-1; y++) for(let x = 0; x < w-1; x++){
+    const a = y*w+x, b = a+1, c = a+w, e = c+1;
+    if(!dentro(a) || !dentro(b) || !dentro(c) || !dentro(e)) continue;
+    idx.push(vFronte[a], vFronte[c], vFronte[b], vFronte[b], vFronte[c], vFronte[e]);
+    idx.push(vRetro[a],  vRetro[b],  vRetro[c],  vRetro[b],  vRetro[e],  vRetro[c]);
+  }
+  if(!idx.length) return null;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  asset.geo = g;
+  return g;
 }
 
 /* ==========================================================================
@@ -1716,23 +1826,30 @@ function makeMesh(spec, pos){
 function makeSprite(asset, pos){
   const root = new THREE.Group(); root.position.copy(pos);
   const pivot = new THREE.Group(); root.add(pivot);
-  const mat = new THREE.MeshBasicMaterial({map:asset.tex, transparent:true, alphaTest:.03,
-    depthWrite:false, side:THREE.DoubleSide, toneMapped:false});
-  const quad = new THREE.Mesh(new THREE.PlaneGeometry(1,1), mat);
+  const geoVol = WORLD.volumi ? costruisciVolume(asset) : null;
+  const mat = geoVol
+    ? new THREE.MeshStandardMaterial({map:asset.tex, transparent:true, alphaTest:.4,
+        side:THREE.DoubleSide, roughness:.95, metalness:0, flatShading:false})
+    : new THREE.MeshBasicMaterial({map:asset.tex, transparent:true, alphaTest:.03,
+        depthWrite:false, side:THREE.DoubleSide, toneMapped:false});
+  const quad = new THREE.Mesh(geoVol || new THREE.PlaneGeometry(1,1), mat);
   quad.name = 'quad'; pivot.add(quad);
   const marks = groundMarks(root, .3);
   scene.add(root);
   const c = Object.assign(
     baseCreature(root, asset.nome, 'esemplare importato', .3 + Math.random()*.5),
     {kind:'sprite', asset, pivot, quad, anello:marks.anello, ombra:marks.ombra,
-     markBase:1, agile:1, taglia: 0.72 + Math.random()*0.66});
+     markBase:1, agile:1, taglia: 0.72 + Math.random()*0.66, volume: !!geoVol});
   resizeSprite(c);
   return c;
 }
 
 function resizeSprite(c){
   const h = c.asset.altezza * (c.taglia || 1), w = h * c.asset.aspect;
-  c.quad.scale.set(w * c.flip, h, 1);
+  /* Sul volume niente scala negativa: ribalterebbe le normali e la luce.
+     Il verso si ottiene ruotando, non specchiando. */
+  if(c.volume) c.quad.scale.set(w, h, w);
+  else c.quad.scale.set(w * c.flip, h, 1);
   c.quad.position.y = h/2;
   const r = Math.max(.16, w*.5);
   c.markBase = r/.3;
@@ -2385,7 +2502,17 @@ function updateSpriteLook(c, dt, camPos, moveDir){
     if(Math.abs(dot) > .2) c.flip = dot > 0 ? 1 : -1;
   }
   const w = c.asset.altezza * (c.taglia || 1) * c.asset.aspect;
-  c.quad.scale.x += ((w * c.flip) - c.quad.scale.x) * Math.min(1, dt*12);
+  if(c.volume){
+    /* Resta leggibile verso di te, ma ruota fino a 40 gradi verso la
+       direzione di marcia: si capisce dove sta andando senza mostrarti la
+       nuca, che su un'illustrazione frontale sarebbe l'immagine specchiata. */
+    const scarto = rif ? Math.atan2(rif.x, rif.z) - c.pivot.rotation.y : 0;
+    const norm = Math.atan2(Math.sin(scarto), Math.cos(scarto));
+    c.pivot.rotation.y += V.clamp(norm, -.7, .7) * .55;
+    c.quad.scale.x += (w - c.quad.scale.x) * Math.min(1, dt*12);
+  } else {
+    c.quad.scale.x += ((w * c.flip) - c.quad.scale.x) * Math.min(1, dt*12);
+  }
 }
 
 /* ==========================================================================
@@ -2516,6 +2643,7 @@ function animate(c, dt){
     const volo   = salta && c.jump ? 1.1 - Math.abs(.5 - Math.min(1,c.jump.u))*.2 : 1;
     c.quad.position.y = h/2 + hop + c.impulso*h*.4;
     c.quad.scale.y = h * squash * pulse * volo;
+    if(c.volume) c.quad.scale.z = c.quad.scale.x;
     c.pivot.rotation.z = (vaga && !salta) ? Math.sin(c.fase*5.2)*.035*c.flip : 0;
   }
 
@@ -2835,6 +2963,12 @@ function initSheet(){
     els.eyeHv.textContent = WORLD.eyeH.toFixed(2) + ' m';
     if(WORLD.mode !== 'xr') refreshFloorGeometry();
   });
+  els.optVolumi.addEventListener('change', () => {
+    WORLD.volumi = els.optVolumi.checked;
+    library.forEach(a => { if(a.geo){ a.geo.dispose(); a.geo = null; } });
+    ev('immagini importate: ' + (WORLD.volumi ? 'in volume' : 'piatte'));
+    seed();
+  });
   els.optTondo.addEventListener('change', () => {
     QUALITA.det = els.optTondo.checked ? 2 : 1;
     ev('dettaglio ' + (QUALITA.det === 2 ? 'alto' : 'basso'));
@@ -2873,7 +3007,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v35';
+const BUILD = 'v38';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
