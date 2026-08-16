@@ -214,6 +214,8 @@
     padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;display:none;
     max-height:60vh;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
   #fatal.on{display:block}
+  #fatal::after{content:"tocca per chiudere";display:block;margin-top:10px;
+    font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,217,210,.55)}
   #fatal b{color:#FF553B;font-weight:500;letter-spacing:.1em;text-transform:uppercase}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -362,6 +364,8 @@
     d.appendChild(document.createTextNode('\n' + String(msg) + '\n\n'));
     box.appendChild(d);
     box.classList.add('on');
+    box.style.pointerEvents = 'auto';
+    box.onclick = function(){ box.classList.remove('on'); box.innerHTML = ''; seen = {}; };
     var cap = document.getElementById('capText');
     if(cap) cap.textContent = 'errore rilevato';
   };
@@ -516,6 +520,7 @@ let creatures = [], library = [];
 let orientEnabled = false, devOrient = null;
 let dragYaw = 0, dragPitch = 0;
 let xrSession = null, xrRefSpace = null, xrHitSource = null, xrViewerSpace = null;
+let xrHitTara = null;      // raggio inclinato in basso: verita' misurata per la taratura
 let XR_OK = false;   // rilevato al caricamento, non dentro il gesto utente
 let obsGroup, wireGroup;
 
@@ -930,6 +935,14 @@ async function enterXR(){
     xrViewerSpace = await session.requestReferenceSpace('viewer');
     xrHitSource = await session.requestHitTestSource({space:xrViewerSpace});
   } catch(e){ xrHitSource = null; }
+  /* Un secondo raggio, inclinato in basso e di lato: colpisce una superficie
+     reale in un punto NON centrale dello schermo. Di quel punto conosco la
+     posizione esatta, quindi so quanto dista e dove cade sullo schermo: e' il
+     metro campione con cui capire se sto leggendo la profondita' specchiata. */
+  try {
+    const raggio = new XRRay({x:0,y:0,z:0,w:1}, {x:.22, y:-.42, z:-.88, w:0});
+    xrHitTara = await session.requestHitTestSource({space:xrViewerSpace, offsetRay:raggio});
+  } catch(e){ xrHitTara = null; }
 
   session.addEventListener('select', onXRSelect);
   /* Uscire dallo schermo intero chiude la sessione AR. Prima si finiva in
@@ -959,6 +972,7 @@ async function enterXR(){
 }
 
 let lastHitPose = null;
+let lastTara = null;        // punto reale colpito dal raggio di taratura
 function xrHitPoint(){
   if(!lastHitPose) return null;
   return new THREE.Vector3(lastHitPose.x, lastHitPose.y, lastHitPose.z);
@@ -1087,7 +1101,7 @@ function syncPlanes(frame, dt){
 const DEPTH = {attiva:false, uso:null, w:0, h:0, letture:0, errori:0,
                flipY:false, margine:.25, campioni:0, occluse:0,
                accesa:true, minDist:1.5, centro:0, scarti:0,
-               tarata:false, votiA:0, votiB:0, provini:0};
+               tarata:false, votiA:0, votiB:0, provini:0, verita:0};
 const MIN_VALIDI = 4;      // sotto questa soglia la lettura non decide nulla
 const SOGLIA_OCC = 4;      // punti coperti su 5 perche' sparisca davvero
 
@@ -1100,49 +1114,76 @@ const _dp = new THREE.Vector3(), _dr = new THREE.Vector3();
    cui conosco la geometria, quindi lo uso come metro: proietto alcuni punti
    dello schermo sul piano del pavimento, calcolo quanto dovrebbero distare, e
    confronto le due convenzioni. Vince quella che ci azzecca. */
-const PROVINI = [[.5,.78],[.34,.70],[.66,.70],[.5,.66],[.42,.82],[.58,.82]];
+/* Taratura dell'asse verticale della profondita'.
+   Il metodo precedente proiettava punti sul pavimento e confrontava le
+   distanze: falliva ovunque il pavimento non fosse inquadrato — seduto a
+   tavola, in basso c'e' il piano del tavolo, e nessuna convenzione combacia.
+   Questo invece non assume niente sulla stanza. Sfrutta un fatto che vale
+   sempre inclinando il telefono in basso: cio' che sta in fondo allo schermo
+   e' piu' vicino di cio' che sta piu' su. Se leggendo la meta' bassa ottengo
+   valori piu' grandi della meta' alta, sto leggendo specchiato. */
+const COLONNE = [.32, .5, .68];
+const RIGA_BASSA = .84, RIGA_ALTA = .56;
 
-function taraProfondita(info, cam, camPos){
+/* Taratura con verita' misurata: conosco un punto reale della stanza, la sua
+   distanza e dove cade sullo schermo. Leggo la profondita' li' con entrambe le
+   convenzioni: quella che restituisce la distanza giusta e' la buona. Non
+   assume niente sulla stanza, ne' pavimento ne' orizzonte. */
+function taraConVerita(info, cam, camPos, punto){
   if(DEPTH.tarata) return;
-  for(const [nx, ny] of PROVINI){
-    _dr.set(nx*2-1, 1-ny*2, .5).unproject(cam).sub(camPos);
-    if(_dr.lengthSq() < 1e-6) continue;
-    _dr.normalize();
-    if(_dr.y > -.15) continue;                       // punta troppo in alto
-    const t = (WORLD.floorY - camPos.y) / _dr.y;
-    if(!(t > .4 && t < 7)) continue;                 // fuori portata utile
-    let a, b;
-    try { a = info.getDepthInMeters(nx, ny); b = info.getDepthInMeters(nx, 1-ny); }
-    catch(e){ continue; }
-    const buono = v => v > .3 && v < 20 && Math.abs(v - t) < .45;
-    if(buono(a)) DEPTH.votiA++;
-    if(buono(b)) DEPTH.votiB++;
+  const d = punto.distanceTo(camPos);
+  if(!(d > .5 && d < 6)) return;
+  _dp.copy(punto).project(cam);
+  if(Math.abs(_dp.x) > .92 || Math.abs(_dp.y) > .92 || _dp.z > 1) return;
+  const nx = (_dp.x + 1) / 2, ny = (1 - _dp.y) / 2;
+  if(Math.abs(ny - .5) < .14) return;        // troppo al centro: le due coincidono
+  let a, b;
+  try { a = info.getDepthInMeters(nx, ny); b = info.getDepthInMeters(nx, 1 - ny); }
+  catch(e){ return; }
+  const ok = v => v > .3 && v < 20 && Math.abs(v - d) < .40;
+  if(ok(a)) DEPTH.votiA += 3;                // pesa piu' del metodo indiretto
+  if(ok(b)) DEPTH.votiB += 3;
+  DEPTH.provini += 3;
+  DEPTH.verita++;
+}
+
+function taraProfondita(info, cam, camPos, q){
+  if(DEPTH.tarata) return;
+  const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(q);
+  if(fwd.y > -.12) return;                       // serve il telefono inclinato in giu'
+  const valido = v => v > .3 && v < 20;
+  for(const nx of COLONNE){
+    let b1, b2;
+    try {
+      b1 = info.getDepthInMeters(nx, RIGA_BASSA);
+      b2 = info.getDepthInMeters(nx, RIGA_ALTA);
+    } catch(e){ continue; }
+    if(!valido(b1) || !valido(b2)) continue;
     DEPTH.provini++;
+    const salto = b2 - b1;                       // atteso positivo se l'asse e' giusto
+    if(salto >  .28) DEPTH.votiA++;
+    if(salto < -.28) DEPTH.votiB++;
   }
-  if(DEPTH.provini >= 60){
+  if(DEPTH.provini >= 45){
     const A = DEPTH.votiA, B = DEPTH.votiB;
-    if(Math.max(A,B) >= 12 && Math.abs(A-B) >= Math.max(4, Math.max(A,B)*.25)){
+    if(Math.max(A,B) >= 12 && Math.abs(A-B) >= Math.max(5, Math.max(A,B)*.3)){
       DEPTH.flipY = B > A;
       DEPTH.tarata = true;
       els.optFlip.checked = DEPTH.flipY;
       ev('asse profondita tarato: ' + (DEPTH.flipY ? 'invertito' : 'normale') +
          ' (' + A + ' contro ' + B + ')');
-    } else if(DEPTH.provini >= 400){
-      /* Nessuna delle due convenzioni combacia col pavimento: la profondita'
-         non e' attendibile qui. Meglio spegnerla che far sparire le creature. */
+      toast('profondità tarata: asse ' + (DEPTH.flipY ? 'invertito' : 'normale'));
+    } else if(DEPTH.provini >= 600){
       DEPTH.accesa = false; DEPTH.tarata = true;
       els.optOcc.checked = false;
-      ev('profondita incoerente col pavimento: occlusione spenta');
+      ev('profondita non interpretabile: occlusione spenta');
       window.__fatal('occlusione disattivata',
-        'le letture di profondita non corrispondono al pavimento noto (' +
-        A + '/' + B + ' su ' + DEPTH.provini + '): meglio spegnerla che far sparire le creature');
+        'le letture di profondita non danno un verso riconoscibile (' + A + '/' + B +
+        ' su ' + DEPTH.provini + '). Le creature restano tutte visibili.\n' +
+        'Puoi riprovare dallo Schedario: togli e rimetti la spunta all\'occlusione.');
     }
   }
 }
-
-/* Piu' punti sulla sagoma, non solo il centro: cosi' una creatura per meta'
-   dietro al bracciolo sfuma invece di sparire di colpo. */
-const SAGOMA = [[0,0],[-.45,0],[.45,0],[0,.5],[0,-.35]];
 
 function occlusione(frame, camPos){
   if(!DEPTH.attiva || !DEPTH.accesa || !frame) return;
@@ -1160,7 +1201,10 @@ function occlusione(frame, camPos){
   }
   if(!info) return;
   DEPTH.letture++; DEPTH.w = info.width; DEPTH.h = info.height;
-  taraProfondita(info, cam, camPos);
+  if(!DEPTH.tarata){
+    if(lastTara) taraConVerita(info, cam, camPos, lastTara);
+    taraProfondita(info, cam, camPos, camPose().q);
+  }
   if(!DEPTH.tarata) return;          // finche' non e' tarata non nasconde nulla
 
   let occl = 0, camp = 0;
@@ -2556,7 +2600,8 @@ function updateDiag(){
       (DEPTH.accesa ? '' : ' (spenta)') +
       (DEPTH.errori ? '  ' + flag(DEPTH.errori + ' errori') : '') + '\n' +
     'asse         <b>' + (DEPTH.tarata ? (DEPTH.flipY ? 'invertito' : 'normale') : 'in taratura')
-      + '</b> · voti ' + DEPTH.votiA + '/' + DEPTH.votiB + ' su ' + DEPTH.provini + '\n' +
+      + '</b> · voti ' + DEPTH.votiA + '/' + DEPTH.votiB + ' su ' + DEPTH.provini +
+      ' · misure ' + DEPTH.verita + '\n' +
     'lettura al centro <b>' + (DEPTH.centro ? DEPTH.centro.toFixed(2) + ' m' : 'nessuna') + '</b>  ' +
       flag(DEPTH.attiva && !DEPTH.centro ? 'NESSUN DATO' : '') + '\n' +
     'campioni     <b>' + DEPTH.campioni + '</b> validi · <b>' + DEPTH.occluse + '</b> occluse · ' +
@@ -2627,7 +2672,9 @@ function initSheet(){
   els.optOcc.addEventListener('change', () => {
     DEPTH.accesa = els.optOcc.checked;
     if(!DEPTH.accesa) creatures.forEach(c => applicaVisibilita(c, 1));
-    ev('occlusione ' + (DEPTH.accesa ? 'accesa' : 'spenta'));
+    else { DEPTH.tarata = false; DEPTH.votiA = DEPTH.votiB = DEPTH.provini = DEPTH.verita = 0;
+           toast('inclina il telefono verso il basso per tarare'); }
+    ev('occlusione ' + (DEPTH.accesa ? 'accesa, taratura ripartita' : 'spenta'));
   });
   els.optFlip.addEventListener('change', () => {
     DEPTH.flipY = els.optFlip.checked;
@@ -2655,7 +2702,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v30';
+const BUILD = 'v32';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
@@ -2780,6 +2827,17 @@ function loopBody(time, frame){
           lastHitPose = pose ? pose.transform.position : null;
         } else lastHitPose = null;
       } catch(e){ xrHitSource = null; }
+    }
+    if(xrHitTara && !DEPTH.tarata){
+      try {
+        const rt = frame.getHitTestResults(xrHitTara);
+        if(rt.length){
+          const po = rt[0].getPose(xrRefSpace);
+          lastTara = po ? new THREE.Vector3(po.transform.position.x,
+                                            po.transform.position.y,
+                                            po.transform.position.z) : null;
+        } else lastTara = null;
+      } catch(e){ xrHitTara = null; }
     }
   } else if(orientEnabled && devOrient){
     const orient = ((screen.orientation && screen.orientation.angle) || window.orientation || 0) * Math.PI/180;
