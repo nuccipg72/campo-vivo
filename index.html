@@ -288,6 +288,11 @@
       <p id="mapBlurb">Gli ostacoli mappati bloccano il passaggio, reggono le creature che ci salgono sopra e le nascondono quando ci passano dietro.</p>
       <div id="obs"></div>
       <div class="calib">
+        <span>Quota importate</span>
+        <input type="range" id="quotaImp" min="0" max="100" step="5" value="50">
+        <span id="quotaImpv">50%</span>
+      </div>
+      <div class="calib">
         <span>Massimo</span>
         <input type="range" id="nCre" min="4" max="34" step="1" value="22">
         <span id="nCrev">22</span>
@@ -513,6 +518,7 @@ const WORLD = {
   obstacles:[],
   wire:false,
   count:22,
+  quotaImportate: .5,      // quanta parte della popolazione viene dallo schedario
 };
 
 let renderer, scene, camera, clock, raycaster;
@@ -529,7 +535,7 @@ const els = {};
 ['gate','start','err','feed','ticks','tName','tMeta','reseed','toast','sheet','scrim',
  'openSheet','closeSheet','drop','file','optKey','lib','empty','popola','capText',
  'chipMode','chipGeo','mapbar','mapStep','mapHint','presets','mapUndo','mapExit',
- 'mapStart','crosshair','obs','eyeH','eyeHv','optWire','mapBlurb','chipFps','diag','chip','arAgain','nCre','nCrev','optFlip','optOcc','optTondo','installa']
+ 'mapStart','crosshair','obs','eyeH','eyeHv','optWire','mapBlurb','chipFps','diag','chip','arAgain','nCre','nCrev','optFlip','optOcc','optTondo','installa','quotaImp','quotaImpv']
  .forEach(k => els[k] = $(k));
 
 /* ==========================================================================
@@ -1652,7 +1658,10 @@ function nasce(camPos, camQ){
 }
 
 function aggiungi(pos){
-  const c = library.length
+  /* Le immagini importate convivono con le specie procedurali invece di
+     sostituirle: bastava una foto perche' il bestiario sparisse. */
+  const daSchedario = library.length > 0 && Math.random() < WORLD.quotaImportate;
+  const c = daSchedario
     ? makeSprite(library[Math.floor(Math.random()*library.length)], pos)
     : makeMesh(SPECIES[Math.floor(Math.random()*SPECIES.length)], pos);
   c.pos.copy(pos); c.standY = pos.y; c.ancora.copy(pos);
@@ -1719,20 +1728,7 @@ function seed(n){
   creatures = [];
   document.querySelectorAll('.pip').forEach(p => p.remove());
   const {p} = camPose();
-  for(let i=0;i<n;i++){
-    const pos = freeSpot(p);
-    const c = library.length
-      ? makeSprite(library[Math.floor(Math.random()*library.length)], pos)
-      : makeMesh(SPECIES[Math.floor(Math.random()*SPECIES.length)], pos);
-    c.pos.copy(pos); c.standY = pos.y;
-    const pip = document.createElement('div');
-    pip.className = 'pip';
-    pip.innerHTML = '<i></i><b></b>';
-    pip.querySelector('b').textContent = c.nome;
-    els.ticks.parentNode.appendChild(pip);
-    c.pip = pip;
-    creatures.push(c);
-  }
+  for(let i=0;i<n;i++) aggiungi(freeSpot(p));
   toast('area azzerata, girati per popolarla');
 }
 
@@ -2606,7 +2602,9 @@ function updateDiag(){
       flag(DEPTH.attiva && !DEPTH.centro ? 'NESSUN DATO' : '') + '\n' +
     'campioni     <b>' + DEPTH.campioni + '</b> validi · <b>' + DEPTH.occluse + '</b> occluse · ' +
       DEPTH.scarti + ' scartati\n' +
-    'creature     <b>' + creatures.length + ' / ' + popolazioneObiettivo() + '</b> (tetto ' + WORLD.count + ')\n' +
+    'creature     <b>' + creatures.length + ' / ' + popolazioneObiettivo() + '</b> (tetto ' + WORLD.count + ')' +
+      (library.length ? '  ·  ' + creatures.filter(c=>c.kind==='sprite').length + ' importate su ' +
+        library.length + ' schede' : '') + '\n' +
     'esplorato    <b>' + Math.round(esplorati.size/SETTORI*100) + '%</b> intorno · <b>' +
       celle.size + '</b> celle percorse\n' +
     'ostacoli     <b>' + WORLD.obstacles.length + '</b>\n' +
@@ -2653,6 +2651,10 @@ function initSheet(){
   }));
   els.drop.addEventListener('drop', e => { if(e.dataTransfer) ingest(e.dataTransfer.files); });
 
+  els.quotaImp.addEventListener('input', () => {
+    WORLD.quotaImportate = parseInt(els.quotaImp.value, 10) / 100;
+    els.quotaImpv.textContent = els.quotaImp.value + '%';
+  });
   els.nCre.addEventListener('input', () => {
     WORLD.count = parseInt(els.nCre.value, 10);
     els.nCrev.textContent = WORLD.count;
@@ -2702,7 +2704,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v32';
+const BUILD = 'v33';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
