@@ -1024,14 +1024,14 @@ function inFoot(ob, x, z, pad){
 const GRID = {
   on: true, cella: .12, celle: new Map(), obCache: new Map(), tmp: new Map(),
   minN: 4, maxCelle: 90000, periodo: .12, clock: 0, gen: 0,
-  portata: 4.5, soglia: .18, lato: 48, latoFisso: 0, disegno: 0,
+  portata: 4.5, vicino: 1.25, soglia: .18, lato: 48, latoFisso: 0, disegno: 0,
   /* Due strati nella stessa cella. Quello lento (h) e' la stanza: sale piano,
      scende piano, si fida solo di cio' che resta fermo. Quello veloce (hv) e'
      chi passa: vale una passata sola e scade dopo sette decimi di secondo.
      Serve per le persone. Un tizio che cammina attraversa una cella da 12 cm
      in un decimo di secondo: allo strato lento non arriva mai, e infatti le
      creature gli passavano attraverso. */
-  vita: 700, ora: 0, mobili: 0, travolte: 0,
+  vita: 700, ora: 0, mobili: 0, travolte: 0, spuntoni: 0, quota: new Map(),
   campioni: 0, fusi: 0, letture: 0, scarti: 0
 };
 const GRID_OFF = 2048;
@@ -1050,10 +1050,9 @@ const _ghit = {c:null, x:0, z:0, h:0};
 /* veloce = tieni conto anche di chi sta passando adesso. Lo usa chi deve
    sbatterci contro; chi deve calpestare guarda solo la stanza ferma, cosi'
    nessuno finisce a camminare sulla testa di una persona. */
-function altCella(c, veloce){
-  if(!veloce) return c.h;
-  return (GRID.ora - c.tv < GRID.vita && c.hv > c.h) ? c.hv : c.h;
-}
+/* Un rilievo conta solo se il sensore lo conferma nella maggior parte delle
+   letture: sotto il 60 per cento e' rumore e la cella vale come pavimento. */
+const confermata = c => c.al * 5 >= c.vi * 3;
 /* pad > 0: chi cammina ha un raggio, quindi guarda anche le celle attorno e
    tiene la piu' alta. pad <= 0: solo la cella sotto i piedi. */
 function gridAt(x, z, pad, veloce){
@@ -1067,7 +1066,12 @@ function gridAt(x, z, pad, veloce){
     if(k < 0) continue;
     const c = GRID.celle.get(k);
     if(!c || c.n < GRID.minN) continue;
-    const a = altCella(c, veloce);
+    /* Chi passa adesso non deve aspettare nessuna conferma: e' proprio il
+       punto dello strato veloce. Chi invece pretende di essere un mobile
+       deve averlo dimostrato piu' volte. */
+    const fresca = veloce && (GRID.ora - c.tv < GRID.vita) && c.hv > c.h;
+    const a = fresca ? c.hv : c.h;
+    if(!fresca && a > GRID.soglia && !confermata(c)) continue;
     if(!best || a > bh){ best = c; bh = a; bx = px; bz = pz; }
   }
   if(!best) return null;
@@ -1088,7 +1092,11 @@ function plateau(x, z, alt, veloce){
       const k = gkey(x + dx*i*s, z + dz*i*s);
       if(k < 0) break;
       const c = GRID.celle.get(k);
-      if(!c || c.n < 2 || Math.abs(altCella(c, veloce) - alt) > .10) break;
+      if(!c || c.n < 2) break;
+      const fresca = veloce && (GRID.ora - c.tv < GRID.vita) && c.hv > c.h;
+      const q = fresca ? c.hv : c.h;
+      if(!fresca && q > GRID.soglia && !confermata(c)) break;
+      if(Math.abs(q - alt) > .10) break;
       n = i;
     }
     return n;
@@ -1747,22 +1755,26 @@ function scandaglia(frame, dt){
   const p00 = P[0], p11 = P[5], p02 = P[8], p12 = P[9];
   if(!(Math.abs(p00) > 1e-6) || !(Math.abs(p11) > 1e-6)) return;
   const M = cam.matrixWorld;
+  const cx0 = M.elements[12], cz0 = M.elements[14];
 
   /* Il costo e' tutto qui dentro: una lettura per texel campionato. Se gli
      fps calano si scende di passo invece di far scattare la scena. */
   if(PERF.fps && !GRID.latoFisso){
     GRID.lato = PERF.fps < 20 ? 32 : 48;
   }
+  /* I bordi estremi del fotogramma sono la parte peggio misurata: si sta
+     dentro al 92 per cento centrale. */
+  const M0 = .04, MS = .92;
   const N = GRID.lato;
   const tmp = GRID.tmp; tmp.clear();
   let letti = 0, buoni = 0, scarti = 0;
 
   for(let iy = 0; iy < N; iy++){
-    const ny = (iy + .5) / N;
+    const ny = M0 + MS * (iy + .5) / N;
     const ndcY = 1 - ny*2;
     const dy = DEPTH.flipY ? 1 - ny : ny;
     for(let ix = 0; ix < N; ix++){
-      const nx = (ix + .5) / N;
+      const nx = M0 + MS * (ix + .5) / N;
       let D;
       try { D = info.getDepthInMeters(nx, dy); } catch(e){ return; }
       letti++;
@@ -1771,6 +1783,17 @@ function scandaglia(frame, dt){
       _gv.set((ndcX + p02) * D / p00, (ndcY + p12) * D / p11, -D).applyMatrix4(M);
       const alt = _gv.y - WORLD.floorY;
       if(alt < -.4 || alt > 2.6){ scarti++; continue; }
+      /* Il cuneo cieco davanti ai piedi. Sotto il bordo basso dell'inquadratura
+         il pavimento non si vede: nessuna lettura puo' smentire quello che ci
+         finisce dentro. E ci finisce dentro parecchia roba, perche' il sensore
+         quando sbaglia sbaglia per difetto e il punto deproiettato risale il
+         raggio fino a mezzo metro d'altezza, a un passo da te. Quelle celle
+         non si scrivono: tanto, girandoti o facendo due passi, le stesse
+         celle le rileggi da lontano e li' la misura e' onesta. Era questo a
+         far dire "su un rialzo" a creature che stavano sul pavimento. */
+      if((_gv.x-cx0)*(_gv.x-cx0) + (_gv.z-cz0)*(_gv.z-cz0) < GRID.vicino*GRID.vicino){
+        scarti++; continue;
+      }
       const k = gkey(_gv.x, _gv.z);
       if(k < 0){ scarti++; continue; }
       buoni++;
@@ -1780,8 +1803,31 @@ function scandaglia(frame, dt){
     }
   }
 
-  let fusi = 0, mobili = 0;
+  let fusi = 0, mobili = 0, spuntoni = 0;
   const ora = GRID.ora = performance.now();
+
+  /* Valore di ogni cella in questa passata, per poterci guardare accanto.
+     Serve al filtro qui sotto: un rilievo vero e' largo almeno un paio di
+     celle, una lettura sballata e' sola. */
+  const quota = GRID.quota; quota.clear();
+  tmp.forEach((v, k) => quota.set(k, v.n >= 3 ? v.b : v.a));
+
+  /* Quante celle accanto dicono la stessa altezza. Il sensore, su una
+     fantasia forte come un tappeto persiano, ogni tanto sbaglia di mezzo
+     metro; se quella lettura fosse presa per buona nascerebbe una colonna
+     invisibile larga 12 cm su cui una creatura poi ci sale. E infatti si
+     leggeva "su un rialzo" su creature che stavano per terra. */
+  const compagne = (k, val) => {
+    let n = 0;
+    const a = quota.get(k + 4096), b = quota.get(k - 4096);
+    const c1 = quota.get(k + 1),   d = quota.get(k - 1);
+    if(a !== undefined && Math.abs(a - val) < .15) n++;
+    if(b !== undefined && Math.abs(b - val) < .15) n++;
+    if(c1 !== undefined && Math.abs(c1 - val) < .15) n++;
+    if(d !== undefined && Math.abs(d - val) < .15) n++;
+    return n;
+  };
+
   tmp.forEach((v, k) => {
     /* Non pretendo due letture nella stessa passata: a quattro metri il
        reticolo di campioni e' piu' rado della parete, e chiedere il doppio
@@ -1793,13 +1839,17 @@ function scandaglia(frame, dt){
     let c = GRID.celle.get(k);
     if(!c){
       if(GRID.celle.size >= GRID.maxCelle) return;
-      c = {h: val, n: 0, hv: val, tv: -1e9, mob: 0}; GRID.celle.set(k, c);
+      c = {h: val, n: 0, hv: val, tv: -1e9, mob: 0, su: 0, vi: 0, al: 0}; GRID.celle.set(k, c);
     }
     /* Strato veloce: valore grezzo dell'ultima passata, senza smorzamento.
        Serve una manciata di campioni nella stessa cella, cosi' un pixel
        isolato non diventa una persona. */
     const prec = c.hv;                       // cosa diceva questa cella l'ultima volta
-    if(v.n >= 3 && val > c.h + .20){ c.tv = ora; c.mob = 1; mobili++; }
+    /* Un rilievo nuovo — che sia un mobile spostato o una persona che passa —
+       deve essere largo. Uno spuntone solitario e' rumore e viene ignorato. */
+    const largo = val <= GRID.soglia || compagne(k, val) >= 2;
+    if(!largo) spuntoni++;
+    if(v.n >= 3 && largo && val > c.h + .20){ c.tv = ora; c.mob = 1; mobili++; }
     c.hv = val;
     /* Lo strato lento sale in fretta ma a scatti limitati e scende piano, e
        sale SOLO se anche la passata precedente diceva la stessa cosa. Cosi'
@@ -1813,8 +1863,11 @@ function scandaglia(frame, dt){
        dicesse la stessa cosa, quindi per arrivare all'altezza di una persona
        servono quasi due secondi fermi nella stessa cella da 12 cm. Chi ci
        arriva davvero — uno scatolone posato per terra — e' giusto che entri. */
+    /* E deve durare: due passate di fila d'accordo, non una sola. */
+    if(val > c.h + .06) c.su++; else c.su = 0;
     if(val > c.h){
-      if(Math.abs(val - prec) < .15) c.h += Math.min(val - c.h, .30) * .45;
+      if(largo && (val <= GRID.soglia || c.su >= 2) && Math.abs(val - prec) < .15)
+        c.h += Math.min(val - c.h, .30) * .45;
     } else {
       /* Una cella che era stata segnata come "qualcuno sta passando" torna
          giu' in fretta: se la persona resta ferma qualche secondo entra nella
@@ -1824,12 +1877,19 @@ function scandaglia(frame, dt){
       c.h += (val - c.h) * (c.mob ? .45 : .12);
       if(c.h - val < .10) c.mob = 0;
     }
+    /* Quante volte questa cella e' stata vista, e quante di quelle volte era
+       in rilievo. Un mobile vero risponde "in rilievo" quasi sempre; una
+       lettura sballata solo ogni tanto. Il rapporto fra i due e' cio' che
+       distingue un ripiano da uno spuntone di rumore, e nessun filtro
+       istantaneo puo' farlo. */
+    c.vi++; if(val > GRID.soglia) c.al++;
+    if(c.vi > 60){ c.vi >>= 1; c.al >>= 1; }
     c.n = Math.min(60, c.n + v.n);
     fusi++;
   });
   GRID.gen++;
   GRID.letture = letti; GRID.campioni = buoni; GRID.scarti = scarti; GRID.fusi = fusi;
-  GRID.mobili = mobili;
+  GRID.mobili = mobili; GRID.spuntoni = spuntoni;
   /* Ridisegnare la nuvola vuol dire scorrere tutte le celle: due volte al
      secondo bastano, otto sarebbero uno spreco su decine di migliaia. */
   if(WORLD.wire){
@@ -1873,7 +1933,7 @@ function disegnaGriglia(){
     if(mob){                                     // qualcuno sta passando di qui: rosso
       pos[n*3+1] = WORLD.floorY + c.hv;
       col[n*3] = 1; col[n*3+1] = .34; col[n*3+2] = .30;
-    } else if(c.h < GRID.soglia){                // pavimento mappato: appena accennato
+    } else if(c.h < GRID.soglia || !confermata(c)){   // pavimento, o rilievo non confermato
       col[n*3] = .16; col[n*3+1] = .30; col[n*3+2] = .36;
     } else {                                     // rilievo: dal verde al giallo
       const t = Math.min(1, (c.h - GRID.soglia) / 1.2);
@@ -3314,7 +3374,7 @@ function updateDiag(){
     'griglia      <b>' + (GRID.on ? GRID.celle.size + ' celle' : 'spenta') + '</b>' +
       (GRID.on ? ' · ' + GRID.campioni + '/' + GRID.letture + ' letture buone · ' +
                  GRID.fusi + ' aggiornate · ' + GRID.mobili + ' in movimento · ' +
-                 GRID.travolte + ' spinte  ' +
+                 GRID.travolte + ' spinte · ' + GRID.spuntoni + ' spuntoni scartati  ' +
                  flag(DEPTH.tarata && GRID.celle.size === 0 ? 'VUOTA' : '') : '') + '\n' +
     'ostacoli     <b>' + WORLD.obstacles.length + '</b> · ' +
       WORLD.obstacles.filter(o=>o.orfano).length + ' a memoria\n' +
@@ -3452,7 +3512,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v45';
+const BUILD = 'v46';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
