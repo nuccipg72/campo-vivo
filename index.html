@@ -321,7 +321,7 @@
       </div>
       <div class="optrow">
         <input type="checkbox" id="optWire">
-        <label for="optWire">Mostra il reticolo della geometria rilevata. Utile per capire cosa ha capito il telefono.</label>
+        <label for="optWire">Mostra il reticolo della geometria rilevata. <b style="color:#5FD3C4">Azzurro</b> = volume che blocca il passaggio, <b style="color:#FFA92E">arancione</b> = volume che nasconde ciò che sta dietro.</label>
       </div>
     </div>
   </div>
@@ -932,9 +932,16 @@ function makeObstacle(cx, cz, hw, hd, rotY, top, label, src, base){
   ob.occ.renderOrder = -10;
   obsGroup.add(ob.occ);
   ob.wire = new THREE.LineSegments(UNIT_EDGES,
-    new THREE.LineBasicMaterial({color:0x5FD3C4, transparent:true, opacity:.55}));
+    new THREE.LineBasicMaterial({color:0x5FD3C4, transparent:true, opacity:.5}));
   ob.wire.visible = WORLD.wire;
   wireGroup.add(ob.wire);
+  /* Secondo reticolo, arancione: il volume che NASCONDE. Vedendo i due
+     separati si capisce a colpo d'occhio se un taglio viene da un occlusore
+     o da un falso positivo di ARCore. */
+  ob.wireOcc = new THREE.LineSegments(UNIT_EDGES,
+    new THREE.LineBasicMaterial({color:0xFFA92E, transparent:true, opacity:.85}));
+  ob.wireOcc.visible = WORLD.wire;
+  wireGroup.add(ob.wireOcc);
   placeObstacle(ob);
   WORLD.obstacles.push(ob);
   scheduleObstacleList();
@@ -964,11 +971,17 @@ function placeObstacle(ob){
   ob.wire.position.set(ob.cx, WORLD.floorY + ob.top/2, ob.cz);
   ob.wire.scale.set(ob.hw*2, Math.max(.02, ob.top), ob.hd*2);
   ob.wire.rotation.y = ob.rotY;
+  if(ob.wireOcc){
+    ob.wireOcc.position.copy(ob.occ.position);
+    ob.wireOcc.scale.copy(ob.occ.scale);
+    ob.wireOcc.rotation.y = ob.rotY;
+  }
 }
 
 function dropObstacle(ob){
   if(!ob) return;
   obsGroup.remove(ob.occ); wireGroup.remove(ob.wire);
+  if(ob.wireOcc){ wireGroup.remove(ob.wireOcc); ob.wireOcc.material.dispose(); }
   ob.occ.material.dispose(); ob.wire.material.dispose();   // le geometrie sono condivise
   WORLD.obstacles = WORLD.obstacles.filter(o => o !== ob);
   scheduleObstacleList();
@@ -1278,6 +1291,16 @@ function syncPlanes(frame, dt){
     }
     let hw = (x1-x0)/2, hd = (z1-z0)/2;
     if(hw < .08 || hd < .08) return;
+    /* Un piano orizzontale piccolo e in quota e' quasi sempre un falso
+       positivo: un riflesso, la cornice di un quadro, una tenda. Un ripiano
+       vero e' largo. Scartarlo evita occlusori che spuntano a mezz'aria. */
+    if(plane.orientation !== 'vertical'){
+      const alt = (pose.transform.position.y + new THREE.Vector3((x0+x1)/2, 0, (z0+z1)/2)
+        .applyQuaternion(new THREE.Quaternion(
+          pose.transform.orientation.x, pose.transform.orientation.y,
+          pose.transform.orientation.z, pose.transform.orientation.w)).y) - WORLD.floorY;
+      if(alt > 1.05 && Math.min(hw, hd) < .30) return;
+    }
 
     const o = pose.transform.orientation;
     const q = new THREE.Quaternion(o.x, o.y, o.z, o.w);
@@ -2919,7 +2942,10 @@ function updateDiag(){
 
 function applyWire(){
   wireGroup.visible = true;
-  WORLD.obstacles.forEach(ob => { ob.wire.visible = WORLD.wire; });
+  WORLD.obstacles.forEach(ob => {
+    ob.wire.visible = WORLD.wire;
+    if(ob.wireOcc) ob.wireOcc.visible = WORLD.wire;
+  });
 }
 
 function setChip(){
@@ -3028,7 +3054,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v40';
+const BUILD = 'v41';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
