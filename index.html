@@ -542,12 +542,15 @@ const SPECIES = [
 
   {id:'falcetto', nome:'Falcetto', latino:'Falcula rapida', corpo:0xE08A5A, dettaglio:0x3B2A22,
    scala:.19, vel:1.30, agile:1.50, emissivo:0, salto:true,
-   forma:{corpo:{tipo:'icosa',d:1,sx:.80,sy:.85,sz:1.40,y:1.0},
-          testa:{r:.3,y:1.2,z:-1.28,muso:.5},
+   /* Corpo tirato su e gambe piu' lunghe: prima il tronco arrivava quasi a
+      terra e le zampe sparivano dentro, cosi' di un velocista non si vedeva
+      correre niente. */
+   forma:{corpo:{tipo:'icosa',d:1,sx:.80,sy:.82,sz:1.40,y:1.42},
+          testa:{r:.3,y:1.62,z:-1.28,muso:.5},
           cresta:true,
           orecchie:{tipo:'lunga',r:.15,h:.55},
-          coda:{r:.2,lung:1.7,y:.95,z:.9},
-          zampe:{n:2,lung:.8,sp:.1,ax:.32,az:.1,y:.8}}},
+          coda:{r:.2,lung:1.7,y:1.36,z:.9},
+          zampe:{n:2,lung:1.05,sp:.095,ax:.30,az:.1,y:1.05}}},
 
   {id:'reginalba', nome:'Reginalba', latino:'Regina candida', corpo:0xF4F1E6, dettaglio:0xEBC26A,
    scala:.21, vel:.70, agile:1.30, emissivo:.35, vola:true, hover:.55,
@@ -569,6 +572,72 @@ const SPECIES = [
           ali:{n:2,w:2.0,h:1.15,tipo:'membrana',y:1.35,z:.05},
           coda:{r:.2,lung:1.55,y:.9,z:.85},
           zampe:{n:2,lung:.45,sp:.1,ax:.35,az:.12,y:.5}}},
+
+  /* ====================== LE OTTO DELLE TAVOLE ==========================
+     Nascono da otto disegni vettoriali fatti a parte. Quelli erano piatti e
+     mostravano una posa sola; qui diventano geometria vera, quindi hanno un
+     retro, un sopra e un sotto — e si muovono. Dove il disegno chiedeva un
+     pezzo che non esisteva l'ho aggiunto alla grammatica: la colonna, la
+     chioma, la spirale, le braccia, l'onda, il fumo, l'alone.
+     ===================================================================== */
+
+  {id:'cinerarco', tavola:'cinerarco', nome:'Cinerarco', latino:'Cinis arcus', corpo:0x3A3733, dettaglio:0xF0873A,
+   scala:.21, vel:.38, agile:.80, emissivo:.55, spigoli:true,
+   forma:{corpo:{tipo:'icosa',d:1,sx:1.15,sy:.85,sz:1.20,y:.95},
+          testa:{r:.42,y:1.0,z:-1.15,muso:.3},
+          fumo:{n:3},
+          zampe:{n:4,lung:.55,sp:.1,ax:.5,az:.42,y:.55}}},
+
+  {id:'vetrospina', tavola:'vetrospina', nome:'Vetrospina', latino:'Vitrum spina', corpo:0x8FC4D6, dettaglio:0xEAFBFF,
+   scala:.17, vel:.80, agile:1.50, emissivo:.25, cristallo:true, salto:true, spigoli:true,
+   forma:{corpo:{tipo:'icosa',d:0,sx:.90,sy:1.05,sz:.85,y:1.0},
+          testa:{r:.34,y:1.15,z:-.75,occhioni:true},
+          corna:{r:.09,lung:.55},
+          zampe:{n:6,lung:.6,sp:.05,ax:.55,az:.5,y:.75}}},
+
+  {id:'mareggino', tavola:'mareggino', nome:'Mareggino', latino:'Marea ranula', corpo:0x3E7F5E, dettaglio:0x7FD2E8,
+   scala:.18, vel:.55, agile:1.10, emissivo:.15, salto:true, spigoli:true,
+   forma:{corpo:{tipo:'icosa',d:1,sx:1.10,sy:.90,sz:1.0,y:.90},
+          testa:{r:.50,y:1.05,z:-.55,occhioni:true},
+          onda:{w:1.5,h:1.0,y:1.62,z:-.35},
+          coda:{tipo:'pinna',r:.35,lung:.5,y:.8,z:.9},
+          zampe:{n:4,lung:.35,sp:.11,ax:.55,az:.4,y:.45}}},
+
+  {id:'tuonalbero', tavola:'tuonalbero', nome:'Tuonalbero', latino:'Arbor tonans', corpo:0x5C3F27, dettaglio:0xF5E27A,
+   scala:.22, vel:.12, agile:.40, emissivo:.8, spigoli:true,
+   forma:{corpo:{tipo:'colonna',r:.55,lung:1.7,y:.95},
+          testa:{r:.30,y:1.05,z:-.5,occhioni:true},
+          chioma:{n:9,r:.16,h:.95,y:1.85},
+          zampe:{n:4,lung:.35,sp:.13,ax:.42,az:.34,y:.30}}},
+
+  {id:'ombraluna', tavola:'ombraluna', nome:'Ombraluna', latino:'Umbra lunae', corpo:0x181C24, dettaglio:0xC6F26B,
+   scala:.19, vel:.90, agile:1.60, emissivo:.9, piatto:true, occhiluce:true, salto:true, spigoli:true,
+   forma:{corpo:{tipo:'icosa',d:1,sx:1.05,sy:.85,sz:1.15,y:.90},
+          testa:{r:.46,y:1.05,z:-1.0,occhioni:true},
+          orecchie:{tipo:'punta',r:.24,h:.62},
+          coda:{r:.13,lung:1.5,y:.95,z:.85},
+          zampe:{n:4,lung:.5,sp:.09,ax:.48,az:.42,y:.5}}},
+
+  {id:'solcavento', tavola:'solcavento', nome:'Solcavento', latino:'Sulcus venti', corpo:0xC79A34, dettaglio:0xFBEFC4,
+   scala:.18, vel:.95, agile:1.60, emissivo:.45, vola:true, hover:.95, spigoli:true,
+   forma:{spirale:{n:12,r:.34,giri:1.15,raggio:1.05,y:1.15},
+          testa:{r:.34,y:1.95,z:-.55,occhioni:true},
+          corna:{r:.09,lung:.42},
+          ali:{n:2,w:2.0,h:.90,tipo:'piuma',y:1.55,z:.1}}},
+
+  {id:'radicereale', tavola:'radicereale', nome:'Radicereale', latino:'Radix regia', corpo:0x3A4E34, dettaglio:0xC9DC8E,
+   scala:.24, vel:.10, agile:.35, emissivo:.35, spigoli:true,
+   forma:{corpo:{tipo:'colonna',r:.72,lung:1.9,y:1.05},
+          testa:{r:.40,y:2.15,z:-.15,occhioni:true},
+          braccia:{lung:1.0,sp:.11,y:1.5,ax:.72},
+          zampe:{n:4,lung:.55,sp:.15,ax:.5,az:.45,y:.45}}},
+
+  {id:'eclissonte', tavola:'eclissonte', nome:'Eclissonte', latino:'Eclipsis umbra', corpo:0x0C0E10, dettaglio:0xBFEAF6,
+   scala:.21, vel:.50, agile:1.0, emissivo:1.0, piatto:true, occhiluce:true, spigoli:true,
+   vola:true, hover:.35,
+   forma:{corpo:{tipo:'icosa',d:1,sx:.85,sy:1.30,sz:.85,y:1.30},
+          testa:{r:.34,y:2.05,z:-.20},
+          alone:{r:2.4,y:1.5}}},
 ];
 
 /* Il mondo condiviso. floorY cambia col modo: in WebXR il pavimento e'
@@ -1747,6 +1816,7 @@ function occlusione(frame, camPos){
     }
     const raggio = Math.max(.18, c.raggio);
     const alt = c.kind === 'sprite' ? c.asset.altezza * (c.taglia||1)
+              : c.kind === 'tavola' ? c.altezzaTav
                                     : c.spec.scala * 2 * (c.taglia||1);
 
     if(c.occStreak === undefined){ c.occStreak = 0; c.libStreak = 0; }
@@ -2057,6 +2127,7 @@ function sfumaVicine(camPos){
   for(const c of creatures){
     const d = Math.max(.05, c.pos.distanceTo(camPos));
     const alt = c.kind === 'sprite' ? c.asset.altezza * (c.taglia||1)
+              : c.kind === 'tavola' ? c.altezzaTav
                                     : c.spec.scala * 2 * (c.taglia||1);
     const ingombro = (alt + (c.hover||0)*.15) / d;
     const k = ingombro <= INGOMBRO_OK ? 1
@@ -2095,14 +2166,25 @@ function applicaVisibilita(c, obiettivo){
 function buildBody(spec){
   const g = new THREE.Group();
   const P = {testa:null, ali:[], zampe:[], coda:null, corpo:null, segmenti:[],
-             occhi:[], orecchie:[]};
+             occhi:[], orecchie:[], alone:null};
   const F = spec.forma, s = spec.scala;
 
-  const tondo = QUALITA.det >= 2, D = QUALITA.det;
+  /* Le otto delle tavole nascono da disegni fatti di piani e spigoli: il
+     cristallo sfaccettato, il muso squadrato, la maschera di pietra. Passate
+     attraverso la grammatica tondeggiante delle altre ventuno diventavano
+     uova lisce e perdevano proprio quello che le distingueva. Con "spigoli"
+     la specie ignora la qualita' scelta e resta al livello piu' grezzo:
+     sfaccettata, ombreggiatura piatta, pochi lati. Non e' un risparmio, e'
+     una scelta di stile — costa meno ma soprattutto si riconosce. */
+  const spig = !!spec.spigoli;
+  const tondo = !spig && QUALITA.det >= 2;
+  const D = spig ? 0 : QUALITA.det;
   /* Dorso scuro e ventre chiaro dipinti nei vertici: e' il trucco che da'
      volume ai personaggi disegnati, senza texture ne' luci in piu'. */
-  const cAlto  = new THREE.Color(spec.corpo).multiplyScalar(.72);
-  const cBasso = new THREE.Color(spec.corpo).lerp(new THREE.Color(0xffffff), .42);
+  /* Un manto nero vero non ha il ventre schiarito: con la sfumatura di serie
+     l'Ombraluna e l'Eclissonte diventavano grigio topo. */
+  const cAlto  = new THREE.Color(spec.corpo).multiplyScalar(spec.piatto ? .92 : .72);
+  const cBasso = new THREE.Color(spec.corpo).lerp(new THREE.Color(0xffffff), spec.piatto ? .08 : .42);
   const tinta = geo => {
     const pos = geo.attributes.position, c = new THREE.Color();
     const col = new Float32Array(pos.count*3);
@@ -2118,13 +2200,27 @@ function buildBody(spec){
   };
   const matCorpo = new THREE.MeshStandardMaterial({color:0xffffff, vertexColors:true,
     flatShading:!tondo, roughness:.72, metalness:.03,
-    emissive:new THREE.Color(spec.dettaglio), emissiveIntensity:spec.emissivo*.35});
+    /* La luce propria appartiene ai dettagli, non al manto: con il corpo che
+       emetteva un terzo del colore del dettaglio, un gatto nero diventava
+       verde e una brace diventava beige. Chi ha il manto piatto non emette
+       affatto — il bagliore glielo danno gli occhi. */
+    emissive:new THREE.Color(spec.dettaglio),
+    emissiveIntensity: spec.emissivo * (spec.piatto ? 0 : .18)});
   const matPiatto = new THREE.MeshStandardMaterial({color:spec.corpo, flatShading:!tondo,
     roughness:.78, metalness:.03});
   const matDett = new THREE.MeshStandardMaterial({color:spec.dettaglio, flatShading:!tondo,
     roughness:.55, emissive:new THREE.Color(spec.dettaglio), emissiveIntensity:spec.emissivo});
-  const matOcchio = new THREE.MeshPhongMaterial({color:0x141A20, shininess:90, specular:0x8899aa});
+  /* Occhi che si accendono: due fessure luminose invece di due biglie nere. */
+  const matOcchio = spec.occhiluce
+    ? new THREE.MeshBasicMaterial({color:spec.dettaglio})
+    : new THREE.MeshPhongMaterial({color:0x141A20, shininess:90, specular:0x8899aa});
   const matLuce = new THREE.MeshBasicMaterial({color:0xffffff});
+  /* Corpo di cristallo: si vede attraverso, ma scrive comunque profondita'
+     altrimenti le sue stesse facce si ordinano a caso. */
+  if(spec.cristallo){
+    matCorpo.transparent = true; matCorpo.opacity = .78;
+    matCorpo.roughness = .22; matCorpo.metalness = .12;
+  }
 
   const add = (m, parent) => { (parent || g).add(m); return m; };
 
@@ -2143,7 +2239,8 @@ function buildBody(spec){
   } else if(F.corpo){
     const C = F.corpo;
     let geo;
-    if(C.tipo === 'capsula')      geo = new THREE.CylinderGeometry(s*C.r*.9, s*C.r, s*C.lung, tondo?14:8);
+    if(C.tipo === 'colonna')      geo = new THREE.CylinderGeometry(s*C.r*.82, s*C.r, s*C.lung, tondo?12:7);
+    else if(C.tipo === 'capsula') geo = new THREE.CylinderGeometry(s*C.r*.9, s*C.r, s*C.lung, tondo?14:8);
     else if(C.tipo === 'disco')   geo = new THREE.CylinderGeometry(s*C.r, s*C.r*.92, s*C.h, tondo?16:9);
     else if(C.tipo === 'uovo')    geo = new THREE.SphereGeometry(s, tondo?18:9, tondo?14:7);
     else                          geo = new THREE.IcosahedronGeometry(s, Math.max(C.d===undefined?1:C.d, D));
@@ -2248,10 +2345,101 @@ function buildBody(spec){
     }
   }
 
+  /* Alone: un contorno di luce dietro la sagoma. E' l'unico modo per far
+     esistere una creatura nera in una stanza scura senza schiarirla. */
+  if(F.alone){
+    const A = F.alone;
+    const sp2 = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: texAlone(), color: spec.dettaglio, transparent: true,
+      opacity: .5, depthWrite: false, blending: THREE.AdditiveBlending }));
+    sp2.scale.setScalar(s*A.r*2);
+    sp2.position.y = s*(A.y === undefined ? 1.1 : A.y);
+    sp2.renderOrder = -2;
+    add(sp2); P.alone = sp2;
+  }
+
   if(F.lanterna){
     const nu = new THREE.Mesh(new THREE.SphereGeometry(s*.55, 10, 8), matDett);
     nu.position.y = s*2.2; add(nu);
     const l = new THREE.PointLight(spec.dettaglio, 1.1, 3.2); l.position.y = s*2.2; add(l);
+  }
+
+  /* Chioma: un ciuffo di lame che si aprono a raggiera dalla cima. Fa da
+     fogliame e da corona di fulmini, cambia solo il colore. */
+  if(F.chioma){
+    const K = F.chioma;
+    for(let i=0;i<K.n;i++){
+      const u = (i/K.n)*Math.PI*2 + (i%2)*.3;
+      const alt = K.h * (i%2 ? .72 : 1);
+      const m = new THREE.Mesh(new THREE.ConeGeometry(s*K.r, s*alt, 4), matDett);
+      m.position.set(Math.sin(u)*s*K.r*2.1, s*(K.y + alt*.35), Math.cos(u)*s*K.r*2.1);
+      m.rotation.set(Math.cos(u)*.55, u, -Math.sin(u)*.55);
+      add(m);
+    }
+  }
+
+  /* Spirale: il corpo non e' una fila dritta di segmenti ma una voluta che si
+     avvolge. Serve al serpente: e' l'unica sagoma del bestiario che si
+     riconosce dal solo profilo del corpo. */
+  if(F.spirale){
+    const S = F.spirale;
+    for(let i=0;i<S.n;i++){
+      const t = i/(S.n-1);
+      const a = t * S.giri * Math.PI*2;
+      const rr = S.raggio * (1 - t*.62);
+      const m = new THREE.Mesh(tinta(new THREE.IcosahedronGeometry(s*S.r*(1 - t*.55), D)), matCorpo);
+      m.position.set(Math.sin(a)*s*rr, s*(S.y + Math.cos(a)*rr*.55), Math.cos(a)*s*rr*.35);
+      add(m);
+      if(i === 0) P.corpo = m;
+      P.segmenti.push(m);
+    }
+  }
+
+  /* Braccia: due rami che scendono ai lati. Non afferrano niente, servono a
+     dare larghezza alla sagoma di chi e' alto e stretto. */
+  if(F.braccia){
+    const A = F.braccia;
+    for(const d of [-1,1]){
+      const b = new THREE.Group();
+      b.position.set(d*s*A.ax, s*A.y, 0);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(s*A.sp, s*A.sp*.6, s*A.lung, 5), matDett);
+      m.position.y = -s*A.lung*.5; b.add(m);
+      b.rotation.z = d*.55;
+      add(b); P.zampe.push(b);
+    }
+  }
+
+  /* Onda: una lama ricurva sulla testa. E' la stessa sagoma delle ali, messa
+     in piedi: un ciuffo che sembra un'onda che sta per rompersi. */
+  if(F.onda){
+    const O = F.onda;
+    const m = new THREE.Mesh(sagomaAla('velo', s*O.w, s*O.h),
+      new THREE.MeshStandardMaterial({color:spec.dettaglio, flatShading:!tondo,
+        side:THREE.DoubleSide, roughness:.5,
+        emissive:new THREE.Color(spec.dettaglio), emissiveIntensity:spec.emissivo*.5}));
+    m.rotation.set(-.35, Math.PI/2, .5);
+    m.position.set(0, s*O.y, s*O.z);
+    add(m);
+  }
+
+  /* Fumo: due volute sottili che salgono. Sono cilindri piegati, non
+     particelle: costano niente e da lontano fanno il loro effetto. */
+  if(F.fumo){
+    const N = F.fumo.n || 2;
+    const matFumo = new THREE.MeshStandardMaterial({color:0x8A857D, transparent:true,
+      opacity:.32, depthWrite:false, roughness:1});
+    for(let i=0;i<N;i++){
+      const g2 = new THREE.Group();
+      g2.position.set((i-(N-1)/2)*s*.5, s*1.5, s*.1);
+      for(let j=0;j<3;j++){
+        const m = new THREE.Mesh(new THREE.CylinderGeometry(s*(.09-j*.02), s*(.11-j*.02), s*.42, 5), matFumo);
+        m.position.set(Math.sin(j*1.4+i)*s*.16, s*(j*.38), 0);
+        m.rotation.z = Math.sin(j*1.4+i)*.45;
+        g2.add(m);
+      }
+      add(g2); P.ali.push(g2);          // ondeggia con lo stesso ciclo delle ali
+      g2.userData.dir = i%2 ? 1 : -1;
+    }
   }
 
   if(F.chele){
@@ -2313,12 +2501,20 @@ function buildBody(spec){
     const Z = F.zampe;
     const righe = Math.max(1, Math.round(Z.n/2));
     for(let i=0;i<Z.n;i++){
-      const lato = (i%2) ? 1 : -1, fila = Math.floor(i/2);
+      const lat01 = i%2, lato = lat01 ? 1 : -1, fila = Math.floor(i/2);
       const z = righe > 1 ? (fila/(righe-1) - .5) * s*Z.az*2 : 0;
       const p = new THREE.Group();
       p.position.set(lato*s*Z.ax, s*Z.y, z);
       const m = new THREE.Mesh(new THREE.CylinderGeometry(s*Z.sp, s*Z.sp*.72, s*Z.lung, tondo?8:5), matDett);
       m.position.y = -s*Z.lung/2; p.add(m);
+      /* Ogni zampa si ricorda la quota di riposo e il proprio posto
+         nell'andatura. Due zampe alternano; quattro vanno in diagonale,
+         come trotta un quadrupede vero; da sei in su e' un'onda che corre
+         dal fondo alla testa, che e' come cammina un millepiedi. */
+      p.userData.y0 = s*Z.y;
+      p.userData.fase = righe <= 1 ? lat01*Math.PI
+        : righe === 2 ? ((lat01 + fila) % 2) * Math.PI
+        : fila*(Math.PI*2/righe) + lat01*Math.PI;
       add(p); P.zampe.push(p);
     }
   }
@@ -2331,6 +2527,24 @@ function buildBody(spec){
    un cartoncino traslucido appoggiato sulla scena invece che come un'ala. Qui
    il profilo lo disegnano due curve: radice attaccata al corpo, punta in
    fuori, e per la membrana anche le due festonature del bordo posteriore. */
+/* Il disco sfumato dell'alone, disegnato una volta sola su una tela di 128
+   pixel e riusato da tutte: e' un anello di luce, vuoto al centro perche' li'
+   ci sta la creatura. */
+let _texAlone = null;
+function texAlone(){
+  if(_texAlone) return _texAlone;
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(64,64,0, 64,64,64);
+  g.addColorStop(0,   'rgba(255,255,255,0)');
+  g.addColorStop(.58, 'rgba(255,255,255,0)');
+  g.addColorStop(.80, 'rgba(255,255,255,.95)');
+  g.addColorStop(1,   'rgba(255,255,255,0)');
+  x.fillStyle = g; x.fillRect(0,0,128,128);
+  _texAlone = new THREE.CanvasTexture(c);
+  return _texAlone;
+}
+
 function sagomaAla(tipo, w, h){
   const sh = new THREE.Shape();
   if(tipo === 'membrana'){
@@ -2436,6 +2650,118 @@ const baseCreature = (root, nome, latino, vel) => ({
   ultimoValido:root.position.clone(),
 });
 
+
+/* ==========================================================================
+   LE TAVOLE — otto creature disegnate a mano, sei viste ciascuna
+   --------------------------------------------------------------------------
+   Queste otto non sono costruite con la geometria procedurale delle altre:
+   sono i disegni vettoriali del bestiario. In scena diventano un impostore,
+   cioe' un piano che guarda sempre te e che cambia disegno a seconda da che
+   parte lo guardi. Girandoci intorno si vede il fianco, poi la schiena;
+   chinandosi si vede il sotto. E' quello che fanno i giochi da vent'anni per
+   le cose piccole, e qui conserva il tratto esattamente com'e' stato
+   disegnato invece di approssimarlo con dei poligoni.
+   ========================================================================== */
+const TAVOLE = {"cinerarco":{"fronte":"<defs><radialGradient id=\"gep01F\"><stop offset=\"0\" stop-color=\"#E2622A\" stop-opacity=\".5\"/><stop offset=\"1\" stop-color=\"#E2622A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"bep01F\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#514D46\"/><stop offset=\"1\" stop-color=\"#22201E\"/></linearGradient><linearGradient id=\"vep01F\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#5B564E\"/><stop offset=\"1\" stop-color=\"#3B3733\"/></linearGradient></defs><circle class=\"pulse\" cx=\"100\" cy=\"128\" r=\"56\" fill=\"url(#gep01F)\"/><path d=\"M84,86 C74,70 92,62 82,44\" stroke=\"#6E6A63\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\" opacity=\".42\"/><path d=\"M118,88 C128,76 112,68 122,54\" stroke=\"#6E6A63\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\" opacity=\".28\"/><path d=\"M66,148 L62,176 L76,176 L78,148 Z\" fill=\"#2C2A27\"/><path d=\"M122,148 L124,176 L138,176 L134,148 Z\" fill=\"#2C2A27\"/><path d=\"M62,124 C62,102 78,90 100,90 C124,90 140,104 140,126 C140,150 122,160 100,160 C78,160 62,148 62,124 Z\" fill=\"url(#bep01F)\"/><path d=\"M82,150 L79,174 L92,174 L94,150 Z\" fill=\"#3A3733\"/><path d=\"M108,150 L110,174 L122,174 L120,150 Z\" fill=\"#3A3733\"/><circle cx=\"100\" cy=\"104\" r=\"27\" fill=\"#43403A\"/><path d=\"M78,86 L74,66 L92,80 Z\" fill=\"#3A3733\"/><path d=\"M122,86 L126,66 L108,80 Z\" fill=\"#3A3733\"/><path d=\"M100,116 C104,120 106,126 100,130 C94,126 96,120 100,116 Z\" fill=\"#2A2724\"/><path d=\"M72,134 C84,128 96,138 110,130 C120,124 128,130 132,138\" stroke=\"#F0873A\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\" class=\"pulse\"/><path d=\"M78,148 C90,144 104,150 118,144\" stroke=\"#C4501E\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/><ellipse cx=\"88\" cy=\"100\" rx=\"5.5\" ry=\"4.5\" fill=\"#FFD9A0\"/><ellipse cx=\"112\" cy=\"100\" rx=\"5.5\" ry=\"4.5\" fill=\"#FFD9A0\"/><circle cx=\"88\" cy=\"100\" r=\"1.9\" fill=\"#2A1608\"/><circle cx=\"112\" cy=\"100\" r=\"1.9\" fill=\"#2A1608\"/>","destra":"<defs><radialGradient id=\"gep01D\"><stop offset=\"0\" stop-color=\"#E2622A\" stop-opacity=\".5\"/><stop offset=\"1\" stop-color=\"#E2622A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"bep01D\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#514D46\"/><stop offset=\"1\" stop-color=\"#22201E\"/></linearGradient><linearGradient id=\"vep01D\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#5B564E\"/><stop offset=\"1\" stop-color=\"#3B3733\"/></linearGradient></defs><g transform=\"translate(200,0) scale(-1,1)\"><circle class=\"pulse\" cx=\"104\" cy=\"126\" r=\"58\" fill=\"url(#gep01D)\"/><path d=\"M124,96 C136,80 116,72 128,54\" stroke=\"#6E6A63\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\" opacity=\".45\"/><path d=\"M146,102 C154,92 142,86 149,74\" stroke=\"#6E6A63\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\" opacity=\".3\"/><path d=\"M74,152 L69,176 L82,176 L85,152 Z\" fill=\"#2C2A27\"/><path d=\"M116,152 L113,176 L126,176 L128,152 Z\" fill=\"#2C2A27\"/><path d=\"M92,150 L88,174 L100,174 L103,150 Z\" fill=\"#3A3733\"/><path d=\"M134,150 L132,174 L144,174 L145,150 Z\" fill=\"#3A3733\"/><path d=\"M58,132 C56,108 78,94 106,94 C136,94 156,108 154,131 C152,150 130,158 104,158 C78,158 60,150 58,132 Z\" fill=\"url(#bep01D)\"/><circle cx=\"60\" cy=\"108\" r=\"21\" fill=\"#43403A\"/><path d=\"M42,110 C34,108 32,116 40,120 L54,120 Z\" fill=\"#3A3733\"/><path d=\"M52,90 L58,78 L66,92 Z\" fill=\"#3A3733\"/><path d=\"M78,118 C90,112 104,122 118,114\" stroke=\"#F0873A\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\" class=\"pulse\"/><path d=\"M96,136 C108,132 120,138 134,130\" stroke=\"#C4501E\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M140,116 C146,112 150,118 148,124\" stroke=\"#F0873A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/><ellipse cx=\"54\" cy=\"106\" rx=\"5\" ry=\"4\" fill=\"#FFD9A0\"/><circle cx=\"52\" cy=\"106\" r=\"1.8\" fill=\"#2A1608\"/></g>","retro":"<defs><radialGradient id=\"gep01R\"><stop offset=\"0\" stop-color=\"#E2622A\" stop-opacity=\".5\"/><stop offset=\"1\" stop-color=\"#E2622A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"bep01R\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#514D46\"/><stop offset=\"1\" stop-color=\"#22201E\"/></linearGradient><linearGradient id=\"vep01R\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#5B564E\"/><stop offset=\"1\" stop-color=\"#3B3733\"/></linearGradient></defs><circle class=\"pulse\" cx=\"100\" cy=\"130\" r=\"52\" fill=\"url(#gep01R)\"/><path d=\"M88,80 C78,64 96,56 86,38\" stroke=\"#6E6A63\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\" opacity=\".45\"/><path d=\"M116,84 C126,72 110,64 120,50\" stroke=\"#6E6A63\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\" opacity=\".3\"/><path d=\"M66,148 L62,176 L76,176 L78,148 Z\" fill=\"#3A3733\"/><path d=\"M122,148 L124,176 L138,176 L134,148 Z\" fill=\"#3A3733\"/><path d=\"M60,126 C60,102 78,88 100,88 C124,88 142,102 142,128 C142,152 122,162 100,162 C78,162 60,150 60,126 Z\" fill=\"url(#bep01R)\"/><path d=\"M82,152 L79,174 L92,174 L94,152 Z\" fill=\"#2C2A27\"/><path d=\"M108,152 L110,174 L122,174 L120,152 Z\" fill=\"#2C2A27\"/><path d=\"M100,92 C108,92 112,98 111,106 C110,112 104,114 100,114 C96,114 90,112 89,106 C88,98 92,92 100,92 Z\" fill=\"#43403A\"/><path d=\"M100,96 L100,158\" stroke=\"#F0873A\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\" class=\"pulse\" opacity=\".9\"/><path d=\"M84,116 C92,122 108,122 116,116\" stroke=\"#C4501E\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M80,136 C90,142 110,142 120,136\" stroke=\"#C4501E\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\" opacity=\".8\"/><path d=\"M88,152 C94,156 106,156 112,152\" stroke=\"#F0873A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\" opacity=\".7\"/>","sinistra":"<defs><radialGradient id=\"cinGlow\"><stop offset=\"0\" stop-color=\"#E2622A\" stop-opacity=\".5\"/><stop offset=\"1\" stop-color=\"#E2622A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"cinBody\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#514D46\"/><stop offset=\"1\" stop-color=\"#22201E\"/></linearGradient></defs><circle class=\"pulse\" cx=\"104\" cy=\"126\" r=\"58\" fill=\"url(#cinGlow)\"/><path d=\"M124,96 C136,80 116,72 128,54\" stroke=\"#6E6A63\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\" opacity=\".45\"/><path d=\"M146,102 C154,92 142,86 149,74\" stroke=\"#6E6A63\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\" opacity=\".3\"/><path d=\"M74,152 L69,176 L82,176 L85,152 Z\" fill=\"#2C2A27\"/><path d=\"M116,152 L113,176 L126,176 L128,152 Z\" fill=\"#2C2A27\"/><path d=\"M92,150 L88,174 L100,174 L103,150 Z\" fill=\"#3A3733\"/><path d=\"M134,150 L132,174 L144,174 L145,150 Z\" fill=\"#3A3733\"/><path d=\"M58,132 C56,108 78,94 106,94 C136,94 156,108 154,131 C152,150 130,158 104,158 C78,158 60,150 58,132 Z\" fill=\"url(#cinBody)\"/><circle cx=\"60\" cy=\"108\" r=\"21\" fill=\"#43403A\"/><path d=\"M42,110 C34,108 32,116 40,120 L54,120 Z\" fill=\"#3A3733\"/><path d=\"M52,90 L58,78 L66,92 Z\" fill=\"#3A3733\"/><path d=\"M78,118 C90,112 104,122 118,114\" stroke=\"#F0873A\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\" class=\"pulse\"/><path d=\"M96,136 C108,132 120,138 134,130\" stroke=\"#C4501E\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M140,116 C146,112 150,118 148,124\" stroke=\"#F0873A\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\"/><ellipse cx=\"54\" cy=\"106\" rx=\"5\" ry=\"4\" fill=\"#FFD9A0\"/><circle cx=\"52\" cy=\"106\" r=\"1.8\" fill=\"#2A1608\"/>","alto":"<defs><radialGradient id=\"gep01A\"><stop offset=\"0\" stop-color=\"#E2622A\" stop-opacity=\".5\"/><stop offset=\"1\" stop-color=\"#E2622A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"bep01A\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#514D46\"/><stop offset=\"1\" stop-color=\"#22201E\"/></linearGradient><linearGradient id=\"vep01A\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#5B564E\"/><stop offset=\"1\" stop-color=\"#3B3733\"/></linearGradient></defs><circle class=\"pulse\" cx=\"100\" cy=\"104\" r=\"66\" fill=\"url(#gep01A)\"/><path d=\"M112,60 C124,44 106,36 118,20\" stroke=\"#6E6A63\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\" opacity=\".28\"/><path d=\"M52,72 L28,60 L34,74 Z\" fill=\"#2C2A27\"/><path d=\"M52,136 L28,148 L34,134 Z\" fill=\"#2C2A27\"/><path d=\"M144,74 L170,62 L164,78 Z\" fill=\"#2C2A27\"/><path d=\"M144,134 L170,146 L164,130 Z\" fill=\"#2C2A27\"/><path d=\"M46,104 C46,76 74,58 108,58 C144,58 168,78 168,104 C168,130 144,150 108,150 C74,150 46,132 46,104 Z\" fill=\"url(#vep01A)\"/><circle cx=\"52\" cy=\"104\" r=\"22\" fill=\"#43403A\"/><path d=\"M44,86 L44,68 L58,84 Z\" fill=\"#3A3733\"/><path d=\"M44,122 L44,140 L58,124 Z\" fill=\"#3A3733\"/><path d=\"M32,104 C24,100 22,110 30,112 Z\" fill=\"#3A3733\"/><path d=\"M76,104 C96,96 118,112 140,102\" stroke=\"#F0873A\" stroke-width=\"3.5\" fill=\"none\" stroke-linecap=\"round\" class=\"pulse\"/><path d=\"M84,84 C104,78 124,88 146,82\" stroke=\"#C4501E\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M84,124 C104,130 124,120 146,126\" stroke=\"#C4501E\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/><ellipse cx=\"48\" cy=\"92\" rx=\"4.5\" ry=\"4\" fill=\"#FFD9A0\"/><ellipse cx=\"48\" cy=\"116\" rx=\"4.5\" ry=\"4\" fill=\"#FFD9A0\"/>","basso":"<defs><radialGradient id=\"gep01B\"><stop offset=\"0\" stop-color=\"#E2622A\" stop-opacity=\".5\"/><stop offset=\"1\" stop-color=\"#E2622A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"bep01B\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#514D46\"/><stop offset=\"1\" stop-color=\"#22201E\"/></linearGradient><linearGradient id=\"vep01B\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#5B564E\"/><stop offset=\"1\" stop-color=\"#3B3733\"/></linearGradient></defs><path d=\"M46,104 C46,76 74,58 108,58 C144,58 168,78 168,104 C168,130 144,150 108,150 C74,150 46,132 46,104 Z\" fill=\"url(#vep01B)\"/><path d=\"M60,104 C60,84 82,70 108,70 C138,70 156,84 156,104 C156,124 138,138 108,138 C82,138 60,124 60,104 Z\" fill=\"#4A4640\" opacity=\".55\"/><circle cx=\"52\" cy=\"104\" r=\"20\" fill=\"#43403A\"/><path d=\"M34,104 C26,100 24,110 32,112 Z\" fill=\"#3A3733\"/><ellipse cx=\"74\" cy=\"78\" rx=\"10\" ry=\"8\" fill=\"#2C2A27\"/><ellipse cx=\"74\" cy=\"130\" rx=\"10\" ry=\"8\" fill=\"#2C2A27\"/><ellipse cx=\"138\" cy=\"80\" rx=\"10\" ry=\"8\" fill=\"#2C2A27\"/><ellipse cx=\"138\" cy=\"128\" rx=\"10\" ry=\"8\" fill=\"#2C2A27\"/><circle cx=\"74\" cy=\"78\" r=\"3.4\" fill=\"#F0873A\" class=\"pulse\"/><circle cx=\"74\" cy=\"130\" r=\"3.4\" fill=\"#F0873A\" class=\"pulse\"/><circle cx=\"138\" cy=\"80\" r=\"3.4\" fill=\"#F0873A\" class=\"pulse\"/><circle cx=\"138\" cy=\"128\" r=\"3.4\" fill=\"#F0873A\" class=\"pulse\"/><path d=\"M92,104 C110,98 128,110 148,104\" stroke=\"#C4501E\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\" opacity=\".6\"/>"},"vetrospina":{"fronte":"<defs><linearGradient id=\"vetA\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#CDEAF2\"/><stop offset=\"1\" stop-color=\"#6FA6BC\"/></linearGradient><linearGradient id=\"vetB\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8FC4D6\"/><stop offset=\"1\" stop-color=\"#3E6E86\"/></linearGradient></defs><ellipse cx=\"100\" cy=\"178\" rx=\"44\" ry=\"6\" fill=\"#23291F\" opacity=\".14\"/><path d=\"M56,150 L34,168\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M70,152 L58,174\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M128,152 L142,174\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M140,148 L164,166\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M62,120 L36,110\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M138,118 L166,108\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M92,64 L104,40 L110,66 Z\" fill=\"url(#vetA)\" opacity=\".9\"/><path d=\"M112,66 L128,48 L126,72 Z\" fill=\"url(#vetB)\" opacity=\".85\"/><path d=\"M78,72 L82,50 L94,68 Z\" fill=\"url(#vetB)\" opacity=\".7\"/><path d=\"M70,110 L92,68 L124,70 L142,112 L120,152 L84,152 Z\" fill=\"url(#vetA)\" opacity=\".92\"/><path d=\"M70,110 L92,68 L104,112 L84,152 Z\" fill=\"#FFFFFF\" opacity=\".22\"/><path d=\"M104,112 L124,70 L142,112 L120,152 Z\" fill=\"#2E5A70\" opacity=\".2\"/><path d=\"M92,68 L104,112 L124,70\" stroke=\"#F2FBFF\" stroke-width=\"1.4\" fill=\"none\" opacity=\".65\"/><path d=\"M84,152 L104,112 L120,152\" stroke=\"#F2FBFF\" stroke-width=\"1.4\" fill=\"none\" opacity=\".5\"/><path d=\"M86,86 L104,74 L120,88 L112,104 L94,104 Z\" fill=\"#DFF3F9\" opacity=\".55\"/><ellipse cx=\"94\" cy=\"90\" rx=\"4.5\" ry=\"6\" fill=\"#1D3644\"/><ellipse cx=\"112\" cy=\"90\" rx=\"4.5\" ry=\"6\" fill=\"#1D3644\"/><circle cx=\"95.5\" cy=\"88\" r=\"1.6\" fill=\"#EAFBFF\"/><circle cx=\"113.5\" cy=\"88\" r=\"1.6\" fill=\"#EAFBFF\"/>","destra":"<defs><linearGradient id=\"aep02D\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#CDEAF2\"/><stop offset=\"1\" stop-color=\"#6FA6BC\"/></linearGradient><linearGradient id=\"bep02D\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8FC4D6\"/><stop offset=\"1\" stop-color=\"#3E6E86\"/></linearGradient><linearGradient id=\"cep02D\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#B6DDEA\"/><stop offset=\"1\" stop-color=\"#49778E\"/></linearGradient></defs><ellipse cx=\"100\" cy=\"178\" rx=\"40\" ry=\"6\" fill=\"#23291F\" opacity=\".14\"/><path d=\"M84,150 L60,170\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M96,152 L82,174\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M118,152 L134,172\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M92,118 L64,108\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M124,118 L152,110\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M108,66 L120,42 L126,68 Z\" fill=\"url(#aep02D)\" opacity=\".9\"/><path d=\"M92,70 L96,48 L108,68 Z\" fill=\"url(#bep02D)\" opacity=\".75\"/><path d=\"M78,112 L96,68 L128,74 L138,116 L120,152 L86,150 Z\" fill=\"url(#aep02D)\" opacity=\".92\"/><path d=\"M78,112 L96,68 L110,114 L86,150 Z\" fill=\"#FFFFFF\" opacity=\".2\"/><path d=\"M110,114 L128,74 L138,116 L120,152 Z\" fill=\"#2E5A70\" opacity=\".22\"/><path d=\"M96,68 L110,114 L128,74\" stroke=\"#F2FBFF\" stroke-width=\"1.4\" fill=\"none\" opacity=\".6\"/><path d=\"M86,150 L110,114 L120,152\" stroke=\"#F2FBFF\" stroke-width=\"1.4\" fill=\"none\" opacity=\".45\"/><path d=\"M120,86 L140,80 L146,100 L132,108 Z\" fill=\"#DFF3F9\" opacity=\".6\"/><ellipse cx=\"134\" cy=\"92\" rx=\"5\" ry=\"6.5\" fill=\"#1D3644\"/><circle cx=\"135.6\" cy=\"90\" r=\"1.7\" fill=\"#EAFBFF\"/><path d=\"M146,96 L156,94 L150,102 Z\" fill=\"#9FCEDE\" opacity=\".8\"/>","retro":"<defs><linearGradient id=\"aep02R\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#CDEAF2\"/><stop offset=\"1\" stop-color=\"#6FA6BC\"/></linearGradient><linearGradient id=\"bep02R\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8FC4D6\"/><stop offset=\"1\" stop-color=\"#3E6E86\"/></linearGradient><linearGradient id=\"cep02R\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#B6DDEA\"/><stop offset=\"1\" stop-color=\"#49778E\"/></linearGradient></defs><ellipse cx=\"100\" cy=\"178\" rx=\"44\" ry=\"6\" fill=\"#23291F\" opacity=\".14\"/><path d=\"M56,150 L34,168\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M70,152 L58,174\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M128,152 L142,174\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M140,148 L164,166\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M62,120 L36,110\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M138,118 L166,108\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M90,62 L100,38 L112,64 Z\" fill=\"url(#bep02R)\" opacity=\".85\"/><path d=\"M74,74 L78,52 L92,70 Z\" fill=\"url(#bep02R)\" opacity=\".65\"/><path d=\"M112,70 L126,50 L124,74 Z\" fill=\"url(#bep02R)\" opacity=\".7\"/><path d=\"M70,110 L92,68 L124,70 L142,112 L120,152 L84,152 Z\" fill=\"url(#cep02R)\" opacity=\".94\"/><path d=\"M106,68 L106,152\" stroke=\"#F2FBFF\" stroke-width=\"1.6\" fill=\"none\" opacity=\".55\"/><path d=\"M70,110 L106,96 L142,112\" stroke=\"#F2FBFF\" stroke-width=\"1.2\" fill=\"none\" opacity=\".35\"/><path d=\"M84,152 L106,124 L120,152\" stroke=\"#2E5A70\" stroke-width=\"1.4\" fill=\"none\" opacity=\".3\"/><path d=\"M92,84 L106,76 L120,86 L114,100 L98,100 Z\" fill=\"#3E6E86\" opacity=\".35\"/>","sinistra":"<defs><linearGradient id=\"aep02S\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#CDEAF2\"/><stop offset=\"1\" stop-color=\"#6FA6BC\"/></linearGradient><linearGradient id=\"bep02S\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8FC4D6\"/><stop offset=\"1\" stop-color=\"#3E6E86\"/></linearGradient><linearGradient id=\"cep02S\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#B6DDEA\"/><stop offset=\"1\" stop-color=\"#49778E\"/></linearGradient></defs><g transform=\"translate(200,0) scale(-1,1)\"><ellipse cx=\"100\" cy=\"178\" rx=\"40\" ry=\"6\" fill=\"#23291F\" opacity=\".14\"/><path d=\"M84,150 L60,170\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M96,152 L82,174\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M118,152 L134,172\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M92,118 L64,108\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M124,118 L152,110\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M108,66 L120,42 L126,68 Z\" fill=\"url(#aep02S)\" opacity=\".9\"/><path d=\"M92,70 L96,48 L108,68 Z\" fill=\"url(#bep02S)\" opacity=\".75\"/><path d=\"M78,112 L96,68 L128,74 L138,116 L120,152 L86,150 Z\" fill=\"url(#aep02S)\" opacity=\".92\"/><path d=\"M78,112 L96,68 L110,114 L86,150 Z\" fill=\"#FFFFFF\" opacity=\".2\"/><path d=\"M110,114 L128,74 L138,116 L120,152 Z\" fill=\"#2E5A70\" opacity=\".22\"/><path d=\"M96,68 L110,114 L128,74\" stroke=\"#F2FBFF\" stroke-width=\"1.4\" fill=\"none\" opacity=\".6\"/><path d=\"M86,150 L110,114 L120,152\" stroke=\"#F2FBFF\" stroke-width=\"1.4\" fill=\"none\" opacity=\".45\"/><path d=\"M120,86 L140,80 L146,100 L132,108 Z\" fill=\"#DFF3F9\" opacity=\".6\"/><ellipse cx=\"134\" cy=\"92\" rx=\"5\" ry=\"6.5\" fill=\"#1D3644\"/><circle cx=\"135.6\" cy=\"90\" r=\"1.7\" fill=\"#EAFBFF\"/><path d=\"M146,96 L156,94 L150,102 Z\" fill=\"#9FCEDE\" opacity=\".8\"/></g>","alto":"<defs><linearGradient id=\"aep02A\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#CDEAF2\"/><stop offset=\"1\" stop-color=\"#6FA6BC\"/></linearGradient><linearGradient id=\"bep02A\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8FC4D6\"/><stop offset=\"1\" stop-color=\"#3E6E86\"/></linearGradient><linearGradient id=\"cep02A\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#B6DDEA\"/><stop offset=\"1\" stop-color=\"#49778E\"/></linearGradient></defs><path d=\"M62,96 L30,80\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M64,116 L34,124\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M138,96 L170,80\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M136,116 L166,124\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M78,142 L58,164\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M122,142 L142,164\" stroke=\"#5E8DA2\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M100,32 L136,72 L128,132 L100,158 L72,132 L64,72 Z\" fill=\"url(#aep02A)\" opacity=\".95\"/><path d=\"M100,32 L136,72 L100,96 Z\" fill=\"#FFFFFF\" opacity=\".24\"/><path d=\"M100,32 L64,72 L100,96 Z\" fill=\"#8FC4D6\" opacity=\".5\"/><path d=\"M100,96 L128,132 L100,158 L72,132 Z\" fill=\"#2E5A70\" opacity=\".18\"/><path d=\"M100,32 L100,158\" stroke=\"#F2FBFF\" stroke-width=\"1.4\" fill=\"none\" opacity=\".55\"/><path d=\"M64,72 L100,96 L136,72\" stroke=\"#F2FBFF\" stroke-width=\"1.4\" fill=\"none\" opacity=\".5\"/><path d=\"M92,52 L100,44 L108,52 L104,62 L96,62 Z\" fill=\"#DFF3F9\" opacity=\".55\"/><ellipse cx=\"92\" cy=\"60\" rx=\"4\" ry=\"3.4\" fill=\"#1D3644\"/><ellipse cx=\"108\" cy=\"60\" rx=\"4\" ry=\"3.4\" fill=\"#1D3644\"/>","basso":"<defs><linearGradient id=\"aep02B\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#CDEAF2\"/><stop offset=\"1\" stop-color=\"#6FA6BC\"/></linearGradient><linearGradient id=\"bep02B\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8FC4D6\"/><stop offset=\"1\" stop-color=\"#3E6E86\"/></linearGradient><linearGradient id=\"cep02B\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#B6DDEA\"/><stop offset=\"1\" stop-color=\"#49778E\"/></linearGradient></defs><path d=\"M62,96 L30,80\" stroke=\"#4B7territ\" stroke-width=\"0\" fill=\"none\"/><path d=\"M62,96 L30,80\" stroke=\"#4B7A8E\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M64,116 L34,124\" stroke=\"#4B7A8E\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M138,96 L170,80\" stroke=\"#4B7A8E\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M136,116 L166,124\" stroke=\"#4B7A8E\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M78,142 L58,164\" stroke=\"#4B7A8E\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M122,142 L142,164\" stroke=\"#4B7A8E\" stroke-width=\"3\" stroke-linecap=\"round\"/><path d=\"M100,32 L136,72 L128,132 L100,158 L72,132 L64,72 Z\" fill=\"url(#cep02B)\" opacity=\".95\"/><path d=\"M100,52 L120,78 L114,126 L100,142 L86,126 L80,78 Z\" fill=\"#2E5A70\" opacity=\".3\"/><path d=\"M100,52 L100,142\" stroke=\"#8FC4D6\" stroke-width=\"1.4\" fill=\"none\" opacity=\".5\"/><path d=\"M80,78 L100,92 L120,78\" stroke=\"#8FC4D6\" stroke-width=\"1.2\" fill=\"none\" opacity=\".4\"/><circle cx=\"72\" cy=\"98\" r=\"3.2\" fill=\"#DFF3F9\" opacity=\".7\"/><circle cx=\"128\" cy=\"98\" r=\"3.2\" fill=\"#DFF3F9\" opacity=\".7\"/><circle cx=\"86\" cy=\"136\" r=\"3\" fill=\"#DFF3F9\" opacity=\".6\"/><circle cx=\"114\" cy=\"136\" r=\"3\" fill=\"#DFF3F9\" opacity=\".6\"/>"},"mareggino":{"fronte":"<defs><linearGradient id=\"marB\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#5FA57E\"/><stop offset=\"1\" stop-color=\"#2F6B4F\"/></linearGradient><linearGradient id=\"marW\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#7FD2E8\"/><stop offset=\"1\" stop-color=\"#2A7A9E\"/></linearGradient></defs><path d=\"M60,112 C58,72 96,50 128,62 C152,71 154,96 136,100 C150,84 132,72 116,80 C100,88 96,104 98,116 Z\" fill=\"url(#marW)\"/><path d=\"M128,62 C146,68 152,84 142,94 C146,80 138,70 126,68 Z\" fill=\"#EAF8FC\" opacity=\".8\"/><path d=\"M62,124 C62,102 80,90 102,90 C126,90 146,104 146,126 C146,148 126,160 102,160 C78,160 62,146 62,124 Z\" fill=\"url(#marB)\"/><ellipse cx=\"102\" cy=\"140\" rx=\"30\" ry=\"17\" fill=\"#A8D9BC\" opacity=\".85\"/><circle cx=\"80\" cy=\"102\" r=\"14\" fill=\"#5FA57E\"/><circle cx=\"122\" cy=\"102\" r=\"14\" fill=\"#5FA57E\"/><circle cx=\"80\" cy=\"101\" r=\"9\" fill=\"#F4F7E8\"/><circle cx=\"122\" cy=\"101\" r=\"9\" fill=\"#F4F7E8\"/><ellipse cx=\"81\" cy=\"102\" rx=\"4\" ry=\"6\" fill=\"#16302A\"/><ellipse cx=\"121\" cy=\"102\" rx=\"4\" ry=\"6\" fill=\"#16302A\"/><circle cx=\"82.5\" cy=\"99\" r=\"1.8\" fill=\"#fff\"/><circle cx=\"122.5\" cy=\"99\" r=\"1.8\" fill=\"#fff\"/><path d=\"M88,132 C96,138 106,138 114,132\" stroke=\"#1F4A38\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M66,152 C54,158 50,168 60,170 C68,172 74,164 76,156 Z\" fill=\"#3E7F5E\"/><path d=\"M138,152 C150,158 154,168 144,170 C136,172 130,164 128,156 Z\" fill=\"#3E7F5E\"/>","destra":"<defs><linearGradient id=\"aep03D\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#5FA57E\"/><stop offset=\"1\" stop-color=\"#2F6B4F\"/></linearGradient><linearGradient id=\"bep03D\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#7FD2E8\"/><stop offset=\"1\" stop-color=\"#2A7A9E\"/></linearGradient><linearGradient id=\"cep03D\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#A8D9BC\"/><stop offset=\"1\" stop-color=\"#6FB392\"/></linearGradient></defs><path d=\"M78,110 C74,74 106,52 134,64 C156,74 156,98 138,102 C152,86 134,74 118,82 C104,90 100,104 102,114 Z\" fill=\"url(#bep03D)\"/><path d=\"M134,64 C150,72 154,86 145,95 C149,82 141,72 130,70 Z\" fill=\"#EAF8FC\" opacity=\".8\"/><path d=\"M64,126 C64,104 82,92 106,92 C132,92 150,106 150,128 C150,150 130,162 106,162 C80,162 64,148 64,126 Z\" fill=\"url(#aep03D)\"/><ellipse cx=\"112\" cy=\"142\" rx=\"26\" ry=\"15\" fill=\"#A8D9BC\" opacity=\".8\"/><circle cx=\"132\" cy=\"104\" r=\"13\" fill=\"#5FA57E\"/><circle cx=\"132\" cy=\"103\" r=\"8.4\" fill=\"#F4F7E8\"/><ellipse cx=\"134\" cy=\"104\" rx=\"3.8\" ry=\"5.6\" fill=\"#16302A\"/><circle cx=\"135.4\" cy=\"101\" r=\"1.7\" fill=\"#fff\"/><path d=\"M138,124 C144,128 148,128 152,124\" stroke=\"#1F4A38\" stroke-width=\"2.4\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M72,152 C60,158 56,168 66,170 C74,172 80,164 82,156 Z\" fill=\"#3E7F5E\"/><path d=\"M136,154 C148,160 152,170 142,172 C134,174 128,166 126,158 Z\" fill=\"#3E7F5E\"/><path d=\"M64,132 C50,136 46,148 54,152 C60,154 64,146 64,140 Z\" fill=\"#2F6B4F\"/>","retro":"<defs><linearGradient id=\"aep03R\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#5FA57E\"/><stop offset=\"1\" stop-color=\"#2F6B4F\"/></linearGradient><linearGradient id=\"bep03R\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#7FD2E8\"/><stop offset=\"1\" stop-color=\"#2A7A9E\"/></linearGradient><linearGradient id=\"cep03R\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#A8D9BC\"/><stop offset=\"1\" stop-color=\"#6FB392\"/></linearGradient></defs><path d=\"M140,112 C142,72 104,50 72,62 C48,71 46,96 64,100 C50,84 68,72 84,80 C100,88 104,104 102,116 Z\" fill=\"url(#bep03R)\" opacity=\".92\"/><path d=\"M72,62 C54,68 48,84 58,94 C54,80 62,70 74,68 Z\" fill=\"#EAF8FC\" opacity=\".6\"/><path d=\"M62,124 C62,102 80,90 102,90 C126,90 146,104 146,126 C146,148 126,160 102,160 C78,160 62,146 62,124 Z\" fill=\"url(#aep03R)\"/><path d=\"M102,96 L102,156\" stroke=\"#2A5A44\" stroke-width=\"2\" fill=\"none\" opacity=\".55\"/><ellipse cx=\"102\" cy=\"122\" rx=\"20\" ry=\"14\" fill=\"#2A5A44\" opacity=\".35\"/><circle cx=\"80\" cy=\"102\" r=\"12\" fill=\"#4F9270\"/><circle cx=\"124\" cy=\"102\" r=\"12\" fill=\"#4F9270\"/><path d=\"M66,152 C54,158 50,168 60,170 C68,172 74,164 76,156 Z\" fill=\"#3E7F5E\"/><path d=\"M138,152 C150,158 154,168 144,170 C136,172 130,164 128,156 Z\" fill=\"#3E7F5E\"/><circle cx=\"88\" cy=\"140\" r=\"4\" fill=\"#A8D9BC\" opacity=\".7\"/><circle cx=\"116\" cy=\"140\" r=\"4\" fill=\"#A8D9BC\" opacity=\".7\"/>","sinistra":"<defs><linearGradient id=\"aep03S\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#5FA57E\"/><stop offset=\"1\" stop-color=\"#2F6B4F\"/></linearGradient><linearGradient id=\"bep03S\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#7FD2E8\"/><stop offset=\"1\" stop-color=\"#2A7A9E\"/></linearGradient><linearGradient id=\"cep03S\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#A8D9BC\"/><stop offset=\"1\" stop-color=\"#6FB392\"/></linearGradient></defs><g transform=\"translate(200,0) scale(-1,1)\"><path d=\"M78,110 C74,74 106,52 134,64 C156,74 156,98 138,102 C152,86 134,74 118,82 C104,90 100,104 102,114 Z\" fill=\"url(#bep03S)\"/><path d=\"M134,64 C150,72 154,86 145,95 C149,82 141,72 130,70 Z\" fill=\"#EAF8FC\" opacity=\".8\"/><path d=\"M64,126 C64,104 82,92 106,92 C132,92 150,106 150,128 C150,150 130,162 106,162 C80,162 64,148 64,126 Z\" fill=\"url(#aep03S)\"/><ellipse cx=\"112\" cy=\"142\" rx=\"26\" ry=\"15\" fill=\"#A8D9BC\" opacity=\".8\"/><circle cx=\"132\" cy=\"104\" r=\"13\" fill=\"#5FA57E\"/><circle cx=\"132\" cy=\"103\" r=\"8.4\" fill=\"#F4F7E8\"/><ellipse cx=\"134\" cy=\"104\" rx=\"3.8\" ry=\"5.6\" fill=\"#16302A\"/><circle cx=\"135.4\" cy=\"101\" r=\"1.7\" fill=\"#fff\"/><path d=\"M138,124 C144,128 148,128 152,124\" stroke=\"#1F4A38\" stroke-width=\"2.4\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M72,152 C60,158 56,168 66,170 C74,172 80,164 82,156 Z\" fill=\"#3E7F5E\"/><path d=\"M136,154 C148,160 152,170 142,172 C134,174 128,166 126,158 Z\" fill=\"#3E7F5E\"/><path d=\"M64,132 C50,136 46,148 54,152 C60,154 64,146 64,140 Z\" fill=\"#2F6B4F\"/></g>","alto":"<defs><linearGradient id=\"aep03A\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#5FA57E\"/><stop offset=\"1\" stop-color=\"#2F6B4F\"/></linearGradient><linearGradient id=\"bep03A\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#7FD2E8\"/><stop offset=\"1\" stop-color=\"#2A7A9E\"/></linearGradient><linearGradient id=\"cep03A\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#A8D9BC\"/><stop offset=\"1\" stop-color=\"#6FB392\"/></linearGradient></defs><path d=\"M100,44 C130,40 152,62 148,88 C144,110 126,116 118,104 C132,100 136,84 126,76 C114,66 100,72 96,84 Z\" fill=\"url(#bep03A)\" opacity=\".9\"/><path d=\"M62,110 C62,80 80,62 102,62 C126,62 146,82 146,112 C146,142 126,158 102,158 C78,158 62,140 62,110 Z\" fill=\"url(#aep03A)\"/><ellipse cx=\"102\" cy=\"112\" rx=\"26\" ry=\"30\" fill=\"#4F9270\" opacity=\".5\"/><circle cx=\"78\" cy=\"82\" r=\"14\" fill=\"#5FA57E\"/><circle cx=\"126\" cy=\"82\" r=\"14\" fill=\"#5FA57E\"/><circle cx=\"78\" cy=\"81\" r=\"9\" fill=\"#F4F7E8\"/><circle cx=\"126\" cy=\"81\" r=\"9\" fill=\"#F4F7E8\"/><ellipse cx=\"79\" cy=\"80\" rx=\"4\" ry=\"4.6\" fill=\"#16302A\"/><ellipse cx=\"125\" cy=\"80\" rx=\"4\" ry=\"4.6\" fill=\"#16302A\"/><path d=\"M56,104 C42,100 38,112 48,116 C54,118 58,110 58,104 Z\" fill=\"#3E7F5E\"/><path d=\"M148,104 C162,100 166,112 156,116 C150,118 146,110 146,104 Z\" fill=\"#3E7F5E\"/><path d=\"M62,140 C48,144 44,156 54,160 C60,162 64,152 64,146 Z\" fill=\"#3E7F5E\"/><path d=\"M142,140 C156,144 160,156 150,160 C144,162 140,152 140,146 Z\" fill=\"#3E7F5E\"/>","basso":"<defs><linearGradient id=\"aep03B\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#5FA57E\"/><stop offset=\"1\" stop-color=\"#2F6B4F\"/></linearGradient><linearGradient id=\"bep03B\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#7FD2E8\"/><stop offset=\"1\" stop-color=\"#2A7A9E\"/></linearGradient><linearGradient id=\"cep03B\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#A8D9BC\"/><stop offset=\"1\" stop-color=\"#6FB392\"/></linearGradient></defs><path d=\"M62,110 C62,80 80,62 102,62 C126,62 146,82 146,112 C146,142 126,158 102,158 C78,158 62,140 62,110 Z\" fill=\"url(#cep03B)\"/><path d=\"M74,104 C74,84 86,74 102,74 C120,74 134,86 134,110 C134,134 120,146 102,146 C84,146 74,130 74,104 Z\" fill=\"#EAF6EE\" opacity=\".55\"/><path d=\"M102,74 L102,146\" stroke=\"#6FB392\" stroke-width=\"1.6\" fill=\"none\" opacity=\".6\"/><path d=\"M56,104 C42,100 38,112 48,116 C54,118 58,110 58,104 Z\" fill=\"#4F9270\"/><path d=\"M148,104 C162,100 166,112 156,116 C150,118 146,110 146,104 Z\" fill=\"#4F9270\"/><path d=\"M62,140 C48,144 44,156 54,160 C60,162 64,152 64,146 Z\" fill=\"#4F9270\"/><path d=\"M142,140 C156,144 160,156 150,160 C144,162 140,152 140,146 Z\" fill=\"#4F9270\"/><circle cx=\"52\" cy=\"110\" r=\"3.4\" fill=\"#2F6B4F\" opacity=\".6\"/><circle cx=\"152\" cy=\"110\" r=\"3.4\" fill=\"#2F6B4F\" opacity=\".6\"/><circle cx=\"58\" cy=\"152\" r=\"3.2\" fill=\"#2F6B4F\" opacity=\".6\"/><circle cx=\"146\" cy=\"152\" r=\"3.2\" fill=\"#2F6B4F\" opacity=\".6\"/><ellipse cx=\"102\" cy=\"66\" rx=\"14\" ry=\"6\" fill=\"#7FD2E8\" opacity=\".5\"/>"},"tuonalbero":{"fronte":"<defs><radialGradient id=\"tuoGlow\"><stop offset=\"0\" stop-color=\"#F5E27A\" stop-opacity=\".55\"/><stop offset=\"1\" stop-color=\"#F5E27A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"tuoTr\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#7A5636\"/><stop offset=\"1\" stop-color=\"#4A3220\"/></linearGradient></defs><circle class=\"pulse\" cx=\"100\" cy=\"66\" r=\"54\" fill=\"url(#tuoGlow)\"/><path d=\"M100,26 L136,52 L120,58 L146,86 L112,80 L124,108 L100,90 L76,108 L88,80 L54,86 L80,58 L64,52 Z\" fill=\"#D9C24A\"/><path d=\"M100,40 L124,58 L112,62 L128,82 L104,78 L112,96 L100,86 L88,96 L96,78 L72,82 L88,62 L76,58 Z\" fill=\"#F7EC9E\"/><path d=\"M100,50 L92,74 L106,72 L96,96\" stroke=\"#FFFDF0\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"pulse\"/><path d=\"M82,104 L84,150 L116,150 L118,104 Z\" fill=\"url(#tuoTr)\"/><path d=\"M90,110 C94,124 90,134 94,146\" stroke=\"#33220F\" stroke-width=\"2\" fill=\"none\" opacity=\".55\"/><path d=\"M108,108 C104,122 110,132 106,146\" stroke=\"#33220F\" stroke-width=\"2\" fill=\"none\" opacity=\".55\"/><path d=\"M84,148 C68,154 58,166 62,174 L88,174 Z\" fill=\"#5C3F27\"/><path d=\"M116,148 C132,154 142,166 138,174 L112,174 Z\" fill=\"#5C3F27\"/><path d=\"M96,150 L94,174 L108,174 L104,150 Z\" fill=\"#6B4A2E\"/><ellipse cx=\"92\" cy=\"124\" rx=\"5\" ry=\"7\" fill=\"#1E1408\"/><ellipse cx=\"110\" cy=\"124\" rx=\"5\" ry=\"7\" fill=\"#1E1408\"/><circle cx=\"92\" cy=\"122\" r=\"2\" fill=\"#F5E27A\" class=\"pulse\"/><circle cx=\"110\" cy=\"122\" r=\"2\" fill=\"#F5E27A\" class=\"pulse\"/>","destra":"<defs><radialGradient id=\"gep04D\"><stop offset=\"0\" stop-color=\"#F5E27A\" stop-opacity=\".55\"/><stop offset=\"1\" stop-color=\"#F5E27A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"tep04D\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#7A5636\"/><stop offset=\"1\" stop-color=\"#4A3220\"/></linearGradient><linearGradient id=\"rep04D\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#6B4A2E\"/><stop offset=\"1\" stop-color=\"#3A2614\"/></linearGradient></defs><circle class=\"pulse\" cx=\"100\" cy=\"66\" r=\"50\" fill=\"url(#gep04D)\"/><path d=\"M100,28 L128,54 L112,60 L134,84 L104,80 L112,104 L92,88 L78,104 L86,80 L64,84 L84,60 L70,54 Z\" fill=\"#D9C24A\"/><path d=\"M100,42 L118,60 L108,64 L120,80 L100,76 L106,94 L94,84 L84,94 L90,76 L74,80 L88,64 L80,60 Z\" fill=\"#F7EC9E\"/><path d=\"M100,52 L94,74 L106,72 L98,94\" stroke=\"#FFFDF0\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"pulse\"/><path d=\"M86,104 L88,150 L114,150 L112,104 Z\" fill=\"url(#tep04D)\"/><path d=\"M96,110 C100,124 96,134 100,146\" stroke=\"#33220F\" stroke-width=\"2\" fill=\"none\" opacity=\".5\"/><path d=\"M108,112 C104,126 110,134 106,146\" stroke=\"#33220F\" stroke-width=\"2\" fill=\"none\" opacity=\".45\"/><path d=\"M88,148 C70,154 58,166 62,174 L92,174 Z\" fill=\"#5C3F27\"/><path d=\"M112,148 C130,154 142,166 138,174 L110,174 Z\" fill=\"#4A3220\"/><path d=\"M98,150 L96,174 L110,174 L108,150 Z\" fill=\"#6B4A2E\"/><ellipse cx=\"110\" cy=\"124\" rx=\"5\" ry=\"7\" fill=\"#1E1408\"/><circle cx=\"110\" cy=\"122\" r=\"2\" fill=\"#F5E27A\" class=\"pulse\"/><path d=\"M114,132 C120,130 124,134 122,138\" stroke=\"#33220F\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\" opacity=\".6\"/>","retro":"<defs><radialGradient id=\"gep04R\"><stop offset=\"0\" stop-color=\"#F5E27A\" stop-opacity=\".55\"/><stop offset=\"1\" stop-color=\"#F5E27A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"tep04R\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#7A5636\"/><stop offset=\"1\" stop-color=\"#4A3220\"/></linearGradient><linearGradient id=\"rep04R\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#6B4A2E\"/><stop offset=\"1\" stop-color=\"#3A2614\"/></linearGradient></defs><circle class=\"pulse\" cx=\"100\" cy=\"66\" r=\"52\" fill=\"url(#gep04R)\"/><path d=\"M100,26 L136,52 L120,58 L146,86 L112,80 L124,108 L100,90 L76,108 L88,80 L54,86 L80,58 L64,52 Z\" fill=\"#C9B241\"/><path d=\"M100,44 L122,60 L112,64 L126,84 L102,80 L110,98 L100,88 L90,98 L98,80 L74,84 L88,64 L78,60 Z\" fill=\"#E6DB8C\"/><path d=\"M82,104 L84,150 L116,150 L118,104 Z\" fill=\"url(#rep04R)\"/><path d=\"M92,108 C96,124 92,134 96,148\" stroke=\"#2A1B0C\" stroke-width=\"2\" fill=\"none\" opacity=\".5\"/><path d=\"M110,110 C106,126 112,134 108,148\" stroke=\"#2A1B0C\" stroke-width=\"2\" fill=\"none\" opacity=\".45\"/><path d=\"M100,106 L100,150\" stroke=\"#8A6540\" stroke-width=\"2\" fill=\"none\" opacity=\".4\"/><path d=\"M84,148 C68,154 58,166 62,174 L88,174 Z\" fill=\"#4A3220\"/><path d=\"M116,148 C132,154 142,166 138,174 L112,174 Z\" fill=\"#4A3220\"/><path d=\"M96,150 L94,174 L108,174 L104,150 Z\" fill=\"#5C3F27\"/><circle cx=\"92\" cy=\"128\" r=\"3\" fill=\"#F5E27A\" class=\"pulse\" opacity=\".55\"/><circle cx=\"110\" cy=\"136\" r=\"2.4\" fill=\"#F5E27A\" class=\"pulse\" opacity=\".45\"/>","sinistra":"<defs><radialGradient id=\"gep04S\"><stop offset=\"0\" stop-color=\"#F5E27A\" stop-opacity=\".55\"/><stop offset=\"1\" stop-color=\"#F5E27A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"tep04S\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#7A5636\"/><stop offset=\"1\" stop-color=\"#4A3220\"/></linearGradient><linearGradient id=\"rep04S\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#6B4A2E\"/><stop offset=\"1\" stop-color=\"#3A2614\"/></linearGradient></defs><g transform=\"translate(200,0) scale(-1,1)\"><circle class=\"pulse\" cx=\"100\" cy=\"66\" r=\"50\" fill=\"url(#gep04S)\"/><path d=\"M100,28 L128,54 L112,60 L134,84 L104,80 L112,104 L92,88 L78,104 L86,80 L64,84 L84,60 L70,54 Z\" fill=\"#D9C24A\"/><path d=\"M100,42 L118,60 L108,64 L120,80 L100,76 L106,94 L94,84 L84,94 L90,76 L74,80 L88,64 L80,60 Z\" fill=\"#F7EC9E\"/><path d=\"M100,52 L94,74 L106,72 L98,94\" stroke=\"#FFFDF0\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"pulse\"/><path d=\"M86,104 L88,150 L114,150 L112,104 Z\" fill=\"url(#tep04S)\"/><path d=\"M96,110 C100,124 96,134 100,146\" stroke=\"#33220F\" stroke-width=\"2\" fill=\"none\" opacity=\".5\"/><path d=\"M108,112 C104,126 110,134 106,146\" stroke=\"#33220F\" stroke-width=\"2\" fill=\"none\" opacity=\".45\"/><path d=\"M88,148 C70,154 58,166 62,174 L92,174 Z\" fill=\"#5C3F27\"/><path d=\"M112,148 C130,154 142,166 138,174 L110,174 Z\" fill=\"#4A3220\"/><path d=\"M98,150 L96,174 L110,174 L108,150 Z\" fill=\"#6B4A2E\"/><ellipse cx=\"110\" cy=\"124\" rx=\"5\" ry=\"7\" fill=\"#1E1408\"/><circle cx=\"110\" cy=\"122\" r=\"2\" fill=\"#F5E27A\" class=\"pulse\"/><path d=\"M114,132 C120,130 124,134 122,138\" stroke=\"#33220F\" stroke-width=\"2\" fill=\"none\" stroke-linecap=\"round\" opacity=\".6\"/></g>","alto":"<defs><radialGradient id=\"gep04A\"><stop offset=\"0\" stop-color=\"#F5E27A\" stop-opacity=\".55\"/><stop offset=\"1\" stop-color=\"#F5E27A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"tep04A\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#7A5636\"/><stop offset=\"1\" stop-color=\"#4A3220\"/></linearGradient><linearGradient id=\"rep04A\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#6B4A2E\"/><stop offset=\"1\" stop-color=\"#3A2614\"/></linearGradient></defs><circle class=\"pulse\" cx=\"100\" cy=\"100\" r=\"76\" fill=\"url(#gep04A)\"/><path d=\"M100,14 L124,52 L166,42 L140,78 L182,100 L140,122 L166,158 L124,148 L100,186 L76,148 L34,158 L60,122 L18,100 L60,78 L34,42 L76,52 Z\" fill=\"#D9C24A\"/><path d=\"M100,40 L116,68 L146,62 L128,88 L154,100 L128,112 L146,138 L116,132 L100,160 L84,132 L54,138 L72,112 L46,100 L72,88 L54,62 L84,68 Z\" fill=\"#F7EC9E\"/><circle cx=\"100\" cy=\"100\" r=\"24\" fill=\"url(#tep04A)\"/><circle cx=\"100\" cy=\"100\" r=\"17\" fill=\"#5C3F27\"/><circle cx=\"100\" cy=\"100\" r=\"9\" fill=\"#3A2614\"/><path d=\"M100,83 L100,117\" stroke=\"#8A6540\" stroke-width=\"1.6\" opacity=\".5\"/><path d=\"M83,100 L117,100\" stroke=\"#8A6540\" stroke-width=\"1.6\" opacity=\".5\"/><path d=\"M100,66 L94,84 L106,82 L98,100\" stroke=\"#FFFDF0\" stroke-width=\"2.6\" fill=\"none\" stroke-linecap=\"round\" class=\"pulse\"/>","basso":"<defs><radialGradient id=\"gep04B\"><stop offset=\"0\" stop-color=\"#F5E27A\" stop-opacity=\".55\"/><stop offset=\"1\" stop-color=\"#F5E27A\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"tep04B\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#7A5636\"/><stop offset=\"1\" stop-color=\"#4A3220\"/></linearGradient><linearGradient id=\"rep04B\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" stop-color=\"#6B4A2E\"/><stop offset=\"1\" stop-color=\"#3A2614\"/></linearGradient></defs><path d=\"M100,52 C126,50 142,64 150,86 C160,112 148,140 122,152 C106,160 94,160 78,152 C52,140 40,112 50,86 C58,64 74,50 100,52 Z\" fill=\"#4A3220\" opacity=\".35\"/><circle cx=\"100\" cy=\"100\" r=\"26\" fill=\"url(#rep04B)\"/><circle cx=\"100\" cy=\"100\" r=\"15\" fill=\"#33220F\"/><path d=\"M100,74 C118,58 142,62 152,80 C136,74 116,80 104,92 Z\" fill=\"#5C3F27\"/><path d=\"M126,100 C150,96 166,112 160,132 C152,118 134,112 118,116 Z\" fill=\"#5C3F27\"/><path d=\"M100,126 C112,150 104,170 84,172 C94,158 92,138 86,126 Z\" fill=\"#5C3F27\"/><path d=\"M74,100 C50,104 34,88 40,68 C48,82 66,88 82,84 Z\" fill=\"#5C3F27\"/><path d=\"M78,128 C60,146 36,144 30,124 C46,132 64,126 74,116 Z\" fill=\"#6B4A2E\"/><path d=\"M124,74 C140,54 164,54 172,74 C156,66 138,72 128,82 Z\" fill=\"#6B4A2E\"/><circle cx=\"100\" cy=\"100\" r=\"5\" fill=\"#F5E27A\" class=\"pulse\" opacity=\".7\"/>"},"ombraluna":{"fronte":"<defs><linearGradient id=\"ombB\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#252A33\"/><stop offset=\"1\" stop-color=\"#0E1014\"/></linearGradient><radialGradient id=\"ombEye\"><stop offset=\"0\" stop-color=\"#D6FA84\" stop-opacity=\".85\"/><stop offset=\"1\" stop-color=\"#D6FA84\" stop-opacity=\"0\"/></radialGradient></defs><path d=\"M144,138 C166,132 176,108 168,86 C166,102 158,116 144,120 Z\" fill=\"#1A1E26\"/><path d=\"M62,128 C60,104 80,92 104,92 C132,92 150,106 150,130 C150,152 130,164 104,164 C78,164 62,150 62,128 Z\" fill=\"url(#ombB)\"/><path d=\"M72,152 L68,176 L80,176 L83,152 Z\" fill=\"#161A21\"/><path d=\"M120,152 L118,176 L130,176 L132,152 Z\" fill=\"#161A21\"/><path d=\"M64,80 L58,54 L82,70 Z\" fill=\"#1A1E26\"/><path d=\"M110,70 L124,50 L124,78 Z\" fill=\"#1A1E26\"/><circle cx=\"92\" cy=\"80\" r=\"30\" fill=\"url(#ombB)\"/><path d=\"M122,126 C134,120 142,128 138,140 C134,150 122,148 118,138\" fill=\"none\" stroke=\"#8FA3B8\" stroke-width=\"3\" opacity=\".5\"/><path d=\"M66,58 L62,60 L74,68 Z\" fill=\"#3A4450\" opacity=\".7\"/><circle class=\"pulse\" cx=\"82\" cy=\"80\" r=\"13\" fill=\"url(#ombEye)\"/><circle class=\"pulse\" cx=\"104\" cy=\"80\" r=\"13\" fill=\"url(#ombEye)\"/><ellipse cx=\"82\" cy=\"80\" rx=\"5.5\" ry=\"7.5\" fill=\"#C6F26B\"/><ellipse cx=\"104\" cy=\"80\" rx=\"5.5\" ry=\"7.5\" fill=\"#C6F26B\"/><ellipse cx=\"82\" cy=\"80\" rx=\"1.6\" ry=\"7\" fill=\"#101408\"/><ellipse cx=\"104\" cy=\"80\" rx=\"1.6\" ry=\"7\" fill=\"#101408\"/><path d=\"M88,94 L96,94 L92,99 Z\" fill=\"#5A6270\"/>","destra":"<defs><linearGradient id=\"aep05D\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#252A33\"/><stop offset=\"1\" stop-color=\"#0E1014\"/></linearGradient><radialGradient id=\"eep05D\"><stop offset=\"0\" stop-color=\"#D6FA84\" stop-opacity=\".85\"/><stop offset=\"1\" stop-color=\"#D6FA84\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"vep05D\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#1E232B\"/><stop offset=\"1\" stop-color=\"#0A0C0F\"/></linearGradient></defs><path d=\"M58,140 C36,134 26,110 34,88 C36,104 44,118 58,122 Z\" fill=\"#1A1E26\"/><path d=\"M64,128 C62,104 82,90 108,90 C136,90 154,104 154,128 C154,150 134,162 108,162 C82,162 64,150 64,128 Z\" fill=\"url(#aep05D)\"/><path d=\"M78,152 L74,176 L86,176 L89,152 Z\" fill=\"#161A21\"/><path d=\"M126,152 L124,176 L136,176 L138,152 Z\" fill=\"#161A21\"/><path d=\"M96,150 L92,174 L104,174 L107,150 Z\" fill=\"#20252E\"/><path d=\"M140,150 L138,174 L150,174 L151,150 Z\" fill=\"#20252E\"/><path d=\"M136,72 L142,50 L120,66 Z\" fill=\"#1A1E26\"/><path d=\"M110,64 L104,44 L98,72 Z\" fill=\"#1A1E26\"/><circle cx=\"128\" cy=\"84\" r=\"28\" fill=\"url(#aep05D)\"/><path d=\"M148,74 L154,72 L142,82 Z\" fill=\"#3A4450\" opacity=\".7\"/><circle class=\"pulse\" cx=\"140\" cy=\"86\" r=\"12\" fill=\"url(#eep05D)\"/><ellipse cx=\"140\" cy=\"86\" rx=\"5\" ry=\"7\" fill=\"#C6F26B\"/><ellipse cx=\"140\" cy=\"86\" rx=\"1.5\" ry=\"6.4\" fill=\"#101408\"/><path d=\"M150,96 L156,96 L152,101 Z\" fill=\"#5A6270\"/><path d=\"M74,120 C86,114 92,122 88,132\" fill=\"none\" stroke=\"#8FA3B8\" stroke-width=\"3\" opacity=\".45\"/>","retro":"<defs><linearGradient id=\"aep05R\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#252A33\"/><stop offset=\"1\" stop-color=\"#0E1014\"/></linearGradient><radialGradient id=\"eep05R\"><stop offset=\"0\" stop-color=\"#D6FA84\" stop-opacity=\".85\"/><stop offset=\"1\" stop-color=\"#D6FA84\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"vep05R\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#1E232B\"/><stop offset=\"1\" stop-color=\"#0A0C0F\"/></linearGradient></defs><path d=\"M118,120 C136,100 152,66 148,44 C142,72 130,102 112,116 Z\" fill=\"#161A21\"/><path d=\"M62,126 C62,102 80,90 100,90 C122,90 142,102 142,126 C142,150 122,162 100,162 C78,162 62,150 62,126 Z\" fill=\"url(#vep05R)\"/><path d=\"M70,152 L66,176 L78,176 L81,152 Z\" fill=\"#161A21\"/><path d=\"M122,152 L124,176 L136,176 L133,152 Z\" fill=\"#161A21\"/><path d=\"M84,84 L74,60 L94,74 Z\" fill=\"#1A1E26\"/><path d=\"M116,84 L126,60 L106,74 Z\" fill=\"#1A1E26\"/><circle cx=\"100\" cy=\"96\" r=\"26\" fill=\"#161A21\"/><path d=\"M100,74 L100,152\" stroke=\"#2A303A\" stroke-width=\"2\" fill=\"none\" opacity=\".7\"/><circle class=\"pulse\" cx=\"86\" cy=\"92\" r=\"7\" fill=\"url(#eep05R)\" opacity=\".55\"/><circle class=\"pulse\" cx=\"114\" cy=\"92\" r=\"7\" fill=\"url(#eep05R)\" opacity=\".55\"/><ellipse cx=\"92\" cy=\"136\" rx=\"7\" ry=\"9\" fill=\"#20252E\"/><ellipse cx=\"108\" cy=\"136\" rx=\"7\" ry=\"9\" fill=\"#20252E\"/>","sinistra":"<defs><linearGradient id=\"aep05S\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#252A33\"/><stop offset=\"1\" stop-color=\"#0E1014\"/></linearGradient><radialGradient id=\"eep05S\"><stop offset=\"0\" stop-color=\"#D6FA84\" stop-opacity=\".85\"/><stop offset=\"1\" stop-color=\"#D6FA84\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"vep05S\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#1E232B\"/><stop offset=\"1\" stop-color=\"#0A0C0F\"/></linearGradient></defs><g transform=\"translate(200,0) scale(-1,1)\"><path d=\"M58,140 C36,134 26,110 34,88 C36,104 44,118 58,122 Z\" fill=\"#1A1E26\"/><path d=\"M64,128 C62,104 82,90 108,90 C136,90 154,104 154,128 C154,150 134,162 108,162 C82,162 64,150 64,128 Z\" fill=\"url(#aep05S)\"/><path d=\"M78,152 L74,176 L86,176 L89,152 Z\" fill=\"#161A21\"/><path d=\"M126,152 L124,176 L136,176 L138,152 Z\" fill=\"#161A21\"/><path d=\"M96,150 L92,174 L104,174 L107,150 Z\" fill=\"#20252E\"/><path d=\"M140,150 L138,174 L150,174 L151,150 Z\" fill=\"#20252E\"/><path d=\"M136,72 L142,50 L120,66 Z\" fill=\"#1A1E26\"/><path d=\"M110,64 L104,44 L98,72 Z\" fill=\"#1A1E26\"/><circle cx=\"128\" cy=\"84\" r=\"28\" fill=\"url(#aep05S)\"/><path d=\"M148,74 L154,72 L142,82 Z\" fill=\"#3A4450\" opacity=\".7\"/><circle class=\"pulse\" cx=\"140\" cy=\"86\" r=\"12\" fill=\"url(#eep05S)\"/><ellipse cx=\"140\" cy=\"86\" rx=\"5\" ry=\"7\" fill=\"#C6F26B\"/><ellipse cx=\"140\" cy=\"86\" rx=\"1.5\" ry=\"6.4\" fill=\"#101408\"/><path d=\"M150,96 L156,96 L152,101 Z\" fill=\"#5A6270\"/><path d=\"M74,120 C86,114 92,122 88,132\" fill=\"none\" stroke=\"#8FA3B8\" stroke-width=\"3\" opacity=\".45\"/></g>","alto":"<defs><linearGradient id=\"aep05A\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#252A33\"/><stop offset=\"1\" stop-color=\"#0E1014\"/></linearGradient><radialGradient id=\"eep05A\"><stop offset=\"0\" stop-color=\"#D6FA84\" stop-opacity=\".85\"/><stop offset=\"1\" stop-color=\"#D6FA84\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"vep05A\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#1E232B\"/><stop offset=\"1\" stop-color=\"#0A0C0F\"/></linearGradient></defs><path d=\"M156,86 C176,76 186,50 178,30 C178,52 168,72 152,80 Z\" fill=\"#161A21\"/><path d=\"M52,102 C52,72 76,54 106,54 C140,54 162,74 162,102 C162,130 140,150 106,150 C76,150 52,132 52,102 Z\" fill=\"url(#aep05A)\"/><circle cx=\"66\" cy=\"102\" r=\"26\" fill=\"#1A1E26\"/><path d=\"M56,80 L48,60 L70,74 Z\" fill=\"#20252E\"/><path d=\"M56,124 L48,144 L70,130 Z\" fill=\"#20252E\"/><path d=\"M106,54 L106,150\" stroke=\"#2A303A\" stroke-width=\"1.6\" fill=\"none\" opacity=\".55\"/><circle class=\"pulse\" cx=\"54\" cy=\"92\" r=\"9\" fill=\"url(#eep05A)\"/><circle class=\"pulse\" cx=\"54\" cy=\"112\" r=\"9\" fill=\"url(#eep05A)\"/><ellipse cx=\"54\" cy=\"92\" rx=\"4\" ry=\"3.4\" fill=\"#C6F26B\"/><ellipse cx=\"54\" cy=\"112\" rx=\"4\" ry=\"3.4\" fill=\"#C6F26B\"/><path d=\"M84,70 L82,64 L92,70 Z\" fill=\"#20252E\"/><path d=\"M84,134 L82,140 L92,134 Z\" fill=\"#20252E\"/>","basso":"<defs><linearGradient id=\"aep05B\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#252A33\"/><stop offset=\"1\" stop-color=\"#0E1014\"/></linearGradient><radialGradient id=\"eep05B\"><stop offset=\"0\" stop-color=\"#D6FA84\" stop-opacity=\".85\"/><stop offset=\"1\" stop-color=\"#D6FA84\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"vep05B\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#1E232B\"/><stop offset=\"1\" stop-color=\"#0A0C0F\"/></linearGradient></defs><path d=\"M52,102 C52,72 76,54 106,54 C140,54 162,74 162,102 C162,130 140,150 106,150 C76,150 52,132 52,102 Z\" fill=\"url(#vep05B)\"/><path d=\"M66,102 C66,80 84,66 106,66 C132,66 150,80 150,102 C150,124 132,138 106,138 C84,138 66,124 66,102 Z\" fill=\"#191D25\" opacity=\".8\"/><circle cx=\"66\" cy=\"102\" r=\"22\" fill=\"#161A21\"/><ellipse cx=\"84\" cy=\"78\" rx=\"9\" ry=\"7\" fill=\"#20252E\"/><ellipse cx=\"84\" cy=\"126\" rx=\"9\" ry=\"7\" fill=\"#20252E\"/><ellipse cx=\"136\" cy=\"80\" rx=\"9\" ry=\"7\" fill=\"#20252E\"/><ellipse cx=\"136\" cy=\"124\" rx=\"9\" ry=\"7\" fill=\"#20252E\"/><circle cx=\"84\" cy=\"78\" r=\"3\" fill=\"#C6F26B\" opacity=\".5\" class=\"pulse\"/><circle cx=\"84\" cy=\"126\" r=\"3\" fill=\"#C6F26B\" opacity=\".5\" class=\"pulse\"/><circle cx=\"136\" cy=\"80\" r=\"3\" fill=\"#C6F26B\" opacity=\".5\" class=\"pulse\"/><circle cx=\"136\" cy=\"124\" r=\"3\" fill=\"#C6F26B\" opacity=\".5\" class=\"pulse\"/><path d=\"M162,102 C180,108 186,128 176,142 C178,124 172,110 158,106 Z\" fill=\"#161A21\"/>"},"solcavento":{"fronte":"<defs><linearGradient id=\"alg01F\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#F6DE96\"/><stop offset=\".5\" stop-color=\"#C79A34\"/><stop offset=\"1\" stop-color=\"#8A6420\"/></linearGradient><linearGradient id=\"tlg01F\" x1=\"1\" y1=\"0\" x2=\"0\" y2=\"0\"><stop offset=\"0\" stop-color=\"#F0CE72\" stop-opacity=\".75\"/><stop offset=\"1\" stop-color=\"#F0CE72\" stop-opacity=\"0\"/></linearGradient><linearGradient id=\"wlg01F\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#FBEFC4\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#D9A845\" stop-opacity=\".45\"/></linearGradient></defs><ellipse cx=\"100\" cy=\"182\" rx=\"34\" ry=\"5\" fill=\"#23291F\" opacity=\".1\"/><path d=\"M100,150 C70,150 44,132 34,110\" stroke=\"url(#tlg01F)\" stroke-width=\"14\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M60,96 C60,70 78,54 100,54 C122,54 140,70 140,96 C140,120 124,136 100,136 C76,136 60,120 60,96 Z\" fill=\"none\" stroke=\"url(#alg01F)\" stroke-width=\"15\" stroke-linecap=\"round\"/><path d=\"M66,92 C68,72 82,60 100,60 C118,60 132,72 134,92\" fill=\"none\" stroke=\"#FBEFC4\" stroke-width=\"4\" stroke-linecap=\"round\" opacity=\".5\"/><path d=\"M62,72 C36,58 14,64 6,80 C30,76 52,84 66,96 Z\" fill=\"url(#wlg01F)\"/><path d=\"M138,72 C164,58 186,64 194,80 C170,76 148,84 134,96 Z\" fill=\"url(#wlg01F)\"/><path d=\"M62,72 C40,64 22,68 12,78\" stroke=\"#8A6420\" stroke-width=\"1.4\" fill=\"none\" opacity=\".45\"/><path d=\"M138,72 C160,64 178,68 188,78\" stroke=\"#8A6420\" stroke-width=\"1.4\" fill=\"none\" opacity=\".45\"/><circle cx=\"100\" cy=\"58\" r=\"15\" fill=\"url(#alg01F)\"/><path d=\"M89,46 L82,30 L98,42 Z\" fill=\"#C79A34\"/><path d=\"M111,46 L118,30 L102,42 Z\" fill=\"#C79A34\"/><ellipse cx=\"93\" cy=\"58\" rx=\"4\" ry=\"5\" fill=\"#3A2708\"/><ellipse cx=\"107\" cy=\"58\" rx=\"4\" ry=\"5\" fill=\"#3A2708\"/><circle cx=\"94\" cy=\"56\" r=\"1.5\" fill=\"#FFF6DA\"/><circle cx=\"108\" cy=\"56\" r=\"1.5\" fill=\"#FFF6DA\"/><path d=\"M96,70 C98,74 102,74 104,70\" stroke=\"#8A6420\" stroke-width=\"2.2\" fill=\"none\" stroke-linecap=\"round\"/>","destra":"<defs><linearGradient id=\"solB\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#F6DE96\"/><stop offset=\".5\" stop-color=\"#C79A34\"/><stop offset=\"1\" stop-color=\"#8A6420\"/></linearGradient><linearGradient id=\"solT\" x1=\"1\" y1=\"0\" x2=\"0\" y2=\"0\"><stop offset=\"0\" stop-color=\"#F0CE72\" stop-opacity=\".75\"/><stop offset=\"1\" stop-color=\"#F0CE72\" stop-opacity=\"0\"/></linearGradient><linearGradient id=\"solW\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#FBEFC4\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#D9A845\" stop-opacity=\".45\"/></linearGradient></defs><g transform=\"translate(200,0) scale(-1,1)\"><ellipse cx=\"100\" cy=\"182\" rx=\"40\" ry=\"5\" fill=\"#23291F\" opacity=\".1\"/><path d=\"M170,150 C140,158 118,146 108,128\" stroke=\"url(#solT)\" stroke-width=\"16\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M40,74 C62,44 96,52 106,80 C116,108 96,132 74,128 C56,124 50,104 62,94 C72,86 86,92 86,102\" fill=\"none\" stroke=\"url(#solB)\" stroke-width=\"15\" stroke-linecap=\"round\"/><path d=\"M40,74 C62,44 96,52 106,80 C116,108 96,132 74,128\" fill=\"none\" stroke=\"#FBEFC4\" stroke-width=\"4\" stroke-linecap=\"round\" opacity=\".55\"/><path d=\"M104,86 C126,60 156,58 172,72 C150,74 128,88 114,104 Z\" fill=\"url(#solW)\"/><path d=\"M104,86 C124,68 148,64 164,72\" stroke=\"#8A6420\" stroke-width=\"1.5\" fill=\"none\" opacity=\".5\"/><path d=\"M110,96 C130,80 150,76 166,80\" stroke=\"#8A6420\" stroke-width=\"1.5\" fill=\"none\" opacity=\".35\"/><path d=\"M96,96 C112,116 116,142 106,158 C98,138 84,120 72,112 Z\" fill=\"url(#solW)\" opacity=\".8\"/><circle cx=\"42\" cy=\"72\" r=\"14\" fill=\"url(#solB)\"/><path d=\"M34,60 L28,44 L44,56 Z\" fill=\"#C79A34\"/><path d=\"M48,58 L48,42 L58,56 Z\" fill=\"#C79A34\"/><ellipse cx=\"38\" cy=\"70\" rx=\"4\" ry=\"5\" fill=\"#3A2708\"/><circle cx=\"39\" cy=\"68\" r=\"1.5\" fill=\"#FFF6DA\"/><path d=\"M28,76 C22,78 22,84 30,84\" stroke=\"#8A6420\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/></g>","retro":"<defs><linearGradient id=\"alg01R\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#F6DE96\"/><stop offset=\".5\" stop-color=\"#C79A34\"/><stop offset=\"1\" stop-color=\"#8A6420\"/></linearGradient><linearGradient id=\"tlg01R\" x1=\"1\" y1=\"0\" x2=\"0\" y2=\"0\"><stop offset=\"0\" stop-color=\"#F0CE72\" stop-opacity=\".75\"/><stop offset=\"1\" stop-color=\"#F0CE72\" stop-opacity=\"0\"/></linearGradient><linearGradient id=\"wlg01R\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#FBEFC4\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#D9A845\" stop-opacity=\".45\"/></linearGradient></defs><ellipse cx=\"100\" cy=\"182\" rx=\"34\" ry=\"5\" fill=\"#23291F\" opacity=\".1\"/><path d=\"M100,148 C132,150 158,132 168,108\" stroke=\"url(#tlg01R)\" stroke-width=\"14\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M60,96 C60,70 78,54 100,54 C122,54 140,70 140,96 C140,120 124,136 100,136 C76,136 60,120 60,96 Z\" fill=\"none\" stroke=\"url(#alg01R)\" stroke-width=\"15\" stroke-linecap=\"round\"/><path d=\"M100,54 L100,136\" stroke=\"#8A6420\" stroke-width=\"2\" fill=\"none\" opacity=\".35\"/><path d=\"M64,78 C40,62 18,66 8,82 C32,78 54,88 68,100 Z\" fill=\"url(#wlg01R)\" opacity=\".78\"/><path d=\"M136,78 C160,62 182,66 192,82 C168,78 146,88 132,100 Z\" fill=\"url(#wlg01R)\" opacity=\".78\"/><circle cx=\"100\" cy=\"60\" r=\"14\" fill=\"#B08A2C\"/><path d=\"M90,49 L84,34 L98,45 Z\" fill=\"#8A6420\"/><path d=\"M110,49 L116,34 L102,45 Z\" fill=\"#8A6420\"/><path d=\"M84,104 C92,110 108,110 116,104\" stroke=\"#8A6420\" stroke-width=\"2\" fill=\"none\" opacity=\".5\"/><path d=\"M80,120 C90,126 110,126 120,120\" stroke=\"#8A6420\" stroke-width=\"2\" fill=\"none\" opacity=\".4\"/>","sinistra":"<defs><linearGradient id=\"solB\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#F6DE96\"/><stop offset=\".5\" stop-color=\"#C79A34\"/><stop offset=\"1\" stop-color=\"#8A6420\"/></linearGradient><linearGradient id=\"solT\" x1=\"1\" y1=\"0\" x2=\"0\" y2=\"0\"><stop offset=\"0\" stop-color=\"#F0CE72\" stop-opacity=\".75\"/><stop offset=\"1\" stop-color=\"#F0CE72\" stop-opacity=\"0\"/></linearGradient><linearGradient id=\"solW\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#FBEFC4\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#D9A845\" stop-opacity=\".45\"/></linearGradient></defs><ellipse cx=\"100\" cy=\"182\" rx=\"40\" ry=\"5\" fill=\"#23291F\" opacity=\".1\"/><path d=\"M170,150 C140,158 118,146 108,128\" stroke=\"url(#solT)\" stroke-width=\"16\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M40,74 C62,44 96,52 106,80 C116,108 96,132 74,128 C56,124 50,104 62,94 C72,86 86,92 86,102\" fill=\"none\" stroke=\"url(#solB)\" stroke-width=\"15\" stroke-linecap=\"round\"/><path d=\"M40,74 C62,44 96,52 106,80 C116,108 96,132 74,128\" fill=\"none\" stroke=\"#FBEFC4\" stroke-width=\"4\" stroke-linecap=\"round\" opacity=\".55\"/><path d=\"M104,86 C126,60 156,58 172,72 C150,74 128,88 114,104 Z\" fill=\"url(#solW)\"/><path d=\"M104,86 C124,68 148,64 164,72\" stroke=\"#8A6420\" stroke-width=\"1.5\" fill=\"none\" opacity=\".5\"/><path d=\"M110,96 C130,80 150,76 166,80\" stroke=\"#8A6420\" stroke-width=\"1.5\" fill=\"none\" opacity=\".35\"/><path d=\"M96,96 C112,116 116,142 106,158 C98,138 84,120 72,112 Z\" fill=\"url(#solW)\" opacity=\".8\"/><circle cx=\"42\" cy=\"72\" r=\"14\" fill=\"url(#solB)\"/><path d=\"M34,60 L28,44 L44,56 Z\" fill=\"#C79A34\"/><path d=\"M48,58 L48,42 L58,56 Z\" fill=\"#C79A34\"/><ellipse cx=\"38\" cy=\"70\" rx=\"4\" ry=\"5\" fill=\"#3A2708\"/><circle cx=\"39\" cy=\"68\" r=\"1.5\" fill=\"#FFF6DA\"/><path d=\"M28,76 C22,78 22,84 30,84\" stroke=\"#8A6420\" stroke-width=\"2.5\" fill=\"none\" stroke-linecap=\"round\"/>","alto":"<defs><linearGradient id=\"alg01A\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#F6DE96\"/><stop offset=\".5\" stop-color=\"#C79A34\"/><stop offset=\"1\" stop-color=\"#8A6420\"/></linearGradient><linearGradient id=\"tlg01A\" x1=\"1\" y1=\"0\" x2=\"0\" y2=\"0\"><stop offset=\"0\" stop-color=\"#F0CE72\" stop-opacity=\".75\"/><stop offset=\"1\" stop-color=\"#F0CE72\" stop-opacity=\"0\"/></linearGradient><linearGradient id=\"wlg01A\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#FBEFC4\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#D9A845\" stop-opacity=\".45\"/></linearGradient></defs><path d=\"M156,150 C126,146 108,128 104,110\" stroke=\"url(#tlg01A)\" stroke-width=\"14\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M46,86 C60,52 100,44 122,66 C142,86 132,116 108,120 C88,124 76,108 84,94\" fill=\"none\" stroke=\"url(#alg01A)\" stroke-width=\"16\" stroke-linecap=\"round\"/><path d=\"M46,86 C60,52 100,44 122,66\" fill=\"none\" stroke=\"#FBEFC4\" stroke-width=\"4\" stroke-linecap=\"round\" opacity=\".5\"/><path d=\"M110,60 C136,32 172,30 190,48 C162,50 134,66 118,84 Z\" fill=\"url(#wlg01A)\"/><path d=\"M96,110 C120,132 128,164 116,182 C104,158 82,138 66,130 Z\" fill=\"url(#wlg01A)\" opacity=\".78\"/><circle cx=\"48\" cy=\"84\" r=\"14\" fill=\"url(#alg01A)\"/><path d=\"M40,72 L34,56 L50,68 Z\" fill=\"#C79A34\"/><path d=\"M56,70 L58,54 L64,68 Z\" fill=\"#C79A34\"/><ellipse cx=\"44\" cy=\"80\" rx=\"4\" ry=\"4.4\" fill=\"#3A2708\"/><ellipse cx=\"46\" cy=\"92\" rx=\"4\" ry=\"4.4\" fill=\"#3A2708\"/>","basso":"<defs><linearGradient id=\"alg01B\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#F6DE96\"/><stop offset=\".5\" stop-color=\"#C79A34\"/><stop offset=\"1\" stop-color=\"#8A6420\"/></linearGradient><linearGradient id=\"tlg01B\" x1=\"1\" y1=\"0\" x2=\"0\" y2=\"0\"><stop offset=\"0\" stop-color=\"#F0CE72\" stop-opacity=\".75\"/><stop offset=\"1\" stop-color=\"#F0CE72\" stop-opacity=\"0\"/></linearGradient><linearGradient id=\"wlg01B\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#FBEFC4\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#D9A845\" stop-opacity=\".45\"/></linearGradient></defs><path d=\"M156,150 C126,146 108,128 104,110\" stroke=\"url(#tlg01B)\" stroke-width=\"12\" fill=\"none\" stroke-linecap=\"round\" opacity=\".6\"/><path d=\"M46,86 C60,52 100,44 122,66 C142,86 132,116 108,120 C88,124 76,108 84,94\" fill=\"none\" stroke=\"#B08A2C\" stroke-width=\"16\" stroke-linecap=\"round\"/><path d=\"M50,90 C62,60 98,52 118,70 C136,88 126,112 106,116 C90,118 80,106 86,96\" fill=\"none\" stroke=\"#F6DE96\" stroke-width=\"7\" stroke-linecap=\"round\" opacity=\".75\"/><path d=\"M110,60 C136,32 172,30 190,48 C162,50 134,66 118,84 Z\" fill=\"#D9A845\" opacity=\".5\"/><path d=\"M96,110 C120,132 128,164 116,182 C104,158 82,138 66,130 Z\" fill=\"#D9A845\" opacity=\".45\"/><circle cx=\"48\" cy=\"84\" r=\"13\" fill=\"#B08A2C\"/><path d=\"M40,92 C36,96 40,102 46,100\" stroke=\"#8A6420\" stroke-width=\"2.4\" fill=\"none\" stroke-linecap=\"round\"/>"},"radicereale":{"fronte":"<defs><linearGradient id=\"radB\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#4E6E44\"/><stop offset=\"1\" stop-color=\"#2A3E28\"/></linearGradient><linearGradient id=\"radH\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8E8B78\"/><stop offset=\"1\" stop-color=\"#5E5C4E\"/></linearGradient></defs><ellipse cx=\"100\" cy=\"184\" rx=\"56\" ry=\"8\" fill=\"#23291F\" opacity=\".18\"/><path d=\"M74,150 C52,158 40,172 44,182 L72,182 Z\" fill=\"#3A4E34\"/><path d=\"M126,150 C148,158 160,172 156,182 L128,182 Z\" fill=\"#3A4E34\"/><path d=\"M88,152 L82,182 L100,182 L98,152 Z\" fill=\"#445C3C\"/><path d=\"M112,152 L118,182 L102,182 L104,152 Z\" fill=\"#445C3C\"/><path d=\"M76,74 C76,58 88,50 100,50 C112,50 124,58 124,74 L132,156 L68,156 Z\" fill=\"url(#radB)\"/><path d=\"M68,88 C48,92 38,110 44,130 C48,116 58,106 70,104 Z\" fill=\"#3A4E34\"/><path d=\"M132,88 C152,92 162,110 156,130 C152,116 142,106 130,104 Z\" fill=\"#3A4E34\"/><ellipse cx=\"86\" cy=\"112\" rx=\"12\" ry=\"9\" fill=\"#607F52\" opacity=\".7\"/><ellipse cx=\"112\" cy=\"134\" rx=\"14\" ry=\"10\" fill=\"#607F52\" opacity=\".55\"/><ellipse cx=\"106\" cy=\"96\" rx=\"9\" ry=\"7\" fill=\"#3A5232\" opacity=\".8\"/><path d=\"M78,42 L100,26 L122,42 L118,66 L82,66 Z\" fill=\"url(#radH)\"/><path d=\"M78,42 L100,26 L122,42 C110,38 90,38 78,42 Z\" fill=\"#4E5B3E\" opacity=\".65\"/><path d=\"M84,40 C90,32 98,36 96,44\" stroke=\"#6F8A56\" stroke-width=\"2.5\" fill=\"none\"/><rect x=\"86\" y=\"50\" width=\"10\" height=\"5\" rx=\"2.5\" fill=\"#E8DFA4\"/><rect x=\"104\" y=\"50\" width=\"10\" height=\"5\" rx=\"2.5\" fill=\"#E8DFA4\"/><circle cx=\"60\" cy=\"150\" r=\"3\" fill=\"#C9DC8E\" class=\"pulse\"/><circle cx=\"146\" cy=\"138\" r=\"2.4\" fill=\"#C9DC8E\" class=\"pulse\"/><circle cx=\"52\" cy=\"126\" r=\"2\" fill=\"#C9DC8E\" class=\"pulse\"/>","destra":"<defs><linearGradient id=\"alg02D\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#4E6E44\"/><stop offset=\"1\" stop-color=\"#2A3E28\"/></linearGradient><linearGradient id=\"hlg02D\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8E8B78\"/><stop offset=\"1\" stop-color=\"#5E5C4E\"/></linearGradient><linearGradient id=\"dlg02D\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#3E5A36\"/><stop offset=\"1\" stop-color=\"#1F2E1D\"/></linearGradient></defs><ellipse cx=\"100\" cy=\"184\" rx=\"46\" ry=\"8\" fill=\"#23291F\" opacity=\".18\"/><path d=\"M86,150 C64,158 52,172 56,182 L84,182 Z\" fill=\"#3A4E34\"/><path d=\"M114,150 C136,158 148,172 144,182 L116,182 Z\" fill=\"#2F4029\"/><path d=\"M94,152 L88,182 L106,182 L104,152 Z\" fill=\"#445C3C\"/><path d=\"M84,74 C84,58 92,50 102,50 C114,50 122,58 122,74 L126,156 L82,156 Z\" fill=\"url(#dlg02D)\"/><path d=\"M122,88 C142,92 152,110 146,130 C142,116 132,106 120,104 Z\" fill=\"#3A4E34\"/><path d=\"M84,96 C68,102 62,118 68,134 C70,120 78,112 88,110 Z\" fill=\"#2F4029\"/><ellipse cx=\"106\" cy=\"116\" rx=\"10\" ry=\"8\" fill=\"#607F52\" opacity=\".6\"/><ellipse cx=\"98\" cy=\"140\" rx=\"12\" ry=\"9\" fill=\"#607F52\" opacity=\".45\"/><path d=\"M86,42 L104,26 L122,44 L118,66 L88,66 Z\" fill=\"url(#hlg02D)\"/><path d=\"M86,42 L104,26 L122,44 C112,38 96,38 86,42 Z\" fill=\"#4E5B3E\" opacity=\".6\"/><rect x=\"106\" y=\"50\" width=\"10\" height=\"5\" rx=\"2.5\" fill=\"#E8DFA4\"/><path d=\"M92,38 C98,30 106,34 104,42\" stroke=\"#6F8A56\" stroke-width=\"2.5\" fill=\"none\"/><circle cx=\"138\" cy=\"140\" r=\"2.6\" fill=\"#C9DC8E\" class=\"pulse\"/><circle cx=\"70\" cy=\"152\" r=\"2.2\" fill=\"#C9DC8E\" class=\"pulse\"/>","retro":"<defs><linearGradient id=\"alg02R\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#4E6E44\"/><stop offset=\"1\" stop-color=\"#2A3E28\"/></linearGradient><linearGradient id=\"hlg02R\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8E8B78\"/><stop offset=\"1\" stop-color=\"#5E5C4E\"/></linearGradient><linearGradient id=\"dlg02R\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#3E5A36\"/><stop offset=\"1\" stop-color=\"#1F2E1D\"/></linearGradient></defs><ellipse cx=\"100\" cy=\"184\" rx=\"56\" ry=\"8\" fill=\"#23291F\" opacity=\".18\"/><path d=\"M74,150 C52,158 40,172 44,182 L72,182 Z\" fill=\"#2F4029\"/><path d=\"M126,150 C148,158 160,172 156,182 L128,182 Z\" fill=\"#2F4029\"/><path d=\"M88,152 L82,182 L100,182 L98,152 Z\" fill=\"#3A4E34\"/><path d=\"M112,152 L118,182 L102,182 L104,152 Z\" fill=\"#3A4E34\"/><path d=\"M76,74 C76,58 88,50 100,50 C112,50 124,58 124,74 L132,156 L68,156 Z\" fill=\"url(#dlg02R)\"/><path d=\"M100,58 L100,154\" stroke=\"#22301F\" stroke-width=\"2.4\" fill=\"none\" opacity=\".6\"/><path d=\"M68,88 C48,92 38,110 44,130 C48,116 58,106 70,104 Z\" fill=\"#2F4029\"/><path d=\"M132,88 C152,92 162,110 156,130 C152,116 142,106 130,104 Z\" fill=\"#2F4029\"/><ellipse cx=\"84\" cy=\"120\" rx=\"11\" ry=\"9\" fill=\"#3E5A36\" opacity=\".7\"/><ellipse cx=\"116\" cy=\"138\" rx=\"12\" ry=\"9\" fill=\"#3E5A36\" opacity=\".6\"/><path d=\"M78,42 L100,26 L122,42 L118,66 L82,66 Z\" fill=\"#6B6A5A\"/><path d=\"M78,42 L100,26 L122,42 C110,38 90,38 78,42 Z\" fill=\"#3E4A32\" opacity=\".7\"/><circle cx=\"60\" cy=\"146\" r=\"2.6\" fill=\"#C9DC8E\" class=\"pulse\"/><circle cx=\"146\" cy=\"134\" r=\"2.2\" fill=\"#C9DC8E\" class=\"pulse\"/>","sinistra":"<defs><linearGradient id=\"alg02S\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#4E6E44\"/><stop offset=\"1\" stop-color=\"#2A3E28\"/></linearGradient><linearGradient id=\"hlg02S\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8E8B78\"/><stop offset=\"1\" stop-color=\"#5E5C4E\"/></linearGradient><linearGradient id=\"dlg02S\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#3E5A36\"/><stop offset=\"1\" stop-color=\"#1F2E1D\"/></linearGradient></defs><g transform=\"translate(200,0) scale(-1,1)\"><ellipse cx=\"100\" cy=\"184\" rx=\"46\" ry=\"8\" fill=\"#23291F\" opacity=\".18\"/><path d=\"M86,150 C64,158 52,172 56,182 L84,182 Z\" fill=\"#3A4E34\"/><path d=\"M114,150 C136,158 148,172 144,182 L116,182 Z\" fill=\"#2F4029\"/><path d=\"M94,152 L88,182 L106,182 L104,152 Z\" fill=\"#445C3C\"/><path d=\"M84,74 C84,58 92,50 102,50 C114,50 122,58 122,74 L126,156 L82,156 Z\" fill=\"url(#dlg02S)\"/><path d=\"M122,88 C142,92 152,110 146,130 C142,116 132,106 120,104 Z\" fill=\"#3A4E34\"/><path d=\"M84,96 C68,102 62,118 68,134 C70,120 78,112 88,110 Z\" fill=\"#2F4029\"/><ellipse cx=\"106\" cy=\"116\" rx=\"10\" ry=\"8\" fill=\"#607F52\" opacity=\".6\"/><ellipse cx=\"98\" cy=\"140\" rx=\"12\" ry=\"9\" fill=\"#607F52\" opacity=\".45\"/><path d=\"M86,42 L104,26 L122,44 L118,66 L88,66 Z\" fill=\"url(#hlg02S)\"/><path d=\"M86,42 L104,26 L122,44 C112,38 96,38 86,42 Z\" fill=\"#4E5B3E\" opacity=\".6\"/><rect x=\"106\" y=\"50\" width=\"10\" height=\"5\" rx=\"2.5\" fill=\"#E8DFA4\"/><path d=\"M92,38 C98,30 106,34 104,42\" stroke=\"#6F8A56\" stroke-width=\"2.5\" fill=\"none\"/><circle cx=\"138\" cy=\"140\" r=\"2.6\" fill=\"#C9DC8E\" class=\"pulse\"/><circle cx=\"70\" cy=\"152\" r=\"2.2\" fill=\"#C9DC8E\" class=\"pulse\"/></g>","alto":"<defs><linearGradient id=\"alg02A\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#4E6E44\"/><stop offset=\"1\" stop-color=\"#2A3E28\"/></linearGradient><linearGradient id=\"hlg02A\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8E8B78\"/><stop offset=\"1\" stop-color=\"#5E5C4E\"/></linearGradient><linearGradient id=\"dlg02A\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#3E5A36\"/><stop offset=\"1\" stop-color=\"#1F2E1D\"/></linearGradient></defs><path d=\"M60,60 C40,70 32,92 40,112 C44,96 56,84 70,80 Z\" fill=\"#2F4029\"/><path d=\"M140,60 C160,70 168,92 160,112 C156,96 144,84 130,80 Z\" fill=\"#2F4029\"/><path d=\"M56,140 C40,152 38,170 48,178 C48,164 58,152 70,148 Z\" fill=\"#3A4E34\"/><path d=\"M144,140 C160,152 162,170 152,178 C152,164 142,152 130,148 Z\" fill=\"#3A4E34\"/><path d=\"M100,44 C132,44 156,68 156,100 C156,132 132,156 100,156 C68,156 44,132 44,100 C44,68 68,44 100,44 Z\" fill=\"url(#alg02A)\"/><ellipse cx=\"82\" cy=\"86\" rx=\"13\" ry=\"10\" fill=\"#607F52\" opacity=\".55\"/><ellipse cx=\"118\" cy=\"118\" rx=\"15\" ry=\"11\" fill=\"#607F52\" opacity=\".4\"/><path d=\"M78,78 L100,58 L122,78 L118,110 L82,110 Z\" fill=\"url(#hlg02A)\"/><path d=\"M78,78 L100,58 L122,78 C110,72 90,72 78,78 Z\" fill=\"#4E5B3E\" opacity=\".6\"/><rect x=\"86\" y=\"86\" width=\"10\" height=\"5\" rx=\"2.5\" fill=\"#E8DFA4\"/><rect x=\"104\" y=\"86\" width=\"10\" height=\"5\" rx=\"2.5\" fill=\"#E8DFA4\"/><circle cx=\"58\" cy=\"120\" r=\"3\" fill=\"#C9DC8E\" class=\"pulse\"/><circle cx=\"146\" cy=\"76\" r=\"2.6\" fill=\"#C9DC8E\" class=\"pulse\"/>","basso":"<defs><linearGradient id=\"alg02B\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#4E6E44\"/><stop offset=\"1\" stop-color=\"#2A3E28\"/></linearGradient><linearGradient id=\"hlg02B\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#8E8B78\"/><stop offset=\"1\" stop-color=\"#5E5C4E\"/></linearGradient><linearGradient id=\"dlg02B\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#3E5A36\"/><stop offset=\"1\" stop-color=\"#1F2E1D\"/></linearGradient></defs><path d=\"M100,44 C132,44 156,68 156,100 C156,132 132,156 100,156 C68,156 44,132 44,100 C44,68 68,44 100,44 Z\" fill=\"#22301F\"/><path d=\"M100,58 C126,58 144,76 144,100 C144,124 126,142 100,142 C74,142 56,124 56,100 C56,76 74,58 100,58 Z\" fill=\"#2A3E28\"/><path d=\"M100,60 C104,84 120,96 140,98\" stroke=\"#3E5A36\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M100,60 C96,84 80,96 60,98\" stroke=\"#3E5A36\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M100,140 C104,118 118,108 138,106\" stroke=\"#3E5A36\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M100,140 C96,118 82,108 62,106\" stroke=\"#3E5A36\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M52,66 C34,58 20,66 18,82 C30,74 44,74 54,80 Z\" fill=\"#3A4E34\"/><path d=\"M148,66 C166,58 180,66 182,82 C170,74 156,74 146,80 Z\" fill=\"#3A4E34\"/><path d=\"M54,138 C36,148 30,166 40,176 C40,160 48,150 60,146 Z\" fill=\"#3A4E34\"/><path d=\"M146,138 C164,148 170,166 160,176 C160,160 152,150 140,146 Z\" fill=\"#3A4E34\"/><circle cx=\"100\" cy=\"100\" r=\"9\" fill=\"#607F52\" opacity=\".5\"/><circle cx=\"76\" cy=\"118\" r=\"2.6\" fill=\"#C9DC8E\" class=\"pulse\"/><circle cx=\"126\" cy=\"82\" r=\"2.4\" fill=\"#C9DC8E\" class=\"pulse\"/>"},"eclissonte":{"fronte":"<defs><pattern id=\"ecliBg\" width=\"9\" height=\"9\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(38)\"><line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"9\" stroke=\"#5C6455\" stroke-width=\"1.6\" opacity=\".45\"/></pattern><radialGradient id=\"ecliCor\"><stop offset=\".62\" stop-color=\"#9FD8E8\" stop-opacity=\"0\"/><stop offset=\".82\" stop-color=\"#BFEAF6\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#BFEAF6\" stop-opacity=\"0\"/></radialGradient><clipPath id=\"ecliClip\"><path d=\"M100,34 C124,34 138,58 136,92 C134,124 150,140 148,158 C146,174 124,180 100,180 C76,180 54,174 52,158 C50,140 66,124 64,92 C62,58 76,34 100,34 Z\"/></clipPath></defs><ellipse cx=\"100\" cy=\"182\" rx=\"46\" ry=\"6\" fill=\"#23291F\" opacity=\".12\"/><rect x=\"14\" y=\"18\" width=\"172\" height=\"164\" fill=\"url(#ecliBg)\"/><path d=\"M18,150 L182,120\" stroke=\"#5C6455\" stroke-width=\"2\" opacity=\".4\"/><path d=\"M18,96 L182,72\" stroke=\"#5C6455\" stroke-width=\"2\" opacity=\".3\"/><circle class=\"pulse\" cx=\"100\" cy=\"100\" r=\"78\" fill=\"url(#ecliCor)\"/><path d=\"M100,34 C124,34 138,58 136,92 C134,124 150,140 148,158 C146,174 124,180 100,180 C76,180 54,174 52,158 C50,140 66,124 64,92 C62,58 76,34 100,34 Z\" fill=\"#0C0E10\"/><g clip-path=\"url(#ecliClip)\"><path d=\"M100,34 C124,34 138,58 136,92 C134,124 150,140 148,158 C146,174 124,180 100,180 C76,180 54,174 52,158\" fill=\"none\" stroke=\"#BFEAF6\" stroke-width=\"2.5\" opacity=\".55\"/></g><ellipse cx=\"86\" cy=\"84\" rx=\"7\" ry=\"3\" fill=\"#BFEAF6\" opacity=\".9\" class=\"pulse\"/><ellipse cx=\"114\" cy=\"84\" rx=\"7\" ry=\"3\" fill=\"#BFEAF6\" opacity=\".9\" class=\"pulse\"/>","destra":"<defs><pattern id=\"plg03D\" width=\"9\" height=\"9\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(38)\"><line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"9\" stroke=\"#5C6455\" stroke-width=\"1.6\" opacity=\".45\"/></pattern><radialGradient id=\"clg03D\"><stop offset=\".62\" stop-color=\"#9FD8E8\" stop-opacity=\"0\"/><stop offset=\".82\" stop-color=\"#BFEAF6\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#BFEAF6\" stop-opacity=\"0\"/></radialGradient></defs><ellipse cx=\"100\" cy=\"182\" rx=\"34\" ry=\"6\" fill=\"#23291F\" opacity=\".12\"/><rect x=\"14\" y=\"18\" width=\"172\" height=\"164\" fill=\"url(#plg03D)\"/><path d=\"M18,150 L182,120\" stroke=\"#5C6455\" stroke-width=\"2\" opacity=\".4\"/><path d=\"M18,96 L182,72\" stroke=\"#5C6455\" stroke-width=\"2\" opacity=\".3\"/><circle class=\"pulse\" cx=\"100\" cy=\"100\" r=\"72\" fill=\"url(#clg03D)\"/><path d=\"M104,34 C122,36 130,60 126,92 C122,122 138,140 134,158 C130,174 114,180 96,180 C82,180 72,174 72,158 C72,138 86,122 84,92 C82,60 88,32 104,34 Z\" fill=\"#0C0E10\"/><path d=\"M104,34 C122,36 130,60 126,92 C122,122 138,140 134,158\" fill=\"none\" stroke=\"#BFEAF6\" stroke-width=\"2.5\" opacity=\".5\"/><ellipse cx=\"116\" cy=\"84\" rx=\"6\" ry=\"3\" fill=\"#BFEAF6\" opacity=\".9\" class=\"pulse\"/><path d=\"M84,120 C74,132 70,150 74,166\" fill=\"none\" stroke=\"#1A1D21\" stroke-width=\"2\" opacity=\".8\"/>","retro":"<defs><pattern id=\"plg03R\" width=\"9\" height=\"9\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(38)\"><line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"9\" stroke=\"#5C6455\" stroke-width=\"1.6\" opacity=\".45\"/></pattern><radialGradient id=\"clg03R\"><stop offset=\".62\" stop-color=\"#9FD8E8\" stop-opacity=\"0\"/><stop offset=\".82\" stop-color=\"#BFEAF6\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#BFEAF6\" stop-opacity=\"0\"/></radialGradient></defs><ellipse cx=\"100\" cy=\"182\" rx=\"46\" ry=\"6\" fill=\"#23291F\" opacity=\".12\"/><rect x=\"14\" y=\"18\" width=\"172\" height=\"164\" fill=\"url(#plg03R)\"/><path d=\"M18,150 L182,120\" stroke=\"#5C6455\" stroke-width=\"2\" opacity=\".4\"/><path d=\"M18,96 L182,72\" stroke=\"#5C6455\" stroke-width=\"2\" opacity=\".3\"/><circle class=\"pulse\" cx=\"100\" cy=\"100\" r=\"76\" fill=\"url(#clg03R)\" opacity=\".7\"/><path d=\"M100,34 C124,34 138,58 136,92 C134,124 150,140 148,158 C146,174 124,180 100,180 C76,180 54,174 52,158 C50,140 66,124 64,92 C62,58 76,34 100,34 Z\" fill=\"#08090B\"/><path d=\"M100,40 L100,176\" stroke=\"#171A1E\" stroke-width=\"3\" fill=\"none\" opacity=\".9\"/><path d=\"M78,60 C70,84 74,110 66,134\" fill=\"none\" stroke=\"#141619\" stroke-width=\"2\" opacity=\".8\"/><path d=\"M122,60 C130,84 126,110 134,134\" fill=\"none\" stroke=\"#141619\" stroke-width=\"2\" opacity=\".8\"/>","sinistra":"<defs><pattern id=\"plg03S\" width=\"9\" height=\"9\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(38)\"><line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"9\" stroke=\"#5C6455\" stroke-width=\"1.6\" opacity=\".45\"/></pattern><radialGradient id=\"clg03S\"><stop offset=\".62\" stop-color=\"#9FD8E8\" stop-opacity=\"0\"/><stop offset=\".82\" stop-color=\"#BFEAF6\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#BFEAF6\" stop-opacity=\"0\"/></radialGradient></defs><g transform=\"translate(200,0) scale(-1,1)\"><ellipse cx=\"100\" cy=\"182\" rx=\"34\" ry=\"6\" fill=\"#23291F\" opacity=\".12\"/><rect x=\"14\" y=\"18\" width=\"172\" height=\"164\" fill=\"url(#plg03S)\"/><path d=\"M18,150 L182,120\" stroke=\"#5C6455\" stroke-width=\"2\" opacity=\".4\"/><path d=\"M18,96 L182,72\" stroke=\"#5C6455\" stroke-width=\"2\" opacity=\".3\"/><circle class=\"pulse\" cx=\"100\" cy=\"100\" r=\"72\" fill=\"url(#clg03S)\"/><path d=\"M104,34 C122,36 130,60 126,92 C122,122 138,140 134,158 C130,174 114,180 96,180 C82,180 72,174 72,158 C72,138 86,122 84,92 C82,60 88,32 104,34 Z\" fill=\"#0C0E10\"/><path d=\"M104,34 C122,36 130,60 126,92 C122,122 138,140 134,158\" fill=\"none\" stroke=\"#BFEAF6\" stroke-width=\"2.5\" opacity=\".5\"/><ellipse cx=\"116\" cy=\"84\" rx=\"6\" ry=\"3\" fill=\"#BFEAF6\" opacity=\".9\" class=\"pulse\"/><path d=\"M84,120 C74,132 70,150 74,166\" fill=\"none\" stroke=\"#1A1D21\" stroke-width=\"2\" opacity=\".8\"/></g>","alto":"<defs><pattern id=\"plg03A\" width=\"9\" height=\"9\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(38)\"><line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"9\" stroke=\"#5C6455\" stroke-width=\"1.6\" opacity=\".45\"/></pattern><radialGradient id=\"clg03A\"><stop offset=\".62\" stop-color=\"#9FD8E8\" stop-opacity=\"0\"/><stop offset=\".82\" stop-color=\"#BFEAF6\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#BFEAF6\" stop-opacity=\"0\"/></radialGradient></defs><rect x=\"14\" y=\"18\" width=\"172\" height=\"164\" fill=\"url(#plg03A)\"/><circle class=\"pulse\" cx=\"100\" cy=\"100\" r=\"80\" fill=\"url(#clg03A)\"/><ellipse cx=\"100\" cy=\"100\" rx=\"52\" ry=\"42\" fill=\"#0C0E10\"/><ellipse cx=\"100\" cy=\"94\" rx=\"38\" ry=\"30\" fill=\"#101317\"/><path d=\"M48,100 C60,72 140,72 152,100\" fill=\"none\" stroke=\"#BFEAF6\" stroke-width=\"2\" opacity=\".4\"/><ellipse cx=\"88\" cy=\"78\" rx=\"6\" ry=\"3\" fill=\"#BFEAF6\" opacity=\".85\" class=\"pulse\"/><ellipse cx=\"112\" cy=\"78\" rx=\"6\" ry=\"3\" fill=\"#BFEAF6\" opacity=\".85\" class=\"pulse\"/>","basso":"<defs><pattern id=\"plg03B\" width=\"9\" height=\"9\" patternUnits=\"userSpaceOnUse\" patternTransform=\"rotate(38)\"><line x1=\"0\" y1=\"0\" x2=\"0\" y2=\"9\" stroke=\"#5C6455\" stroke-width=\"1.6\" opacity=\".45\"/></pattern><radialGradient id=\"clg03B\"><stop offset=\".62\" stop-color=\"#9FD8E8\" stop-opacity=\"0\"/><stop offset=\".82\" stop-color=\"#BFEAF6\" stop-opacity=\".9\"/><stop offset=\"1\" stop-color=\"#BFEAF6\" stop-opacity=\"0\"/></radialGradient></defs><rect x=\"14\" y=\"18\" width=\"172\" height=\"164\" fill=\"url(#plg03B)\"/><circle class=\"pulse\" cx=\"100\" cy=\"100\" r=\"72\" fill=\"url(#clg03B)\" opacity=\".55\"/><ellipse cx=\"100\" cy=\"100\" rx=\"48\" ry=\"40\" fill=\"#08090B\"/><ellipse cx=\"100\" cy=\"100\" rx=\"30\" ry=\"24\" fill=\"#0F1215\"/><ellipse cx=\"100\" cy=\"100\" rx=\"13\" ry=\"10\" fill=\"#171B1F\"/><path d=\"M52,100 L148,100\" stroke=\"#BFEAF6\" stroke-width=\"1.4\" opacity=\".22\"/><path d=\"M100,60 L100,140\" stroke=\"#BFEAF6\" stroke-width=\"1.4\" opacity=\".22\"/>"}};
+
+const VISTE_ORDINE = ['fronte','destra','retro','sinistra','alto','basso'];
+
+/* Quanto della tavola 200x200 e' occupato davvero dal disegno, misurato sul
+   contorno alpha delle quattro viste orizzontali: 'alt' e' l'altezza del
+   corpo, 'fondo' dove poggiano le zampe. Serve perche' due creature con lo
+   stesso riquadro possono avere corpi di taglia molto diversa, e perche'
+   altrimenti restano sospese sopra la propria ombra. */
+const TAV_BOX = {"cinerarco":{"alt":131.0,"fondo":176.0},"eclissonte":{"alt":164.0,"fondo":182.0},"mareggino":{"alt":112.0,"fondo":171.5},"ombraluna":{"alt":130.0,"fondo":176.0},"radicereale":{"alt":156.0,"fondo":182.0},"solcavento":{"alt":119.8,"fondo":157.0},"tuonalbero":{"alt":147.0,"fondo":174.0},"vetrospina":{"alt":134.5,"fondo":175.5}};
+const texTav = new Map();
+
+/* Il disegno diventa una texture: data URI dell'SVG, niente ritaglio da
+   canvas, cosi' l'alpha resta quello nativo e i bordi non si sgranano. */
+function texTavola(id, vista){
+  const k = id + '/' + vista;
+  if(texTav.has(k)) return texTav.get(k);
+  const d = TAVOLE[id];
+  const corpo = d && (d[vista] || d.fronte);
+  if(!corpo) return null;
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" ' +
+              'width="512" height="512">' + corpo + '</svg>';
+  const img = new Image();
+  const tex = new THREE.Texture(img);
+  /* Questa build di three vuole 'encoding', non 'colorSpace': senza, il
+     disegno viene preso per lineare e in uscita si schiarisce — il gatto
+     nero diventava grigio ferro. */
+  tex.encoding = THREE.sRGBEncoding;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = true;
+  img.onload = () => { tex.needsUpdate = true; };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  texTav.set(k, tex);
+  return tex;
+}
+
+/* Quale delle sei viste tocca. Due angoli: di quanto la creatura e' girata
+   rispetto a te, e da che altezza la stai guardando. La soglia ha un margine
+   perche' altrimenti sul confine il disegno sfarfalla avanti e indietro. */
+const MARGINE_VISTA = 0.14;          // ~8 gradi di isteresi
+function scegliVista(c, camPos){
+  const dx = camPos.x - c.pos.x, dz = camPos.z - c.pos.z;
+  const piano = Math.hypot(dx, dz);
+  const alt = c.root.position.y + (c.altezzaTav || .3) * .5;
+  const el = Math.atan2(camPos.y - alt, Math.max(piano, .001));
+  const attuale = c.vista || 'fronte';
+  const soglia = 0.96 + (attuale==='alto'||attuale==='basso' ? -MARGINE_VISTA : MARGINE_VISTA);
+  if(el >  soglia) return 'alto';    // ~55 gradi sopra
+  if(el < -soglia) return 'basso';
+  const aCam = Math.atan2(dx, dz);
+  const d = Math.atan2(Math.sin(c.yawTav - aCam), Math.cos(c.yawTav - aCam));
+  const a = Math.abs(d);
+  const m = (attuale==='fronte'||attuale==='retro') ? MARGINE_VISTA : -MARGINE_VISTA;
+  if(a < Math.PI/4 + m)      return 'fronte';
+  if(a > Math.PI*3/4 - m)    return 'retro';
+  return d > 0 ? 'sinistra' : 'destra';
+}
+
+function applicaVista(c, vista){
+  if(c.vista === vista) return;
+  const t = texTavola(c.spec.tavola, vista);
+  if(!t) return;
+  c.vista = vista;
+  c.quad.material.map = t;
+  c.quad.material.needsUpdate = true;
+}
+
+/* Le stesse cose che fa makeMesh — ombra, taglia, raggio — ma il corpo e'
+   un piano invece di un gruppo di solidi. */
+function makeTavola(spec, pos){
+  const root = new THREE.Group(); root.position.copy(pos);
+  const pivot = new THREE.Group(); root.add(pivot);
+  const mat = new THREE.MeshBasicMaterial({map: texTavola(spec.tavola,'fronte'),
+    transparent:true, alphaTest:.06, depthWrite:false,
+    side:THREE.DoubleSide, toneMapped:false});
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(1,1), mat);
+  quad.name = 'quad'; pivot.add(quad);
+  const k = 0.72 + Math.random()*0.66;
+  /* Il corpo deve venire alto quanto verrebbe la versione solida della stessa
+     specie: scala x 2. Da li' si risale a quanto grande va fatto il riquadro,
+     e di quanto va calato perche' le zampe tocchino terra invece di
+     galleggiare. */
+  const box = TAV_BOX[spec.tavola] || {alt:130, fondo:176};
+  const corpo = spec.scala * 2 * k;
+  const lato  = corpo * 200 / box.alt;
+  quad.scale.set(lato, lato, 1);
+  const cala = lato * (200 - box.fondo) / 200;
+  quad.position.y = lato/2 - cala;
+  const marks = groundMarks(root, spec.scala*1.15, sagomaOmbra(spec));
+  marks.ombra.scale.setScalar(k);
+  scene.add(root);
+  const c = Object.assign(baseCreature(root, spec.nome, spec.latino, spec.vel*(1.15-k*.25)),
+    {kind:'tavola', spec, pivot, quad, ombra:marks.ombra,
+     markBase:k, agile:spec.agile, raggio:spec.scala*.8*k, taglia:k,
+     altezzaTav:corpo, latoTav:lato, calaTav:cala, yawTav:0, vista:'fronte',
+     hover: spec.vola ? spec.hover * k : 0});
+  return c;
+}
+
 function makeMesh(spec, pos){
   const root = new THREE.Group(); root.position.copy(pos);
   const body = buildBody(spec); root.add(body);
@@ -2452,6 +2778,12 @@ function makeMesh(spec, pos){
      parti: body.userData.parti,
      hover: spec.vola ? spec.hover * k : 0});
   return c;
+}
+
+/* Una specie con una tavola disegnata passa dall'impostore; tutte le
+   altre restano geometria procedurale come prima. */
+function nascita(spec, pos){
+  return spec.tavola ? makeTavola(spec, pos) : makeMesh(spec, pos);
 }
 
 function makeSprite(asset, pos){
@@ -2566,8 +2898,11 @@ const FASCE = {
   frequente:   {peso: 52,  eti:'poco comune', col:'#63C7A6'},
   rara:        {peso: 20,  eti:'rara',        col:'#6FA8FF'},
   rarissima:   {peso:  8,  eti:'rarissima',   col:'#FF7BD5'},
-  epico:       {peso:  4,  eti:'EPICA',       col:'#C77BFF'},
-  leggendario: {peso: 1.2, eti:'LEGGENDARIA', col:'#FFC845'}
+  /* Con otto epiche e cinque leggendarie il peso per specie scende, se no la
+     fascia nel suo insieme diventa comune. Quello che si tiene fermo e' ogni
+     quanto esce UNA epica o UNA leggendaria, non quale. */
+  epico:       {peso: 1.6, eti:'EPICA',       col:'#C77BFF'},
+  leggendario: {peso: 0.5, eti:'LEGGENDARIA', col:'#FFC845'}
 };
 const ORDINE_FASCE = ['comune','frequente','rara','rarissima','epico','leggendario'];
 const RANGO = {
@@ -2587,8 +2922,11 @@ const RANGO = {
   zampalunga:'rarissima',
   // epiche: sagome che non somigliano a nessun'altra
   spinodorso:'epico', meduseo:'epico', falcetto:'epico',
-  // leggendarie: collo lungo con quattro ali, corna con la lanterna
-  reginalba:'leggendario', ombracorno:'leggendario'
+  cinerarco:'epico', vetrospina:'epico', mareggino:'epico',
+  tuonalbero:'epico', ombraluna:'epico',
+  // leggendarie: quelle che non si spiegano, si incontrano
+  reginalba:'leggendario', ombracorno:'leggendario',
+  solcavento:'leggendario', radicereale:'leggendario', eclissonte:'leggendario'
 };
 SPECIES.forEach(s => { s.rango = RANGO[s.id] || 'frequente'; });
 const PESO_BASE = SPECIES.reduce((t, s) => t + FASCE[s.rango].peso, 0);
@@ -2660,7 +2998,7 @@ function aggiungi(pos){
   const daSchedario = library.length > 0 && Math.random() < WORLD.quotaImportate;
   const c = daSchedario
     ? makeSprite(library[Math.floor(Math.random()*library.length)], pos)
-    : makeMesh(specieACaso(), pos);
+    : nascita(specieACaso(), pos);
   c.pos.copy(pos); c.standY = pos.y; c.ancora.copy(pos);
   const pip = document.createElement('div');
   pip.className = 'pip';
@@ -3264,6 +3602,7 @@ function updateCreature(c, dt, camPos){
   c.root.position.copy(c.pos);
 
   if(c.kind === 'mesh') updateMeshLook(c, dt, moveDir);
+  else if(c.kind === 'tavola') updateTavolaLook(c, dt, camPos, moveDir || (c.stato==='salto' ? c.dir : null));
   else updateSpriteLook(c, dt, camPos, moveDir || (c.stato==='salto' ? c.dir : null));
 
   animate(c, dt);
@@ -3277,6 +3616,33 @@ function updateMeshLook(c, dt, moveDir){
   const q = c.root.quaternion.clone();
   c.root.lookAt(target);
   c.root.quaternion.slerp(q, Math.exp(-6*dt));
+}
+
+/* L'impostore: il piano resta sempre di faccia a te, ma il disegno sopra
+   cambia. La creatura ha un suo verso — dove sta andando, o chi sta
+   guardando — e da quel verso, confrontato con dove sei tu, si ricava quale
+   delle sei tavole mostrare. La rotazione del verso e' smorzata, altrimenti
+   a ogni cambio di meta la creatura scatterebbe da un fianco all'altro. */
+function updateTavolaLook(c, dt, camPos, moveDir){
+  const toCam = new THREE.Vector3().subVectors(camPos, c.pos); toCam.y = 0;
+  if(toCam.lengthSq() > 1e-6){
+    toCam.normalize();
+    c.pivot.rotation.y = Math.atan2(toCam.x, toCam.z);
+  }
+  const rif = (c.stato==='sociale' && c.socialCon)
+    ? new THREE.Vector3().subVectors(c.socialCon.pos, c.pos).setY(0)
+    : moveDir;
+  if(rif && rif.lengthSq() > 1e-6){
+    const voluto = Math.atan2(rif.x, rif.z);
+    const scarto = Math.atan2(Math.sin(voluto - c.yawTav), Math.cos(voluto - c.yawTav));
+    c.yawTav += scarto * Math.min(1, dt*5.5);
+  } else if(c.stato === 'ferma' || c.stato === 'avvista'){
+    /* Ferma ti guarda: e' il momento in cui vuoi vederla in faccia. */
+    const voluto = Math.atan2(toCam.x, toCam.z);
+    const scarto = Math.atan2(Math.sin(voluto - c.yawTav), Math.cos(voluto - c.yawTav));
+    c.yawTav += scarto * Math.min(1, dt*2.2);
+  }
+  applicaVista(c, scegliVista(c, camPos));
 }
 
 function updateSpriteLook(c, dt, camPos, moveDir){
@@ -3331,6 +3697,8 @@ function animate(c, dt){
       if(P.zampe) P.zampe.forEach(z => {
         const chiusa = u < .82 ? -1.0 : -.2;
         z.rotation.x += (chiusa - z.rotation.x) * Math.min(1, dt*14);
+        if(z.userData.y0 !== undefined)
+          z.position.y += (z.userData.y0 - z.position.y) * Math.min(1, dt*12);
       });
 
     } else if(vola){
@@ -3339,22 +3707,47 @@ function animate(c, dt){
       if(P.zampe) P.zampe.forEach((z,i) => {
         const r = vaga ? -.5 : Math.sin(c.fase*1.4 + i)*.12;
         z.rotation.x += (r - z.rotation.x) * Math.min(1, dt*6);
+        if(z.userData.y0 !== undefined)
+          z.position.y += (z.userData.y0 - z.position.y) * Math.min(1, dt*12);
       });
 
     } else if(vaga || soc){
-      const passo = c.fase * (7.5 - c.taglia*1.6);
-      bob  = Math.abs(Math.sin(passo))*s.scala*.22;
-      tilt = Math.sin(passo)*.055;
-      if(s.salto) bob = Math.abs(Math.sin(c.fase*4.5))*s.scala*.9;
-      if(P.zampe) P.zampe.forEach((z,i) => { z.rotation.x = Math.sin(passo + i*1.7)*.55; });
+      /* CAMMINA. Il passo lo raccontano le zampe, non il tronco che rimbalza.
+         Prima il corpo saliva e scendeva di un quinto della propria altezza, e
+         le specie saltatrici quasi di una volta intera: a guardarle era un
+         saltello continuo anche su un pavimento piatto. Ora il tronco fa solo
+         l'accenno di oscillazione e il rollio che fa un animale vero, e il
+         lavoro lo fanno le gambe. La cadenza segue la velocita': chi corre
+         muove le zampe piu' in fretta, e si vede. */
+      const cadenza = 5.2 + (c.vel || .5) * 3.4;
+      const passo = c.fase * cadenza;
+      bob   = Math.abs(Math.sin(passo)) * s.scala * .035;
+      tilt  = Math.sin(passo) * .05;
+      pitch = Math.sin(passo*2) * .02;
+      if(P.zampe) P.zampe.forEach((z,i) => {
+        const ph = z.userData.fase === undefined ? i*1.7 : z.userData.fase;
+        const a = Math.sin(passo + ph);
+        z.rotation.x = a * .82;
+        /* La zampa che va avanti si stacca da terra: senza questo si vede
+           una gamba che struscia, non un passo. */
+        if(z.userData.y0 !== undefined)
+          z.position.y = z.userData.y0 + Math.max(0, a) * s.scala * .075;
+      });
 
     } else {
-      bob = Math.sin(c.fase*1.9)*s.scala*.06;
+      /* FERMA. Sta ferma davvero: l'unico movimento e' il respiro, che e' il
+         corpo che si dilata di un centesimo, non che salta. */
+      bob = 0;
+      stiro = 1 + Math.sin(c.fase*1.5) * .015;
       /* Dopo un urto si tira indietro; avvistando, si irrigidisce in avanti. */
       if(c.stato === 'urto')    pitch = .22 * Math.max(0, c.reagisce/(c.reagisceTot||1));
       if(c.stato === 'avvista') pitch = -.10;
       const rZ = c.stato === 'urto' ? .35 : 0;
-      if(P.zampe) P.zampe.forEach(z => { z.rotation.x += (rZ - z.rotation.x)*Math.min(1, dt*7); });
+      if(P.zampe) P.zampe.forEach(z => {
+        z.rotation.x += (rZ - z.rotation.x)*Math.min(1, dt*7);
+        if(z.userData.y0 !== undefined)
+          z.position.y += (z.userData.y0 - z.position.y) * Math.min(1, dt*10);
+      });
     }
 
     /* Ali: battito veloce in volo, lento da fermi, quasi chiuse a terra. */
@@ -3388,11 +3781,14 @@ function animate(c, dt){
       P.testa.rotation.x += (inc - P.testa.rotation.x) * Math.min(1, dt*4);
     }
 
-    /* Il bruco avanza per onde: ogni segmento e' sfasato sul precedente. */
+    /* Il bruco avanza per onde: ogni segmento e' sfasato sul precedente.
+       La spirale del serpente invece non puo' muoversi in verticale — la sua
+       forma sta proprio nella voluta — quindi respira e basta. */
     if(P.segmenti && P.segmenti.length){
+      const SG = c.spec.forma.segmenti;
       P.segmenti.forEach((m,i) => {
         const f = c.fase*(vaga?7:1.6) - i*.85;
-        m.position.y = s.scala*(c.spec.forma.segmenti.y) + Math.sin(f)*s.scala*(vaga?.22:.05);
+        if(SG) m.position.y = s.scala*SG.y + Math.sin(f)*s.scala*(vaga?.22:.05);
         m.scale.setScalar(1 + Math.sin(f)*(vaga?.09:.03));
       });
     }
@@ -3414,6 +3810,10 @@ function animate(c, dt){
       });
     }
 
+    /* L'alone respira: e' l'unica cosa che si muove in chi non ha ne' zampe
+       ne' ali, ed e' quello che lo fa sembrare vivo invece che appeso. */
+    if(P.alone) P.alone.material.opacity = .34 + Math.sin(c.fase*1.6)*.16;
+
     if(P.coda){
       P.coda.rotation.y = Math.sin(c.fase*(vaga?6:1.8)) * (vaga?.35:.14);
       P.coda.rotation.x = salta ? -.3 : Math.sin(c.fase*2.2)*.08;
@@ -3427,9 +3827,36 @@ function animate(c, dt){
     const base = c.taglia * (soc ? 1 + Math.sin(c.fase*7)*.05 : 1);
     c.body.scale.set(base, base*stiro, base);
 
+  } else if(c.kind === 'tavola'){
+    /* Un disegno non ha zampe da muovere, quindi il passo si racconta col
+       corpo: un dondolio laterale a cadenza costante e una compressione
+       appena percettibile, senza staccare da terra. Chi vola invece
+       galleggia, come le altre creature volanti. */
+    const h = c.latoTav, corpo = c.altezzaTav;
+    const vola = !!c.spec.vola;
+    const cadenza = 5.0 + (c.spec.vel || .4) * 3.2;
+    let su = 0, ondeggio = 0, stiro = 1;
+    if(salta){
+      const u = c.jump ? Math.min(1, c.jump.u) : 1;
+      stiro = u < .16 ? .80 + u*1.3 : (u > .84 ? .88 + (1-u)*.75 : 1.10);
+    } else if(vola){
+      su = Math.sin(c.fase*2.6) * corpo * .10;
+      ondeggio = Math.sin(c.fase*1.8) * .05;
+    } else if(vaga){
+      ondeggio = Math.sin(c.fase*cadenza) * .045;
+      stiro = 1 - Math.abs(Math.cos(c.fase*cadenza)) * .035;
+    } else {
+      stiro = 1 + Math.sin(c.fase*1.5) * .012;      // respiro, da ferma
+    }
+    const pulse = soc ? 1 + Math.sin(c.fase*7)*.05 : 1;
+    c.quad.position.y = h/2 - c.calaTav + su + c.impulso*corpo*.4;
+    c.quad.scale.y = h * stiro * pulse;
+    c.quad.scale.x = h * (2 - stiro);               // schiaccia e allarga, come un corpo vero
+    c.pivot.rotation.z = ondeggio;
+
   } else {
     const h = c.asset.altezza * (c.taglia || 1);
-    const hop    = salta ? 0 : (vaga ? Math.abs(Math.sin(c.fase*5.2))*h*.09 : Math.sin(c.fase*1.7)*h*.014);
+    const hop    = salta ? 0 : (vaga ? Math.abs(Math.sin(c.fase*5.2))*h*.04 : 0);
     const squash = (vaga && !salta) ? 1 - Math.abs(Math.cos(c.fase*5.2))*.045 : 1;
     const pulse  = soc ? 1+Math.sin(c.fase*7)*.05 : 1;
     const volo   = salta && c.jump ? 1.1 - Math.abs(.5 - Math.min(1,c.jump.u))*.2 : 1;
@@ -3568,10 +3995,10 @@ function tapCreature(ev){
     ? new THREE.Vector2((ev.clientX/innerWidth)*2-1, -(ev.clientY/innerHeight)*2+1)
     : new THREE.Vector2(0, 0);
   raycaster.setFromCamera(m, cam);
-  const targets = creatures.map(c => c.kind==='sprite' ? c.quad : c.body);
+  const targets = creatures.map(c => c.quad || c.body);
   for(const hit of raycaster.intersectObjects(targets, true)){
     const c = creatures.find(x => {
-      const rootObj = x.kind==='sprite' ? x.quad : x.body;
+      const rootObj = x.quad || x.body;
       let o = hit.object;
       while(o){ if(o === rootObj) return true; o = o.parent; }
       return false;
@@ -3829,7 +4256,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v52';
+const BUILD = 'v55';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
