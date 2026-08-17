@@ -2347,15 +2347,81 @@ function sagomaAla(tipo, w, h){
   return new THREE.ShapeGeometry(sh, 14);
 }
 
-function groundMarks(root, raggio){
-  const ombra = new THREE.Mesh(new THREE.CircleGeometry(raggio, 20),
+/* ---- L'OMBRA HA LA FORMA DI CHI LA FA ------------------------------------
+   Un disco sotto ogni creatura e' un cerotto: un bruco lungo venti
+   centimetri e una medusa tonda proiettavano la stessa macchia. Qui si
+   prende la sagoma vera — tutti i vertici del corpo schiacciati a terra, il
+   contorno che li racchiude — e la si usa come ombra. Si calcola una volta
+   per specie, non per esemplare: il costo e' ventun sagome in tutta la
+   partita. */
+const OMBRE = new Map();
+const _sp = new THREE.Vector3();
+
+/* Contorno convesso di una nuvola di punti (marcia di Andrew): si ordina e
+   si risale due volte, sopra e sotto. */
+function contorno(pts){
+  if(pts.length < 3) return pts;
+  pts.sort((a,b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o,a,b) => (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0]);
+  const giu = [], su = [];
+  for(const p of pts){
+    while(giu.length >= 2 && cross(giu[giu.length-2], giu[giu.length-1], p) <= 0) giu.pop();
+    giu.push(p);
+  }
+  for(let i = pts.length-1; i >= 0; i--){
+    const p = pts[i];
+    while(su.length >= 2 && cross(su[su.length-2], su[su.length-1], p) <= 0) su.pop();
+    su.push(p);
+  }
+  giu.pop(); su.pop();
+  return giu.concat(su);
+}
+
+function sagomaOmbra(spec){
+  if(OMBRE.has(spec.id)) return OMBRE.get(spec.id);
+  let geo = null;
+  try {
+    const b = buildBody(spec);
+    b.updateMatrixWorld(true);
+    const pts = [];
+    b.traverse(o => {
+      if(!o.isMesh || !o.geometry || !o.geometry.attributes) return;
+      const pos = o.geometry.attributes.position;
+      if(!pos) return;
+      const passo = Math.max(1, Math.floor(pos.count / 150));
+      for(let i = 0; i < pos.count; i += passo){
+        _sp.set(pos.getX(i), pos.getY(i), pos.getZ(i)).applyMatrix4(o.matrixWorld);
+        pts.push([_sp.x, -_sp.z]);     // -z perche' poi si corica sul pavimento
+      }
+    });
+    const c = contorno(pts);
+    if(c.length >= 3){
+      /* Un filo piu' larga della sagoma e con gli angoli smussati: un'ombra
+         vera non ha spigoli, e comunque la luce non e' un punto. */
+      let cx = 0, cy = 0;
+      for(const q of c){ cx += q[0]; cy += q[1]; }
+      cx /= c.length; cy /= c.length;
+      const V = c.map(q => new THREE.Vector2(cx + (q[0]-cx)*1.04, cy + (q[1]-cy)*1.04));
+      const sh = new THREE.Shape();
+      sh.moveTo(V[0].x, V[0].y);
+      sh.splineThru(V.slice(1).concat([V[0]]));
+      geo = new THREE.ShapeGeometry(sh, 10);
+      geo.rotateX(-Math.PI/2);
+    }
+    b.traverse(o => { if(o.isMesh){ o.geometry.dispose(); if(o.material.dispose) o.material.dispose(); } });
+  } catch(e){ geo = null; }
+  OMBRE.set(spec.id, geo);
+  return geo;
+}
+
+function groundMarks(root, raggio, sagoma){
+  const geo = sagoma || new THREE.CircleGeometry(raggio, 20).rotateX(-Math.PI/2);
+  const ombra = new THREE.Mesh(geo,
     new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.3, depthWrite:false}));
-  ombra.rotation.x = -Math.PI/2; ombra.position.y = .012; root.add(ombra);
-  const anello = new THREE.Mesh(new THREE.RingGeometry(raggio*1.13, raggio*1.24, 24),
-    new THREE.MeshBasicMaterial({color:0xFFA92E, transparent:true, opacity:.22,
-      side:THREE.DoubleSide, depthWrite:false}));
-  anello.rotation.x = -Math.PI/2; anello.position.y = .014; root.add(anello);
-  return {ombra, anello};
+  ombra.position.y = .012;
+  ombra.renderOrder = -1;
+  root.add(ombra);
+  return {ombra};
 }
 
 const baseCreature = (root, nome, latino, vel) => ({
@@ -2377,11 +2443,11 @@ function makeMesh(spec, pos){
      come una ripetizione, non come una popolazione. */
   const k = 0.72 + Math.random()*0.66;
   body.scale.setScalar(k);
-  const marks = groundMarks(root, spec.scala*1.15);
-  marks.ombra.scale.setScalar(k); marks.anello.scale.setScalar(k);
+  const marks = groundMarks(root, spec.scala*1.15, sagomaOmbra(spec));
+  marks.ombra.scale.setScalar(k);
   scene.add(root);
   const c = Object.assign(baseCreature(root, spec.nome, spec.latino, spec.vel * (1.15 - k*.25)),
-    {kind:'mesh', spec, body, anello:marks.anello, ombra:marks.ombra,
+    {kind:'mesh', spec, body, ombra:marks.ombra,
      markBase:k, agile:spec.agile, raggio:spec.scala*.8*k, taglia:k,
      parti: body.userData.parti,
      hover: spec.vola ? spec.hover * k : 0});
@@ -2403,7 +2469,7 @@ function makeSprite(asset, pos){
   scene.add(root);
   const c = Object.assign(
     baseCreature(root, asset.nome, 'esemplare importato', .3 + Math.random()*.5),
-    {kind:'sprite', asset, pivot, quad, anello:marks.anello, ombra:marks.ombra,
+    {kind:'sprite', asset, pivot, quad, ombra:marks.ombra,
      markBase:1, agile:1, taglia: 0.72 + Math.random()*0.66, volume: !!geoVol});
   resizeSprite(c);
   return c;
@@ -2420,7 +2486,6 @@ function resizeSprite(c){
   c.markBase = r/.3;
   c.raggio = r;
   c.ombra.scale.setScalar(c.markBase);
-  c.anello.scale.setScalar(c.markBase);
 }
 
 /* ==========================================================================
@@ -3375,17 +3440,18 @@ function animate(c, dt){
   }
 
   if(c.impulso > 0) c.impulso = Math.max(0, c.impulso - dt*2.2);
-  c.anello.material.opacity = soc ? .45 : .22;
 
   const gy = surfaceAt(c.pos.x, c.pos.z, c.root.position.y + .02);
   const stacco = c.root.position.y - gy;
   const air = Math.max(0, stacco) + (c.hover || 0);
   const k = 1/(1 + air*1.5);
-  c.ombra.position.y  = -stacco + .012;
-  c.anello.position.y = -stacco + .014;
+  c.ombra.position.y = -stacco + .012;
+  /* Piu' e' alta, piu' l'ombra e' larga e sbiadita: e' l'unico indizio che
+     dice se una creatura sta volando o e' semplicemente lontana. */
   c.ombra.scale.setScalar(c.markBase * k);
-  c.anello.scale.setScalar(c.markBase * k);
   c.ombra.material.opacity = .3 * k;
+  /* Non serve ruotarla: e' figlia della radice, che e' proprio quella che
+     gira quando la creatura si volta. */
 }
 
 /* ==========================================================================
@@ -3763,7 +3829,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v51';
+const BUILD = 'v52';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
