@@ -2405,6 +2405,9 @@ function buildBody(spec){
       const m = new THREE.Mesh(new THREE.CylinderGeometry(s*A.sp, s*A.sp*.6, s*A.lung, 5), matDett);
       m.position.y = -s*A.lung*.5; b.add(m);
       b.rotation.z = d*.55;
+      /* Un braccio non ha ginocchio, ma e' l'arto giusto per il saluto e per
+         il cinque: si segna come davanti, cosi' il rito lo trova. */
+      b.userData.avanti = 1; b.userData.lato = d; b.userData.arto = true;
       add(b); P.zampe.push(b);
     }
   }
@@ -2449,6 +2452,7 @@ function buildBody(spec){
       br.rotation.z = d*1.1; br.position.set(d*s*.2, 0, 0); b.add(br);
       const ch = new THREE.Mesh(new THREE.IcosahedronGeometry(s*.26, 0), matDett);
       ch.scale.set(1.3,.7,.9); ch.position.set(d*s*.45, s*.12, -s*.1); b.add(ch);
+      b.userData.avanti = 1; b.userData.lato = d; b.userData.arto = true;
       P.zampe.push(b);
     }
   }
@@ -2505,13 +2509,33 @@ function buildBody(spec){
       const z = righe > 1 ? (fila/(righe-1) - .5) * s*Z.az*2 : 0;
       const p = new THREE.Group();
       p.position.set(lato*s*Z.ax, s*Z.y, z);
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(s*Z.sp, s*Z.sp*.72, s*Z.lung, tondo?8:5), matDett);
-      m.position.y = -s*Z.lung/2; p.add(m);
+      /* La zampa e' in due pezzi con un giunto in mezzo. Prima era un
+         cilindro solo che ruotava dall'anca: si muoveva, ma restava una
+         stecca. Con la coscia e lo stinco separati il ginocchio si piega nel
+         richiamo — che e' quello che rende leggibile un passo. */
+      const L1 = s*Z.lung*.52, L2 = s*Z.lung*.48;
+      const cos = new THREE.Mesh(
+        new THREE.CylinderGeometry(s*Z.sp, s*Z.sp*.86, L1, tondo?8:5), matDett);
+      cos.position.y = -L1/2; p.add(cos);
+      const gin = new THREE.Group();
+      gin.position.y = -L1; p.add(gin);
+      const stin = new THREE.Mesh(
+        new THREE.CylinderGeometry(s*Z.sp*.86, s*Z.sp*.66, L2, tondo?8:5), matDett);
+      stin.position.y = -L2/2; gin.add(stin);
+      /* Un piedino largo quanto basta: senza, lo stinco finiva a punta e da
+         vicino sembrava che la creatura camminasse sugli stuzzicadenti. */
+      const pie = new THREE.Mesh(
+        new THREE.SphereGeometry(s*Z.sp*.92, tondo?8:5, tondo?6:3), matDett);
+      pie.scale.set(1, .68, 1.25); pie.position.y = -L2; gin.add(pie);
+      p.userData.gin = gin;
+      p.userData.lung = L1 + L2;
       /* Ogni zampa si ricorda la quota di riposo e il proprio posto
          nell'andatura. Due zampe alternano; quattro vanno in diagonale,
          come trotta un quadrupede vero; da sei in su e' un'onda che corre
          dal fondo alla testa, che e' come cammina un millepiedi. */
       p.userData.y0 = s*Z.y;
+      p.userData.lato = lato;
+      p.userData.avanti = righe > 1 ? (fila < righe/2 ? 1 : -1) : 1;
       p.userData.fase = righe <= 1 ? lat01*Math.PI
         : righe === 2 ? ((lat01 + fila) % 2) * Math.PI
         : fila*(Math.PI*2/righe) + lat01*Math.PI;
@@ -2641,6 +2665,7 @@ function groundMarks(root, raggio, sagoma){
 const baseCreature = (root, nome, latino, vel) => ({
   root, nome, latino, vel, stato:'ferma', t:Math.random()*3, fase:Math.random()*6.28,
   meta:null, guarda:null, socialCon:null, impulso:0, flip:1, socialOff:0,
+  rito:null, ritoSalto:0,
   /* Indole: verso lo 0 curiosa, verso l'1 diffidente. Decide se ti viene
      incontro o si scosta quando ti avvicini. */
   indole: Math.random(), indoleT: Math.random()*6,
@@ -2900,9 +2925,14 @@ const FASCE = {
   rarissima:   {peso:  8,  eti:'rarissima',   col:'#FF7BD5'},
   /* Con otto epiche e cinque leggendarie il peso per specie scende, se no la
      fascia nel suo insieme diventa comune. Quello che si tiene fermo e' ogni
-     quanto esce UNA epica o UNA leggendaria, non quale. */
-  epico:       {peso: 1.6, eti:'EPICA',       col:'#C77BFF'},
-  leggendario: {peso: 0.5, eti:'LEGGENDARIA', col:'#FFC845'}
+     quanto esce UNA epica o UNA leggendaria, non quale.
+     Frequenze volute: una epica ogni 31 creature, una leggendaria ogni 43.
+     Da qui i pesi. Notare che il peso della singola leggendaria e' piu' alto
+     di quello della singola epica: le leggendarie sono cinque contro otto, e
+     per far uscire la fascia quasi altrettanto spesso ogni sua specie deve
+     pesare di piu'. E' voluto, non un errore di battitura. */
+  epico:       {peso: 3.22, eti:'EPICA',       col:'#C77BFF'},
+  leggendario: {peso: 3.71, eti:'LEGGENDARIA', col:'#FFC845'}
 };
 const ORDINE_FASCE = ['comune','frequente','rara','rarissima','epico','leggendario'];
 const RANGO = {
@@ -3235,6 +3265,122 @@ function direzioneLibera(c){
   } else newWanderTarget(c);
 }
 
+
+/* ==========================================================================
+   L'INCONTRO — quattro tempi
+   --------------------------------------------------------------------------
+   Prima due creature che si incontravano si giravano intorno e basta. Ora
+   fanno una cosa breve e riconoscibile: si accorgono l'una dell'altra e fanno
+   un saltello indietro, si guardano un istante, si scambiano un gesto — uno
+   a caso fra quattro — e poi ognuna per la sua strada.
+   Il gesto lo decide una sola delle due, quella che aggancia per prima, e lo
+   passa all'altra: se lo scegliessero tutte e due una saluterebbe mentre
+   l'altra balla. Anche l'orologio e' condiviso, per la stessa ragione.
+   ========================================================================== */
+const GESTI = ['saluto','cinque','stretta','balletto'];
+const RITO_TEMPI = { scarto:.42, sguardo:.55 };      // il gesto dura 2-3 s
+
+function avviaRito(a, b){
+  const gesto = GESTI[Math.floor(Math.random()*GESTI.length)];
+  const durata = 2 + Math.random();                  // due o tre secondi
+  const r = { fase:'avvicina', t:0, gesto, durata, insieme:0 };
+  a.rito = r; b.rito = r;                            // lo stesso oggetto, non due copie
+  r.a = a; r.b = b;
+}
+
+function chiudiRito(c){
+  const r = c.rito;
+  if(!r) return;
+  [r.a, r.b].forEach(x => {
+    if(!x) return;
+    x.rito = null; x.socialCon = null; x.socialOff = 3 + Math.random()*3;
+    if(x.stato === 'sociale'){ x.stato = 'vaga'; newWanderTarget(x); x.t = 3 + Math.random()*4; }
+  });
+}
+
+/* Fa avanzare la coreografia. Torna la direzione in cui la creatura si sta
+   muovendo, o null se in questo momento sta ferma a fare il gesto. */
+function passoRito(c, dt){
+  const r = c.rito, o = c.socialCon;
+  if(!r || !o){ chiudiRito(c); return null; }
+  /* Se l'altra ha lasciato il rito per i fatti suoi, questo non ha piu' senso. */
+  if(o.rito !== r || o.stato !== 'sociale'){ chiudiRito(c); return null; }
+  /* L'orologio e' uno solo per la coppia e deve avanzare una volta per
+     fotogramma, non due. Prima lo faceva avanzare sempre la stessa delle due:
+     se quella usciva dallo stato sociale — un urto, un salto — l'orologio si
+     fermava e l'altra restava appesa a salutare per dieci secondi. Qui lo
+     muove la prima che passa, e la seconda chiude il giro. */
+  if(!r.mosso){ r.mosso = c; r.t += dt; r.tot = (r.tot||0) + dt; }
+  else if(r.mosso !== c) r.mosso = null;
+  /* Rete di sicurezza: qualunque cosa succeda — l'altra che sale su un
+     mobile, un ostacolo che compare in mezzo — dopo dodici secondi il rito
+     si chiude. Senza, due creature potrebbero restare agganciate per sempre. */
+  if((r.tot || 0) > 12){ chiudiRito(c); return null; }
+
+  const d = new THREE.Vector3().subVectors(o.pos, c.pos); d.y = 0;
+  const dist = d.length();
+  if(dist > 1e-4) d.normalize();
+  const liv = c.standY + (c.hover || 0);
+  const passo = (dir, k) => {
+    const nx = c.pos.x + dir.x*k, nz = c.pos.z + dir.z*k;
+    if(blockerAt(nx, nz, liv, c.raggio*.55)) return false;
+    const top = surfaceAt(nx, nz, c.standY, -c.raggio*.9);
+    if(top < c.standY - STEP_UP) return false;
+    c.pos.set(nx, top, nz); c.standY = top;
+    return true;
+  };
+
+  if(r.fase === 'avvicina'){
+    if(dist > .58){
+      c.dir.copy(d); passo(d, c.vel*.85*dt);
+      if(r.t > 7){ chiudiRito(c); return null; }     // non ci si arriva: si lascia perdere
+      return d;
+    }
+    if(r.fase === 'avvicina'){ r.fase = 'scarto'; r.t = 0; }
+    return null;
+  }
+
+  if(r.fase === 'scarto'){
+    /* Il saltello indietro: piccolo, un terzo di secondo, e non si scavalca
+       niente — se dietro c'e' un muro si limita a fermarsi. */
+    const u = Math.min(1, r.t / RITO_TEMPI.scarto);
+    c.ritoSalto = Math.sin(u*Math.PI) * .55;
+    const indietro = d.clone().multiplyScalar(-1);
+    passo(indietro, c.vel*1.5*dt*(1-u));
+    c.dir.copy(d);
+    if(r.t >= RITO_TEMPI.scarto){ r.fase = 'sguardo'; r.t = 0; }
+    return null;
+  }
+
+  if(r.fase === 'sguardo'){
+    c.ritoSalto = 0;
+    c.dir.copy(d);
+    if(r.t >= RITO_TEMPI.sguardo){ r.fase = 'gesto'; r.t = 0; }
+    return null;
+  }
+
+  if(r.fase === 'gesto'){
+    c.dir.copy(d);
+    /* La fine si guarda per prima. Prima stava in fondo, dopo il ramo del
+       balletto che pero' usciva con un return suo: risultato, il balletto era
+       l'unico gesto che non finiva mai da solo — durava dieci secondi invece
+       di tre e lo chiudeva la rete di sicurezza. */
+    const finito = r.t >= r.durata;
+    /* Nel balletto ci si gira intorno; negli altri gesti si sta faccia a
+       faccia, che e' quello che rende leggibile un saluto. */
+    if(r.gesto === 'balletto' && !finito){
+      const perp = new THREE.Vector3(-d.z, 0, d.x).multiplyScalar(c.orbita || 1);
+      if(!passo(perp, c.vel*.55*dt)) c.orbita = -(c.orbita || 1);
+      return perp;
+    }
+    if(r.gesto === 'stretta' && dist > .46 && !finito) passo(d, c.vel*.3*dt);
+    if(finito) chiudiRito(c);
+    return null;
+  }
+  chiudiRito(c);
+  return null;
+}
+
 /* Prima l'incontro sociale era due creature immobili che si guardavano.
    Ora si raggiungono e poi si girano attorno: e' movimento, non una pausa. */
 function avvicina(c, dt){
@@ -3492,8 +3638,12 @@ function updateCreature(c, dt, camPos){
     c.t -= dt;
     if(c.t <= 0){
       if(c.stato === 'sociale'){
-        c.stato='vaga'; c.socialCon=null; newWanderTarget(c); c.t=3+Math.random()*4;
-        c.socialOff = 7 + Math.random()*5;        // poi si separano davvero
+        /* Se la coreografia e' ancora in corso la si chiude come si deve,
+           dando a tutte e due la loro nuova meta: troncarla qui lascerebbe
+           l'altra ferma a guardare il vuoto. */
+        if(c.rito) chiudiRito(c);
+        else { c.stato='vaga'; c.socialCon=null; newWanderTarget(c); c.t=3+Math.random()*4;
+        c.socialOff = 7 + Math.random()*5; }      // poi si separano davvero
       }
       else if(c.stato === 'vaga'){
         /* Tre volte su quattro incatena una nuova meta invece di fermarsi:
@@ -3514,10 +3664,11 @@ function updateCreature(c, dt, camPos){
         if(o === c || o.stato === 'salto' || o.socialOff > 0) continue;
         if(Math.abs(o.standY - c.standY) < .3 &&
            c.pos.distanceTo(o.pos) < 2.2 && Math.random() < dt*.5){
-          c.stato='sociale'; c.socialCon=o; c.meta=null; c.t=3+Math.random()*2.5;
+          c.stato='sociale'; c.socialCon=o; c.meta=null; c.t=14;
           c.orbita = Math.random()<.5 ? 1 : -1;
           o.stato='sociale'; o.socialCon=c; o.meta=null; o.t=c.t;
           o.orbita = -c.orbita;
+          avviaRito(c, o);
           break;
         }
       }
@@ -3526,7 +3677,7 @@ function updateCreature(c, dt, camPos){
 
   let moveDir = null;
   if(c.stato === 'vaga') moveDir = stepMove(c, dt);
-  else if(c.stato === 'sociale') moveDir = avvicina(c, dt);
+  else if(c.stato === 'sociale') moveDir = c.rito ? passoRito(c, dt) : avvicina(c, dt);
 
   /* Distanza minima ridotta a 30 cm: serve solo a non farle finire dentro
      l'obiettivo. A 90 cm, com'era prima, non riuscivi mai ad avvicinarti
@@ -3681,6 +3832,9 @@ function animate(c, dt){
   const soc   = c.stato === 'sociale';
   const salta = c.stato === 'salto';
   const vaga  = c.stato === 'vaga';
+  /* Mentre si stanno ancora raggiungendo camminano e basta: la coreografia
+     comincia da quando sono arrivate. */
+  const rito  = (c.rito && c.rito.fase !== 'avvicina') ? c.rito : null;
 
   if(c.kind === 'mesh'){
     const P = c.parti || {}, s = c.spec, hov = c.hover || 0;
@@ -3694,9 +3848,32 @@ function animate(c, dt){
       if(u < .16){ stiro = .74 + u*1.6; bob = -s.scala*.08; pitch = -.25*u; }
       else if(u < .82){ stiro = 1.14; pitch = -.3 + (u-.16)*.55; }
       else { const w = (u-.82)/.18; stiro = 1.14 - w*.42; pitch = .1 - w*.1; }
+      /* Quattro tempi, come salta una bestia vera:
+         raccolta  — tutte le zampe si piegano insieme, il ginocchio a fondo
+         stacco    — si distendono di scatto, e' la spinta
+         volo      — restano raccolte sotto il corpo
+         arrivo    — si ripiegano ad assorbire il colpo e si rialzano
+         Prima erano ferme in una posa sola per tutto il salto. */
+      let anca, ginocchio, presto;
+      if(u < .16){                       // raccolta
+        const w = u/.16;
+        anca = -.30*w; ginocchio = 1.75*w; presto = 16;
+      } else if(u < .34){                // stacco: la spinta
+        const w = (u-.16)/.18;
+        anca = -.30 + w*.92; ginocchio = 1.75 * (1-w) * (1-w); presto = 30;
+      } else if(u < .74){                // in volo, zampe raccolte
+        anca = .18; ginocchio = .95; presto = 8;
+      } else if(u < .90){                // arrivo: assorbe
+        const w = (u-.74)/.16;
+        anca = .18 - w*.34; ginocchio = .95 + w*.75; presto = 22;
+      } else {                           // si rialza
+        const w = (u-.90)/.10;
+        anca = -.16*(1-w); ginocchio = 1.70*(1-w) + .06; presto = 14;
+      }
       if(P.zampe) P.zampe.forEach(z => {
-        const chiusa = u < .82 ? -1.0 : -.2;
-        z.rotation.x += (chiusa - z.rotation.x) * Math.min(1, dt*14);
+        z.rotation.x += (anca - z.rotation.x) * Math.min(1, dt*presto);
+        const gin = z.userData.gin;
+        if(gin) gin.rotation.x += (ginocchio - gin.rotation.x) * Math.min(1, dt*presto);
         if(z.userData.y0 !== undefined)
           z.position.y += (z.userData.y0 - z.position.y) * Math.min(1, dt*12);
       });
@@ -3707,8 +3884,101 @@ function animate(c, dt){
       if(P.zampe) P.zampe.forEach((z,i) => {
         const r = vaga ? -.5 : Math.sin(c.fase*1.4 + i)*.12;
         z.rotation.x += (r - z.rotation.x) * Math.min(1, dt*6);
+        const gin = z.userData.gin;
+        /* Chi vola tiene le zampe raccolte, non a stecca. */
+        if(gin){
+          const g = vaga ? .85 : .45 + Math.sin(c.fase*1.4 + i)*.12;
+          gin.rotation.x += (g - gin.rotation.x) * Math.min(1, dt*6);
+        }
         if(z.userData.y0 !== undefined)
           z.position.y += (z.userData.y0 - z.position.y) * Math.min(1, dt*12);
+      });
+
+    } else if(rito){
+      /* L'INCONTRO. Quattro gesti, ognuno con la sua andatura. Le zampe
+         davanti sono quelle che fanno il gesto — 'avanti' se lo ricorda ogni
+         zampa da quando e' stata costruita; le altre reggono. */
+      const F = rito.fase, tt = rito.t;
+      bob = c.ritoSalto ? c.ritoSalto * s.scala * .5 : 0;
+      let anca = 0, ginocchio = .12, alza = 0, presto = 12;
+      /* Non tutte hanno un arto da alzare: chi ha le zampe corte sotto il
+         corpo, o non ne ha per niente, il gesto lo deve fare col corpo.
+         Altrimenti resta ferma mentre l'altra saluta, e l'incontro sembra a
+         senso unico. Il Bombolotto era esattamente questo caso. */
+      const Zf = c.spec.forma && c.spec.forma.zampe;
+      const arti = (P.zampe || []).some(z => z.userData.arto) ||
+                   (Zf && Zf.n >= 4 && Zf.lung >= s.scala*1.6);
+      const conIlCorpo = !arti;
+
+      if(F === 'scarto'){
+        /* Si tira indietro sulle zampe, come chi fa un passo all'indietro
+           di soprassalto. */
+        pitch = .28 * Math.sin(Math.min(1, tt/RITO_TEMPI.scarto)*Math.PI);
+        anca = .42; ginocchio = .70; presto = 20;
+
+      } else if(F === 'sguardo'){
+        /* Si irrigidisce e guarda: solo il respiro. */
+        stiro = 1 + Math.sin(c.fase*3)*.02;
+        anca = 0; ginocchio = .10; presto = 9;
+
+      } else if(rito.gesto === 'saluto'){
+        /* Alza una zampa davanti e la fa oscillare. Chi non ce l'ha si
+           sbilancia da un lato e torna: e' un cenno lo stesso. */
+        alza = conIlCorpo ? 0 : 1; anca = 0; ginocchio = .12;
+        tilt = Math.sin(tt*5.5) * (conIlCorpo ? .30 : .06);
+        stiro = 1 + Math.sin(tt*5.5)*.02;
+        if(conIlCorpo) bob += Math.abs(Math.sin(tt*5.5)) * s.scala * .10;
+
+      } else if(rito.gesto === 'cinque'){
+        /* Tutte e due le zampe davanti su, e a meta' il colpo: un attimo di
+           scatto secco, che e' quello che fa leggere il gesto come un cinque
+           e non come uno che si stira. */
+        alza = conIlCorpo ? 0 : 2;
+        const battuta = Math.abs(Math.sin(tt*3.2));
+        stiro = 1 + battuta * (conIlCorpo ? .16 : .06);
+        bob  += battuta * s.scala * (conIlCorpo ? .40 : .10);
+        pitch = -battuta * (conIlCorpo ? .26 : .12);
+
+      } else if(rito.gesto === 'stretta'){
+        /* Una zampa avanti e su e giu' piano: la stretta di mano. */
+        alza = conIlCorpo ? 0 : 1;
+        if(conIlCorpo){
+          /* L'inchino: si abbassa e si rialza piano. */
+          const w = (Math.sin(tt*3.4)+1)/2;
+          stiro = 1 - w*.20; pitch = w*.30; bob -= w * s.scala * .05;
+        } else {
+          const scossa = Math.sin(tt*7.5);
+          pitch = scossa*.05;
+          bob  += Math.abs(scossa) * s.scala * .045;
+        }
+
+      } else {  /* balletto */
+        const ritmo = tt*6.2;
+        bob   += Math.abs(Math.sin(ritmo)) * s.scala * .14;
+        tilt   = Math.sin(ritmo*.5) * .22;
+        pitch  = Math.sin(ritmo) * .07;
+        stiro  = 1 + Math.sin(ritmo*2)*.05;
+        anca = Math.sin(ritmo)*.55; ginocchio = .45 + Math.abs(Math.cos(ritmo))*.5;
+        presto = 18;
+      }
+
+      if(P.zampe) P.zampe.forEach((z,i) => {
+        const davanti = z.userData.avanti === 1;
+        const lato = z.userData.lato || (i%2 ? 1 : -1);
+        let a = anca, g = ginocchio;
+        if(alza && davanti && (alza === 2 || lato > 0)){
+          /* La zampa alzata: l'anca la porta avanti e in alto, il ginocchio
+             resta piegato — un braccio teso e dritto sembrerebbe un palo. */
+          const on = rito.gesto === 'saluto' ? .5 + Math.sin(tt*5.5)*.5
+                   : rito.gesto === 'cinque' ? .55 + Math.abs(Math.sin(tt*3.2))*.45
+                   : .5 + Math.sin(tt*7.5)*.5;
+          a = -1.55 - on*.35; g = .85 - on*.45; presto = 16;
+        }
+        z.rotation.x += (a - z.rotation.x) * Math.min(1, dt*presto);
+        const gin = z.userData.gin;
+        if(gin) gin.rotation.x += (g - gin.rotation.x) * Math.min(1, dt*presto);
+        if(z.userData.y0 !== undefined)
+          z.position.y += (z.userData.y0 - z.position.y) * Math.min(1, dt*10);
       });
 
     } else if(vaga || soc){
@@ -3726,12 +3996,19 @@ function animate(c, dt){
       pitch = Math.sin(passo*2) * .02;
       if(P.zampe) P.zampe.forEach((z,i) => {
         const ph = z.userData.fase === undefined ? i*1.7 : z.userData.fase;
-        const a = Math.sin(passo + ph);
-        z.rotation.x = a * .82;
-        /* La zampa che va avanti si stacca da terra: senza questo si vede
-           una gamba che struscia, non un passo. */
+        const t = passo + ph;
+        const a = Math.sin(t);
+        z.rotation.x = a * .78;
+        /* Il ginocchio lavora meta' ciclo. Quando la zampa e' a terra e
+           spinge indietro resta quasi dritta, che e' come regge il peso un
+           animale vero; quando torna avanti si piega, altrimenti lo stinco
+           striscerebbe sul pavimento. Il massimo della piega cade a meta'
+           del richiamo, non agli estremi: per questo il coseno. */
+        const gin = z.userData.gin;
+        if(gin) gin.rotation.x = Math.max(0, Math.cos(t)) * 1.05 + .06;
+        /* E il piede si stacca da terra, se no si vede struscio, non passo. */
         if(z.userData.y0 !== undefined)
-          z.position.y = z.userData.y0 + Math.max(0, a) * s.scala * .075;
+          z.position.y = z.userData.y0 + Math.max(0, a) * s.scala * .055;
       });
 
     } else {
@@ -3743,8 +4020,11 @@ function animate(c, dt){
       if(c.stato === 'urto')    pitch = .22 * Math.max(0, c.reagisce/(c.reagisceTot||1));
       if(c.stato === 'avvista') pitch = -.10;
       const rZ = c.stato === 'urto' ? .35 : 0;
+      const gZ = c.stato === 'urto' ? .55 : .06;   // ginocchio quasi dritto, mai bloccato
       if(P.zampe) P.zampe.forEach(z => {
         z.rotation.x += (rZ - z.rotation.x)*Math.min(1, dt*7);
+        const gin = z.userData.gin;
+        if(gin) gin.rotation.x += (gZ - gin.rotation.x)*Math.min(1, dt*7);
         if(z.userData.y0 !== undefined)
           z.position.y += (z.userData.y0 - z.position.y) * Math.min(1, dt*10);
       });
@@ -3836,7 +4116,35 @@ function animate(c, dt){
     const vola = !!c.spec.vola;
     const cadenza = 5.0 + (c.spec.vel || .4) * 3.2;
     let su = 0, ondeggio = 0, stiro = 1;
-    if(salta){
+    if(rito){
+      /* Le otto disegnate non hanno zampe da alzare: il gesto lo fanno col
+         corpo. Un disegno che salta, si inchina o dondola a tempo si legge
+         lo stesso — quello che non si puo' fare e' dare il cinque. */
+      const F = rito.fase, tt = rito.t;
+      if(F === 'scarto'){
+        su = Math.sin(Math.min(1, tt/RITO_TEMPI.scarto)*Math.PI) * corpo * .30;
+        stiro = 1.08;
+      } else if(F === 'sguardo'){
+        stiro = 1 + Math.sin(c.fase*3)*.02;
+      } else if(rito.gesto === 'saluto'){
+        /* Si sbilancia da un lato e torna: un cenno. */
+        ondeggio = Math.sin(tt*5.5)*.30;
+        su = Math.abs(Math.sin(tt*5.5)) * corpo * .06;
+      } else if(rito.gesto === 'cinque'){
+        /* Un balzo secco verso l'altra, ripetuto. */
+        const b = Math.abs(Math.sin(tt*3.2));
+        su = b * corpo * .34; stiro = 1 + b*.10;
+      } else if(rito.gesto === 'stretta'){
+        /* L'inchino: si abbassa e si rialza piano. */
+        const w = (Math.sin(tt*3.4)+1)/2;
+        stiro = 1 - w*.18; su = -w * corpo * .04; ondeggio = w*.10;
+      } else {  /* balletto */
+        const ritmo = tt*6.2;
+        su = Math.abs(Math.sin(ritmo)) * corpo * .26;
+        ondeggio = Math.sin(ritmo*.5) * .34;
+        stiro = 1 + Math.sin(ritmo*2)*.07;
+      }
+    } else if(salta){
       const u = c.jump ? Math.min(1, c.jump.u) : 1;
       stiro = u < .16 ? .80 + u*1.3 : (u > .84 ? .88 + (1-u)*.75 : 1.10);
     } else if(vola){
@@ -4256,7 +4564,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v55';
+const BUILD = 'v58';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
