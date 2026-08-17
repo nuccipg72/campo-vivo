@@ -2365,13 +2365,55 @@ function nasce(camPos, camQ){
   return true;
 }
 
+/* ==========================================================================
+   RARITA'
+   Se escono tutte con la stessa frequenza, vederne una vale quanto vederne
+   un'altra e il bestiario diventa un catalogo. Con quattro fasce invece
+   incontrare un Lampiro e' un fatto. Il criterio non e' estetico ma di
+   silhouette: piu' una forma e' riconoscibile a colpo d'occhio da lontano,
+   piu' e' rara, cosi' quello che si nota da lontano vale la pena di
+   avvicinarsi a guardarlo.
+   ========================================================================== */
+const FASCE = {
+  comune:     {peso:100, eti:'comune',      col:'#7f8b9c'},
+  frequente:  {peso: 52, eti:'poco comune', col:'#63C7A6'},
+  rara:       {peso: 20, eti:'rara',        col:'#6FA8FF'},
+  rarissima:  {peso:  8, eti:'rarissima',   col:'#FF7BD5'}
+};
+const RANGO = {
+  // le piu' anonime: corpi tondi, poche appendici, si confondono col fondo
+  vellutino:'comune', ranocchiello:'comune', muschide:'comune', girinolo:'comune',
+  // riconoscibili da vicino, banali da lontano
+  corridore:'frequente', bombolotto:'frequente', scudonte:'frequente',
+  palmizio:'frequente', fischietto:'frequente',
+  // sagome che si distinguono a tre metri: corna, collo lungo, ali diurne
+  cornetta:'rara', zampalunga:'rara', alavolpe:'rara', piumotto:'rara',
+  /* Le due che si accendono, piu' il bruco: e' l'unico corpo a segmenti del
+     bestiario, otto zampe e venti centimetri, e camminando ondeggia in un modo
+     che nessun'altra specie ha. Incontrarne una deve essere un fatto. */
+  lampiro:'rarissima', nottolina:'rarissima', bruchetto:'rarissima'
+};
+SPECIES.forEach(s => { s.rango = RANGO[s.id] || 'frequente'; });
+const PESO_TOT = SPECIES.reduce((t, s) => t + FASCE[s.rango].peso, 0);
+
+/* Estrazione a pesi: un solo numero a caso, poi si scorre finche' non si
+   esaurisce. Niente cicli di rifiuto, niente tabelle ripetute. */
+function specieACaso(){
+  let r = Math.random() * PESO_TOT;
+  for(const s of SPECIES){
+    r -= FASCE[s.rango].peso;
+    if(r <= 0) return s;
+  }
+  return SPECIES[SPECIES.length - 1];
+}
+
 function aggiungi(pos){
   /* Le immagini importate convivono con le specie procedurali invece di
      sostituirle: bastava una foto perche' il bestiario sparisse. */
   const daSchedario = library.length > 0 && Math.random() < WORLD.quotaImportate;
   const c = daSchedario
     ? makeSprite(library[Math.floor(Math.random()*library.length)], pos)
-    : makeMesh(SPECIES[Math.floor(Math.random()*SPECIES.length)], pos);
+    : makeMesh(specieACaso(), pos);
   c.pos.copy(pos); c.standY = pos.y; c.ancora.copy(pos);
   const pip = document.createElement('div');
   pip.className = 'pip';
@@ -2380,6 +2422,14 @@ function aggiungi(pos){
   els.ticks.parentNode.appendChild(pip);
   c.pip = pip;
   creatures.push(c);
+  /* Un incontro raro va annunciato, altrimenti passa inosservato proprio
+     perche' e' raro: nasce dietro le spalle e non te ne accorgi mai. */
+  if(c.spec && c.spec.rango === 'rarissima'){
+    toast('è comparso un ' + c.nome + ': è rarissimo');
+    ev('rarissima in scena: ' + c.nome);
+  } else if(c.spec && c.spec.rango === 'rara'){
+    ev('rara in scena: ' + c.nome);
+  }
   return c;
 }
 
@@ -3176,8 +3226,11 @@ function updateTape(){
     const quota = near.standY > WORLD.floorY + .1
       ? ' &middot; su un rialzo' : '';
     const indole = near.indole < .34 ? 'curiosa' : (near.indole > .62 ? 'diffidente' : '');
+    const f = near.spec && FASCE[near.spec.rango];
+    const rar = (f && near.spec.rango !== 'comune')
+      ? ' &middot; <b style="color:' + f.col + '">' + f.eti + '</b>' : '';
     els.tMeta.innerHTML = nearD.toFixed(1) + ' m &middot; ' + st + quota +
-      (indole ? ' &middot; ' + indole : '') +
+      (indole ? ' &middot; ' + indole : '') + rar +
       ' <em>&middot; ' + near.latino + '</em>';
   }
 }
@@ -3376,6 +3429,9 @@ function updateDiag(){
                  GRID.fusi + ' aggiornate · ' + GRID.mobili + ' in movimento · ' +
                  GRID.travolte + ' spinte · ' + GRID.spuntoni + ' spuntoni scartati  ' +
                  flag(DEPTH.tarata && GRID.celle.size === 0 ? 'VUOTA' : '') : '') + '\n' +
+    'rarita       ' + ['comune','frequente','rara','rarissima'].map(r =>
+        FASCE[r].eti + ' <b>' + creatures.filter(c => c.spec && c.spec.rango === r).length +
+        '</b>').join(' · ') + '\n' +
     'ostacoli     <b>' + WORLD.obstacles.length + '</b> · ' +
       WORLD.obstacles.filter(o=>o.orfano).length + ' a memoria\n' +
     'orientamento <b>' + (orientEnabled ? 'attivo' : 'assente') + '</b>' +
@@ -3512,7 +3568,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v46';
+const BUILD = 'v48';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
