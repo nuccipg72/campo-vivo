@@ -2926,13 +2926,15 @@ const FASCE = {
   /* Con otto epiche e cinque leggendarie il peso per specie scende, se no la
      fascia nel suo insieme diventa comune. Quello che si tiene fermo e' ogni
      quanto esce UNA epica o UNA leggendaria, non quale.
-     Frequenze volute: una epica ogni 31 creature, una leggendaria ogni 43.
-     Da qui i pesi. Notare che il peso della singola leggendaria e' piu' alto
-     di quello della singola epica: le leggendarie sono cinque contro otto, e
-     per far uscire la fascia quasi altrettanto spesso ogni sua specie deve
-     pesare di piu'. E' voluto, non un errore di battitura. */
-  epico:       {peso: 3.22, eti:'EPICA',       col:'#C77BFF'},
-  leggendario: {peso: 3.71, eti:'LEGGENDARIA', col:'#FFC845'}
+     Frequenze volute: una epica ogni 18 creature, una leggendaria ogni 22.
+     Da qui i pesi. Due cose da sapere guardando questi numeri, tutte e due
+     volute e non sviste: il peso della singola leggendaria e' piu' alto di
+     quello della singola epica (sono cinque contro otto, e per far uscire la
+     fascia altrettanto spesso ogni sua specie deve pesare di piu'), e le due
+     fasce alte sono ora piu' frequenti della rarissima, che esce una ogni 26.
+     L'ordine delle etichette e quello delle probabilita' non coincidono. */
+  epico:       {peso: 5.88, eti:'EPICA',       col:'#C77BFF'},
+  leggendario: {peso: 7.69, eti:'LEGGENDARIA', col:'#FFC845'}
 };
 const ORDINE_FASCE = ['comune','frequente','rara','rarissima','epico','leggendario'];
 const RANGO = {
@@ -4564,7 +4566,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v58';
+const BUILD = 'v59';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
