@@ -448,7 +448,7 @@ const SPECIES = [
   {id:'alavolpe', nome:'Alavolpe', latino:'Vulpala nubila', corpo:0xD98452, dettaglio:0xFFE3C4,
    scala:.17, vel:.86, agile:1.5, emissivo:.15, vola:true, hover:.62,
    forma:{corpo:{tipo:'icosa',d:1,sx:.8,sy:.75,sz:1.25,y:1.1}, testa:{r:.5,y:1.45,z:-.85,muso:.5},
-          orecchie:{tipo:'punta',r:.2,h:.55}, ali:{n:2,w:1.9,h:1.0,tipo:'membrana',y:1.3,z:.1},
+          orecchie:{tipo:'punta',r:.2,h:.55}, ali:{n:2,w:1.65,h:1.0,tipo:'membrana',y:1.3,z:.1},
           coda:{tipo:'ciuffo',lung:1.1,r:.26,y:1.05,z:1.0}, zampe:{n:2,lung:.5,sp:.07,ax:.3,az:.2,y:.8}}},
 
   {id:'scudonte', nome:'Scudonte', latino:'Scutum tardum', corpo:0x4E5A63, dettaglio:0x9AA7A0,
@@ -497,7 +497,7 @@ const SPECIES = [
   {id:'nottolina', nome:'Nottolina', latino:'Vespera minima', corpo:0x4A3C55, dettaglio:0xB79FD1,
    scala:.13, vel:.98, agile:1.6, emissivo:.2, vola:true, hover:.85,
    forma:{corpo:{tipo:'uovo',sx:.8,sy:1,sz:.9,y:1.0}, testa:{r:.42,y:1.5,z:-.3,muso:.3},
-          orecchie:{tipo:'lunga',r:.22,h:.85}, ali:{n:2,w:2.2,h:.95,tipo:'membrana',y:1.15,z:0},
+          orecchie:{tipo:'lunga',r:.22,h:.85}, ali:{n:2,w:1.75,h:.95,tipo:'membrana',y:1.15,z:0},
           zampe:{n:2,lung:.35,sp:.05,ax:.22,az:0,y:.7}}},
 
   {id:'ranocchiello', nome:'Ranocchiello', latino:'Ranula saliens', corpo:0x7FBF6A, dettaglio:0xEDF5C9,
@@ -515,6 +515,60 @@ const SPECIES = [
    forma:{corpo:{tipo:'icosa',d:1,sx:1.05,sy:1.15,sz:1,y:1.0}, testa:{r:.62,y:1.75,z:-.1,occhioni:true},
           orecchie:{tipo:'punta',r:.16,h:.38}, ali:{n:2,w:1.4,h:1.0,tipo:'piuma',y:1.15,z:.05},
           zampe:{n:2,lung:.4,sp:.07,ax:.24,az:0,y:.5}}},
+
+  /* --- LE CINQUE NUOVE ---------------------------------------------------
+     Tre epiche e due leggendarie. Il criterio e' lo stesso di prima portato
+     all'estremo: piu' e' rara, piu' la sagoma deve essere inconfondibile a
+     distanza. Le leggendarie hanno una silhouette che nessun'altra ha —
+     collo lungo con quattro ali, corna con la lanterna — e si accendono. */
+
+  {id:'spinodorso', nome:'Spinodorso', latino:'Spinula regia', corpo:0x6B5B7B, dettaglio:0xD8C4A0,
+   scala:.22, vel:.34, agile:.70, emissivo:0,
+   forma:{corpo:{tipo:'icosa',d:1,sx:.95,sy:.70,sz:1.0,y:.76},
+          guscio:{sx:1.20,sy:.98,sz:1.25,y:.96},
+          aculei:{n:9,r:.12,lung:.75},
+          testa:{r:.3,y:.68,z:-1.1,muso:.34},
+          corna:{r:.12,lung:.62},
+          zampe:{n:6,lung:.42,sp:.1,ax:.62,az:.5,y:.42}}},
+
+  {id:'meduseo', nome:'Meduseo', latino:'Medusa aerea', corpo:0x7FD6E8, dettaglio:0xFFE8F2,
+   scala:.17, vel:.50, agile:1.10, emissivo:.5, vola:true, hover:.70,
+   forma:{corpo:{tipo:'disco',r:.9,h:.85,y:1.3},
+          testa:{r:.24,y:1.02,z:-.38,occhioni:true},
+          ali:{n:4,w:1.5,h:1.1,tipo:'velo',y:1.4,z:0},
+          /* i filamenti che pendono sono zampe lunghe e sottili: e' la stessa
+             parte, usata per quello che serve qui */
+          zampe:{n:6,lung:1.6,sp:.045,ax:.52,az:.44,y:.98}}},
+
+  {id:'falcetto', nome:'Falcetto', latino:'Falcula rapida', corpo:0xE08A5A, dettaglio:0x3B2A22,
+   scala:.19, vel:1.30, agile:1.50, emissivo:0, salto:true,
+   forma:{corpo:{tipo:'icosa',d:1,sx:.80,sy:.85,sz:1.40,y:1.0},
+          testa:{r:.3,y:1.2,z:-1.28,muso:.5},
+          cresta:true,
+          orecchie:{tipo:'lunga',r:.15,h:.55},
+          coda:{r:.2,lung:1.7,y:.95,z:.9},
+          zampe:{n:2,lung:.8,sp:.1,ax:.32,az:.1,y:.8}}},
+
+  {id:'reginalba', nome:'Reginalba', latino:'Regina candida', corpo:0xF4F1E6, dettaglio:0xEBC26A,
+   scala:.21, vel:.70, agile:1.30, emissivo:.35, vola:true, hover:.55,
+   forma:{corpo:{tipo:'uovo',sx:.85,sy:.90,sz:.85,y:1.0},
+          collo:{r:.18,lung:1.3,y:1.5,z:-.45},
+          testa:{r:.26,y:2.25,z:-.95,occhioni:true},
+          cresta:true,
+          ali:{n:4,w:2.1,h:1.15,tipo:'piuma',y:1.35,z:.05},
+          coda:{tipo:'pinna',r:.55,lung:1.0,y:.9,z:.85},
+          zampe:{n:2,lung:.85,sp:.075,ax:.26,az:.1,y:.7}}},
+
+  {id:'ombracorno', nome:'Ombracorno', latino:'Umbra cornuta', corpo:0x2A2436, dettaglio:0xFF8A3D,
+   scala:.20, vel:.80, agile:1.20, emissivo:.8, vola:true, hover:.95,
+   forma:{corpo:{tipo:'icosa',d:1,sx:1.05,sy:.95,sz:1.05,y:1.0},
+          testa:{r:.34,y:1.15,z:-1.0,occhioni:true},
+          corna:{r:.14,lung:1.05},
+          orecchie:{tipo:'punta',r:.2,h:.55},
+          lanterna:true,
+          ali:{n:2,w:2.0,h:1.15,tipo:'membrana',y:1.35,z:.05},
+          coda:{r:.2,lung:1.55,y:.9,z:.85},
+          zampe:{n:2,lung:.45,sp:.1,ax:.35,az:.12,y:.5}}},
 ];
 
 /* Il mondo condiviso. floorY cambia col modo: in WebXR il pavimento e'
@@ -1024,7 +1078,7 @@ function inFoot(ob, x, z, pad){
 const GRID = {
   on: true, cella: .12, celle: new Map(), obCache: new Map(), tmp: new Map(),
   minN: 4, maxCelle: 90000, periodo: .12, clock: 0, gen: 0,
-  portata: 4.5, vicino: 1.25, soglia: .18, lato: 48, latoFisso: 0, disegno: 0,
+  portata: 4.5, vicino: 1.25, soglia: .18, scavate: 0, lato: 48, latoFisso: 0, disegno: 0,
   /* Due strati nella stessa cella. Quello lento (h) e' la stanza: sale piano,
      scende piano, si fida solo di cio' che resta fermo. Quello veloce (hv) e'
      chi passa: vale una passata sola e scade dopo sette decimi di secondo.
@@ -1728,6 +1782,33 @@ function occlusione(frame, camPos){
   DEPTH.campioni = camp; DEPTH.occluse = occl;
 }
 
+/* Ogni lettura di profondita' dimostra due cose: che in fondo al raggio c'e'
+   qualcosa, e che lungo tutto il raggio non c'e' niente. La seconda vale
+   quanto la prima ed e' quella che corregge gli errori: senza, un rilievo
+   sbagliato resta li' per sempre perche' nessuna lettura futura lo tocca.
+   Si abbassa per gradi e non di colpo: se e' una lettura sballata a passare
+   di li', il mobile vero risale in tre o quattro passate. */
+let scavate = 0;
+const _sv = new THREE.Vector3();
+function scava(cx, cy, cz, fine, D){
+  const dx = fine.x - cx, dy = fine.y - cy, dz = fine.z - cz;
+  const passo = .16 / Math.max(D, .001);          // 16 cm per volta lungo il raggio
+  const stop = 1 - .30 / Math.max(D, .001);       // ci si ferma prima del bersaglio
+  for(let t = .35 / Math.max(D, .001); t < stop; t += passo){
+    const qx = cx + dx*t, qz = cz + dz*t;
+    const k = gkey(qx, qz);
+    if(k < 0) continue;
+    const c = GRID.celle.get(k);
+    if(!c || c.n < 2) continue;
+    const quota = (cy + dy*t) - WORLD.floorY;     // altezza del raggio qui
+    if(c.h <= quota + .10) continue;              // non sporge: nessuna smentita
+    c.h += (quota - c.h) * .35;
+    c.tv = -1e9; c.mob = 1;                       // e non e' nemmeno "qualcuno che passa"
+    if(c.al > 0) c.al--;
+    scavate++;
+  }
+}
+
 /* Riempimento della griglia: ~2300 letture di profondita' per passata, otto
    passate al secondo. Ogni lettura viene riportata nel mondo e assegnata a una
    cella; per cella si tiene il SECONDO valore piu' alto della passata, non il
@@ -1755,7 +1836,7 @@ function scandaglia(frame, dt){
   const p00 = P[0], p11 = P[5], p02 = P[8], p12 = P[9];
   if(!(Math.abs(p00) > 1e-6) || !(Math.abs(p11) > 1e-6)) return;
   const M = cam.matrixWorld;
-  const cx0 = M.elements[12], cz0 = M.elements[14];
+  const cx0 = M.elements[12], cy0 = M.elements[13], cz0 = M.elements[14];
 
   /* Il costo e' tutto qui dentro: una lettura per texel campionato. Se gli
      fps calano si scende di passo invece di far scattare la scena. */
@@ -1800,10 +1881,23 @@ function scandaglia(frame, dt){
       const t = tmp.get(k);
       if(t === undefined) tmp.set(k, {a: alt, b: -9, n: 1});
       else { t.n++; if(alt > t.a){ t.b = t.a; t.a = alt; } else if(alt > t.b) t.b = alt; }
+
+      /* SCAVO DELLO SPAZIO VUOTO.
+         Fin qui una lettura diceva una cosa sola: "qui c'e' una superficie".
+         Ma dice anche il resto: se il raggio e' arrivato fin li', tutto cio'
+         che ha attraversato per strada e' vuoto. Ed e' proprio questo che
+         mancava: una colonna fantasma in mezzo alla stanza non veniva mai
+         smentita, perche' i raggi che la avrebbero contraddetta le passano
+         attraverso e vanno a cadere in un'ALTRA cella. Nessuno tornava mai a
+         dire "li' non c'e' niente".
+         Qui il raggio viene ripercorso all'indietro: ogni cella che sporge
+         sopra la sua traiettoria e' impossibile, e viene abbassata. */
+      if((ix + iy) % 4 === 0 && D > 1.2) scava(cx0, cy0, cz0, _gv, D);
     }
   }
 
   let fusi = 0, mobili = 0, spuntoni = 0;
+  GRID.scavate = scavate; scavate = 0;
   const ora = GRID.ora = performance.now();
 
   /* Valore di ogni cella in questa passata, per poterci guardare accanto.
@@ -1945,6 +2039,33 @@ function disegnaGriglia(){
   gridCloud.geometry.attributes.position.needsUpdate = true;
   gridCloud.geometry.attributes.color.needsUpdate = true;
   gridCloud.visible = WORLD.wire;
+}
+
+/* Una creatura a trenta centimetri dall'obiettivo non e' piu' una creatura:
+   e' una parete di colore che copre mezzo schermo. Le ali, che sono superfici
+   sottili e chiare, da quella distanza si leggono come lastre appoggiate sulla
+   scena — e infatti venivano scambiate per muri fantasma. Sotto i 65 cm
+   sbiadisce, sotto i 30 sparisce: tanto a quella distanza non si capiva
+   comunque cosa fosse. */
+/* Il metro giusto non e' la distanza ma quanto schermo occupa: una creatura
+   di 20 cm a mezzo metro si guarda volentieri, una da 45 alla stessa distanza
+   copre tutto. Quindi si misura il rapporto fra la sua altezza e la distanza,
+   che e' poi la sua dimensione apparente. */
+const INGOMBRO_OK = .55, INGOMBRO_MAX = 1.05;
+function sfumaVicine(camPos){
+  for(const c of creatures){
+    const d = Math.max(.05, c.pos.distanceTo(camPos));
+    const alt = c.kind === 'sprite' ? c.asset.altezza * (c.taglia||1)
+                                    : c.spec.scala * 2 * (c.taglia||1);
+    const ingombro = (alt + (c.hover||0)*.15) / d;
+    const k = ingombro <= INGOMBRO_OK ? 1
+      : Math.max(0, 1 - (ingombro - INGOMBRO_OK) / (INGOMBRO_MAX - INGOMBRO_OK));
+    c.vicinanza = k;
+    if(k < .999){
+      const ob = c.visObiettivo === undefined ? 1 : c.visObiettivo;
+      applicaVisibilita(c, Math.min(k, ob));
+    }
+  }
 }
 
 /* Sfumatura morbida: un passaggio netto sfarfalla a ogni tremolio della mano. */
@@ -2375,23 +2496,33 @@ function nasce(camPos, camQ){
    avvicinarsi a guardarlo.
    ========================================================================== */
 const FASCE = {
-  comune:     {peso:100, eti:'comune',      col:'#7f8b9c'},
-  frequente:  {peso: 52, eti:'poco comune', col:'#63C7A6'},
-  rara:       {peso: 20, eti:'rara',        col:'#6FA8FF'},
-  rarissima:  {peso:  8, eti:'rarissima',   col:'#FF7BD5'}
+  comune:      {peso:100,  eti:'comune',      col:'#7f8b9c'},
+  frequente:   {peso: 52,  eti:'poco comune', col:'#63C7A6'},
+  rara:        {peso: 20,  eti:'rara',        col:'#6FA8FF'},
+  rarissima:   {peso:  8,  eti:'rarissima',   col:'#FF7BD5'},
+  epico:       {peso:  4,  eti:'EPICA',       col:'#C77BFF'},
+  leggendario: {peso: 1.2, eti:'LEGGENDARIA', col:'#FFC845'}
 };
+const ORDINE_FASCE = ['comune','frequente','rara','rarissima','epico','leggendario'];
 const RANGO = {
   // le piu' anonime: corpi tondi, poche appendici, si confondono col fondo
   vellutino:'comune', ranocchiello:'comune', muschide:'comune', girinolo:'comune',
   // riconoscibili da vicino, banali da lontano
   corridore:'frequente', bombolotto:'frequente', scudonte:'frequente',
   palmizio:'frequente', fischietto:'frequente',
-  // sagome che si distinguono a tre metri: corna, collo lungo, ali diurne
-  cornetta:'rara', zampalunga:'rara', alavolpe:'rara', piumotto:'rara',
+  // sagome che si distinguono a tre metri: corna, ali diurne
+  cornetta:'rara', alavolpe:'rara', piumotto:'rara',
   /* Le due che si accendono, piu' il bruco: e' l'unico corpo a segmenti del
      bestiario, otto zampe e venti centimetri, e camminando ondeggia in un modo
      che nessun'altra specie ha. Incontrarne una deve essere un fatto. */
-  lampiro:'rarissima', nottolina:'rarissima', bruchetto:'rarissima'
+  lampiro:'rarissima', nottolina:'rarissima', bruchetto:'rarissima',
+  // la piu' alta del bestiario, mezzo metro su quattro trampoli: si vede
+  // arrivare da tutta la stanza
+  zampalunga:'rarissima',
+  // epiche: sagome che non somigliano a nessun'altra
+  spinodorso:'epico', meduseo:'epico', falcetto:'epico',
+  // leggendarie: collo lungo con quattro ali, corna con la lanterna
+  reginalba:'leggendario', ombracorno:'leggendario'
 };
 SPECIES.forEach(s => { s.rango = RANGO[s.id] || 'frequente'; });
 const PESO_TOT = SPECIES.reduce((t, s) => t + FASCE[s.rango].peso, 0);
@@ -2424,10 +2555,17 @@ function aggiungi(pos){
   creatures.push(c);
   /* Un incontro raro va annunciato, altrimenti passa inosservato proprio
      perche' e' raro: nasce dietro le spalle e non te ne accorgi mai. */
-  if(c.spec && c.spec.rango === 'rarissima'){
+  const rg = c.spec && c.spec.rango;
+  if(rg === 'leggendario'){
+    toast('★ ' + c.nome.toUpperCase() + ' ★  creatura leggendaria');
+    ev('LEGGENDARIA in scena: ' + c.nome);
+  } else if(rg === 'epico'){
+    toast('◆ ' + c.nome + ' — creatura epica');
+    ev('epica in scena: ' + c.nome);
+  } else if(rg === 'rarissima'){
     toast('è comparso un ' + c.nome + ': è rarissimo');
     ev('rarissima in scena: ' + c.nome);
-  } else if(c.spec && c.spec.rango === 'rara'){
+  } else if(rg === 'rara'){
     ev('rara in scena: ' + c.nome);
   }
   return c;
@@ -3427,9 +3565,10 @@ function updateDiag(){
     'griglia      <b>' + (GRID.on ? GRID.celle.size + ' celle' : 'spenta') + '</b>' +
       (GRID.on ? ' · ' + GRID.campioni + '/' + GRID.letture + ' letture buone · ' +
                  GRID.fusi + ' aggiornate · ' + GRID.mobili + ' in movimento · ' +
-                 GRID.travolte + ' spinte · ' + GRID.spuntoni + ' spuntoni scartati  ' +
+                 GRID.travolte + ' spinte · ' + GRID.spuntoni + ' spuntoni · ' +
+                 GRID.scavate + ' celle sgombrate  ' +
                  flag(DEPTH.tarata && GRID.celle.size === 0 ? 'VUOTA' : '') : '') + '\n' +
-    'rarita       ' + ['comune','frequente','rara','rarissima'].map(r =>
+    'rarita       ' + ORDINE_FASCE.map(r =>
         FASCE[r].eti + ' <b>' + creatures.filter(c => c.spec && c.spec.rango === r).length +
         '</b>').join(' · ') + '\n' +
     'ostacoli     <b>' + WORLD.obstacles.length + '</b> · ' +
@@ -3568,7 +3707,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v48';
+const BUILD = 'v50';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
@@ -3724,6 +3863,7 @@ function loopBody(time, frame){
   for(const c of creatures) updateCreature(c, dt, p);
   travolgi(dt);
   separaCreature();
+  sfumaVicine(p);
   for(const c of creatures) c.root.position.copy(c.pos);
   updateTape();
   renderer.render(scene, camera);
