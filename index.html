@@ -1384,6 +1384,7 @@ async function enterXR(){
   xrSession = session;
   WORLD.mode = 'xr'; WORLD.floorY = 0;
   svuotaGriglia();
+  rimescolaMarea();
   renderer.xr.enabled = true;
   renderer.xr.setReferenceSpaceType('local-floor');
   await renderer.xr.setSession(session);
@@ -2525,14 +2526,64 @@ const RANGO = {
   reginalba:'leggendario', ombracorno:'leggendario'
 };
 SPECIES.forEach(s => { s.rango = RANGO[s.id] || 'frequente'; });
-const PESO_TOT = SPECIES.reduce((t, s) => t + FASCE[s.rango].peso, 0);
+const PESO_BASE = SPECIES.reduce((t, s) => t + FASCE[s.rango].peso, 0);
+
+/* ---- LA MAREA -----------------------------------------------------------
+   Un peso fisso da' una frequenza media giusta ma una sensazione sbagliata:
+   sembra un contatore. Nella realta' certi giorni gli animali si vedono e
+   certi no, e non e' il caso a decidere ogni singolo incontro — cambia
+   proprio quanto sono comuni. Qui ogni fascia rara ha un moltiplicatore che
+   va e viene per conto suo, cambiando meta ogni mezzo minuto o giu' di li' e
+   scivolandoci sopra piano. Cosi' ci sono momenti fortunati e momenti magri,
+   e la stessa fascia oscilla dentro una forbice invece di stare ferma su un
+   numero. Le comuni non hanno marea: sono lo sfondo, e assorbono loro la
+   differenza. */
+const MAREA = {
+  /* Le forbici sono centrate su 1: cosi' la frequenza media resta quella
+     dichiarata e a cambiare e' solo il momento. Piu' la fascia e' rara, piu'
+     larga e' la forbice — su una leggendaria la differenza fra un momento
+     buono e uno magro deve sentirsi. */
+  rara:        {min:.76, max:1.24, ora:1, meta:1, t:0},
+  rarissima:   {min:.68, max:1.32, ora:1, meta:1, t:0},
+  epico:       {min:.55, max:1.45, ora:1, meta:1, t:0},
+  leggendario: {min:.42, max:1.58, ora:1, meta:1, t:0}
+};
+function rimescolaMarea(){
+  for(const k in MAREA){
+    const m = MAREA[k];
+    m.ora = m.meta = m.min + Math.random()*(m.max - m.min);
+    m.t = 18 + Math.random()*40;
+  }
+}
+function marea(dt){
+  for(const k in MAREA){
+    const m = MAREA[k];
+    m.t -= dt;
+    if(m.t <= 0){
+      m.meta = m.min + Math.random()*(m.max - m.min);
+      m.t = 25 + Math.random()*45;             // cambia idea ogni 25-70 secondi
+    }
+    m.ora += (m.meta - m.ora) * Math.min(1, dt*.28);
+  }
+}
+const pesoOra = s => FASCE[s.rango].peso * (MAREA[s.rango] ? MAREA[s.rango].ora : 1);
+
+/* Ogni quanto esce, adesso, una creatura di questa fascia. Serve al pannello
+   e serve a me per dire numeri veri invece che numeri di targa. */
+function ogniQuante(rango){
+  let tot = 0, mio = 0;
+  for(const s of SPECIES){ const p = pesoOra(s); tot += p; if(s.rango === rango) mio += p; }
+  return mio > 0 ? tot / mio : Infinity;
+}
 
 /* Estrazione a pesi: un solo numero a caso, poi si scorre finche' non si
    esaurisce. Niente cicli di rifiuto, niente tabelle ripetute. */
 function specieACaso(){
-  let r = Math.random() * PESO_TOT;
+  let tot = 0;
+  for(const s of SPECIES) tot += pesoOra(s);
+  let r = Math.random() * tot;
   for(const s of SPECIES){
-    r -= FASCE[s.rango].peso;
+    r -= pesoOra(s);
     if(r <= 0) return s;
   }
   return SPECIES[SPECIES.length - 1];
@@ -3571,6 +3622,8 @@ function updateDiag(){
     'rarita       ' + ORDINE_FASCE.map(r =>
         FASCE[r].eti + ' <b>' + creatures.filter(c => c.spec && c.spec.rango === r).length +
         '</b>').join(' · ') + '\n' +
+    'marea        ' + ['rarissima','epico','leggendario'].map(r =>
+        FASCE[r].eti + ' <b>1 ogni ' + Math.round(ogniQuante(r)) + '</b>').join(' · ') + '\n' +
     'ostacoli     <b>' + WORLD.obstacles.length + '</b> · ' +
       WORLD.obstacles.filter(o=>o.orfano).length + ' a memoria\n' +
     'orientamento <b>' + (orientEnabled ? 'attivo' : 'assente') + '</b>' +
@@ -3611,6 +3664,9 @@ function initSheet(){
   els.scrim.addEventListener('click', shut);
   els.popola.addEventListener('click', () => { seed(); shut(); });
   els.mescola.addEventListener('click', () => {
+    /* Rimescolare vuol dire anche ritirare i dadi della marea: e' il gesto
+       con cui vai a caccia di una leggendaria. */
+    rimescolaMarea();
     /* Rimpiazza qualche creatura procedurale con le tue schede, senza
        azzerare la scena. */
     let messe = 0;
@@ -3707,7 +3763,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v50';
+const BUILD = 'v51';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
@@ -3864,6 +3920,7 @@ function loopBody(time, frame){
   travolgi(dt);
   separaCreature();
   sfumaVicine(p);
+  marea(dt);
   for(const c of creatures) c.root.position.copy(c.pos);
   updateTape();
   renderer.render(scene, camera);
