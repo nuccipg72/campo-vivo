@@ -1246,6 +1246,12 @@ const _ghit = {c:null, x:0, z:0, h:0};
    letture: sotto il 60 per cento e' rumore e la cella vale come pavimento. */
 const confermata = c => c.al * 5 >= c.vi * 3;
 
+/* Oltre questa differenza di quota dentro una stessa casella da dodici
+   centimetri, quella non e' una superficie su cui appoggiare i piedi ma una
+   faccia che guarda te. Mezzo metro e' prudente: il bordo di un tavolo, visto
+   di taglio, arriva a venti o trenta centimetri e deve restare calpestabile. */
+const VERTICALE = .50;
+
 /* DA QUANTE PARTI L'HAI VISTA.
    Un sensore che sbaglia, sbaglia da una posizione precisa: su una parete
    scura, in controluce, da un certo angolo, la lettura torna accorciata e il
@@ -1320,12 +1326,31 @@ function plateau(x, z, alt, veloce){
   };
   const px = corsa(1,0), mx = corsa(-1,0), pz = corsa(0,1), mz = corsa(0,-1);
   const hw = (px + mx + 1) * s / 2, hd = (pz + mz + 1) * s / 2;
+  /* Faccia verticale? Lo dice la cella stessa e, per sicurezza, anche quelle
+     vicine che stanno alla stessa quota: un ripiano vero e' piatto per tutto
+     il suo ripiano, un muro e' verticale lungo tutta la sua faccia. */
+  const qui = GRID.celle.get(gkey(x, z));
+  let vert = !!(qui && qui.vert > VERTICALE);
+  if(!vert && qui){
+    let n = 0, alti = 0;
+    for(const [dx, dz] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const cc = GRID.celle.get(gkey(x + dx*s, z + dz*s));
+      if(!cc || cc.n < 2) continue;
+      n++; if(cc.vert > VERTICALE) alti++;
+    }
+    /* Il contagio dai vicini serve a non bucare una parete dove la lettura e'
+       venuta male, ma deve essere severo: bastava prima che tre vicini su
+       quattro fossero verticali e uno sgabello piccolo, circondato dai suoi
+       stessi bordi, veniva dichiarato muro. Ora li vuole tutti. */
+    if(n >= 3 && alti === n) vert = true;
+  }
   return {
     cx: x + (px - mx) * s / 2, cz: z + (pz - mz) * s / 2,
     hw: hw, hd: hd, rotY: 0, top: alt, base: 0,
     /* Su una persona non ci si sale: e' alta e si muove. Ci si sbatte contro
-       e si torna indietro, che e' cio' che si fa con un solido. */
-    walkable: !veloce && hw >= s*1.4 && hd >= s*1.4,
+       e si torna indietro, che e' cio' che si fa con un solido.
+       E non ci si sale nemmeno su una parete: largo non vuol dire piatto. */
+    walkable: !veloce && hw >= s*1.4 && hd >= s*1.4 && !vert,
     label: veloce ? 'presenza' : 'rilievo', src: 'griglia',
     griglia: true, mobile: !!veloce
   };
@@ -2202,6 +2227,13 @@ function segnalaMuro(x, z){
 /* Il nocciolo: una cella, la si guarda e si chiede al sensore cosa c'e'.
    Torna  1 se e' stata smentita, 0 se confermata o non verificabile. */
 function interroga(k, c, info, cam, P, M, ax){
+  /* Solo roba abbastanza alta. Su una scatola di trenta centimetri il raggio
+     che dovrebbe giudicarla la sfiora quasi radente, e basta un nulla di
+     rumore perche' sembri passarci oltre: cosi' l'interrogatorio cancellava
+     gli oggetti bassi veri. E tanto un oggetto basso non e' il problema —
+     una creatura ci sale sopra e buonanotte. I muri che danno fastidio sono
+     alti, e quelli si giudicano bene. */
+  if(c.h < .45) return 0;
   const ix = (k / 4096 | 0) - GRID_OFF, iz = (k % 4096) - GRID_OFF;
   const px = (ix + .5) * GRID.cella, pz = (iz + .5) * GRID.cella;
   /* Si mira a meta' altezza della colonna: la cima e' il punto peggio
@@ -2385,8 +2417,29 @@ function scandaglia(frame, dt){
       if(k < 0){ scarti++; continue; }
       buoni++;
       const t = tmp.get(k);
-      if(t === undefined) tmp.set(k, {a: alt, b: -9, n: 1});
-      else { t.n++; if(alt > t.a){ t.b = t.a; t.a = alt; } else if(alt > t.b) t.b = alt; }
+      /* Oltre al punto piu' alto si tiene anche il piu' BASSO visto in questa
+         passata. La differenza fra i due dice che cosa sia quella cella, e lo
+         dice senza sapere niente della stanza:
+         — un ripiano, un tavolo, un divano li vedi dall'alto, e tutti i punti
+           che ci cadono sopra stanno alla stessa quota: differenza piccola;
+         — una porta, un muro, il fianco di un armadio li vedi di faccia, e i
+           punti ci cadono sopra dal pavimento al soffitto, tutti nella stessa
+           casella in pianta: differenza grande.
+         Era questo a mancare. Senza, una porta alta un metro e mezzo e larga
+         ottanta e' indistinguibile da un tavolo alto un metro e mezzo, e le
+         creature ci salivano sopra a mezz'aria. */
+      /* Il minimo si conta solo SOPRA il pavimento. Senza questo accorgimento
+         il bordo di qualunque tavolo sembrava una parete: nella stessa casella
+         cadono il ripiano e il pavimento sotto, e la differenza fra i due e'
+         grande quanto quella di un muro. Escluso il pavimento, restano solo le
+         facce vere. */
+      const sopra = alt > .12;
+      if(t === undefined) tmp.set(k, {a: alt, b: -9, lo: sopra ? alt : 9, n: 1});
+      else {
+        t.n++;
+        if(alt > t.a){ t.b = t.a; t.a = alt; } else if(alt > t.b) t.b = alt;
+        if(sopra && alt < t.lo) t.lo = alt;
+      }
 
       /* SCAVO DELLO SPAZIO VUOTO.
          Fin qui una lettura diceva una cosa sola: "qui c'e' una superficie".
@@ -2446,7 +2499,7 @@ function scandaglia(frame, dt){
       /* ko = quante volte questa cella e' stata smentita da una lettura che
          le passava attraverso. Una cella recidiva ha gia' mentito: per
          risalire le si chiede molta piu' prova che a una vergine. */
-      c = {h: val, n: 0, hv: val, tv: -1e9, mob: 0, su: 0, vi: 0, al: 0, ko: 0, dirs: 0};
+      c = {h: val, n: 0, hv: val, tv: -1e9, mob: 0, su: 0, vi: 0, al: 0, ko: 0, dirs: 0, vert: 0};
       GRID.celle.set(k, c);
     }
     /* Strato veloce: valore grezzo dell'ultima passata, senza smorzamento.
@@ -2505,6 +2558,16 @@ function scandaglia(frame, dt){
         ((k % 4096) - GRID_OFF + .5) * GRID.cella - cz0);
     }
     if(c.vi > 60){ c.vi >>= 1; c.al >>= 1; }
+    /* Quanto e' verticale: zero su un ripiano, alto su una parete. Si tiene
+       il massimo visto di recente, smorzato, perche' basta un'occhiata di
+       sbieco a far sembrare piatto un muro e non deve bastare quella a farci
+       salire sopra una creatura. */
+    if(v.n >= 2 && v.lo < 8 && v.a > .12){
+      const disp = Math.max(0, v.a - v.lo);
+      c.vert = Math.max(disp, (c.vert || 0) * .96);
+    } else if(v.a <= .12){
+      c.vert = (c.vert || 0) * .9;        // qui c'e' solo pavimento: si dimentica
+    }
     c.n = Math.min(60, c.n + v.n);
     fusi++;
   });
@@ -5071,7 +5134,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v63';
+const BUILD = 'v64';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
