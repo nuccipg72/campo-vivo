@@ -2,7 +2,7 @@
    Rete prima, cache come rete di scorta: online prendi sempre l'ultima
    versione pubblicata, offline parte comunque l'ultima che hai aperto.
    Il contrario (cache prima) ti bloccherebbe su una versione vecchia. */
-const CACHE = 'campo-vivo-v69';
+const CACHE = 'campo-vivo-v70';
 const SHELL = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', e => {

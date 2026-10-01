@@ -1769,6 +1769,7 @@ async function enterXR(){
 
   xrSession = session;
   WORLD.mode = 'xr'; WORLD.floorY = 0;
+  xrAttiva = true;
   svuotaGriglia();
   rimescolaMarea();
   renderer.xr.enabled = true;
@@ -1806,11 +1807,16 @@ async function enterXR(){
     setChip();
     if(XR_OK) els.arAgain.style.display = 'block';
     reopenFeed();
-    ev('SESSIONE AR TERMINATA');
-    window.__fatal('sessione AR terminata',
-      'chiusa dopo ' + (performance.now()/1000).toFixed(1) + ' s\n' +
-      'pose valide ' + PERF.pose + ', nulle ' + PERF.noPose +
-      '\nfps minimo ' + PERF.fpsMin + ', ostacoli ' + WORLD.obstacles.length);
+    ev('SESSIONE AR TERMINATA dopo ' + (performance.now()/1000).toFixed(1) + ' s · ' +
+       'pose ' + PERF.pose + '/' + PERF.noPose + ' · fps min ' + PERF.fpsMin);
+    /* Uscire dall'AR e' una cosa normale: succede quando chiudi la vista,
+       quando fai uno screenshot, quando passi a un'altra app o blocchi lo
+       schermo. Finora pero' veniva annunciata con lo stesso pannello rosso
+       degli errori gravi, e chi usava l'app credeva che si fosse bloccata —
+       e invece l'aveva solo messa in pausa lui, magari proprio per
+       fotografarla. Ora e' un avviso, e si riparte da li'. */
+    xrAttiva = false;
+    toast('sessione AR chiusa · tocca "Riprendi AR" per rientrare');
   });
 
   session.addEventListener('visibilitychange', () => {
@@ -1910,6 +1916,7 @@ function scandagliaMaglia(frame, dt){
 }
 
 let planeClock = 0;
+let xrAttiva = false;
 
 /* ARCore rivede i piani in continuazione mentre ti guardi intorno. Prima qui
    si buttava via l'ostacolo e se ne creava uno nuovo a ogni singolo cambiamento:
@@ -5480,7 +5487,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v69';
+const BUILD = 'v70';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
@@ -5777,6 +5784,9 @@ async function announce(){
    e sapere che si e' bloccato il disegno e non la fotocamera. */
 setInterval(() => {
   if(document.hidden || !lastBeat) return;
+  /* Se la sessione AR e' finita il ciclo e' fermo perche' DEVE esserlo: non
+     e' un inceppamento, e dirlo col pannello rosso spaventava e basta. */
+  if(!xrAttiva) return;
   const gap = performance.now() - lastBeat;
   if(gap > 3000 && !stalloDetto){
     stalloDetto = true;
