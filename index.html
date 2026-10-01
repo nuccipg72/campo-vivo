@@ -1254,6 +1254,18 @@ const _ghit = {c:null, x:0, z:0, h:0};
    letture: sotto il 60 per cento e' rumore e la cella vale come pavimento. */
 const confermata = c => c.al * 5 >= c.vi * 3;
 
+/* QUANTO DEVE ESSERE STATA COERENTE.
+   Un mobile vero risponde "sono in rilievo" quasi tutte le volte che lo
+   guardi. Un abbaglio del sensore risponde di si' solo una volta su due o
+   tre. Nei muri invisibili segnalati a mano le celle colpevoli stavano fra il
+   59 e il 77 per cento; il divano di una stanza vera sta sopra il 90.
+   Da vicino basta il sessanta per cento, perche' li' la misura e' buona e un
+   oggetto puo' essere mezzo nascosto. Da lontano si pretende molto di piu':
+   e' proprio dove il sensore sbaglia, quindi serve che insista. */
+const coerenzaRichiesta = d =>
+  d <= 1.6 ? .60 : d >= 3.2 ? .88 : .60 + (d - 1.6) * .175;
+const coerente = (c, d) => c.vi < 6 || c.al >= c.vi * coerenzaRichiesta(d);
+
 /* Oltre questa differenza di quota dentro una stessa casella da dodici
    centimetri, quella non e' una superficie su cui appoggiare i piedi ma una
    faccia che guarda te. Mezzo metro e' prudente: il bordo di un tavolo, visto
@@ -1435,6 +1447,10 @@ function gridAt(x, z, pad, veloce){
        deve averlo dimostrato piu' volte. */
     const fresca = veloce && (GRID.ora - c.tv < GRID.vita) && c.hv > c.h;
     const a = fresca ? c.hv : c.h;
+    /* La distanza da cui viene il valore che si sta usando. */
+    const daQuanto = fresca
+      ? (c.dv === undefined ? 99 : c.dv)
+      : (c.dmin === undefined ? 99 : c.dmin);
     if(!fresca && a > GRID.soglia && !confermata(c)) continue;
     /* Una cella gia' smentita almeno una volta non torna a bloccare finche'
        non si fa vedere da due direzioni diverse: e' la prova che non e' un
@@ -1442,11 +1458,12 @@ function gridAt(x, z, pad, veloce){
     if(!fresca && a > GRID.soglia && c.ko > 0 && quantiSettori(c.dirs) < 2) continue;
     /* E un rilievo vale solo se e' piu' alto dell'errore possibile alla
        distanza da cui l'hai guardato. Vale anche per lo strato veloce, quello
-       che serve a riconoscere le persone: cinque dei muri invisibili
-       segnalati a mano erano marcati "qualcuno sta passando di qui", e non
-       c'era nessuno — erano letture lontane e sbagliate che quello strato
-       lasciava passare senza chiedere conferma a nessuno. */
-    if(a < sogliaCredibile(c.dmin === undefined ? 99 : c.dmin)) continue;
+       che serve a riconoscere le persone: era la porta da cui entravano i
+       muri invisibili peggiori, perche' salta ogni conferma per definizione. */
+    if(a < sogliaCredibile(daQuanto)) continue;
+    /* E deve essere stata coerente: piu' l'hai vista da lontano, piu' spesso
+       deve aver detto la stessa cosa. */
+    if(!fresca && a > GRID.soglia && !coerente(c, daQuanto)) continue;
     if(!best || a > bh){ best = c; bh = a; bx = px; bz = pz; }
   }
   if(!best) return null;
@@ -2775,8 +2792,28 @@ function scandaglia(frame, dt){
        deve essere largo. Uno spuntone solitario e' rumore e viene ignorato. */
     const largo = val <= GRID.soglia || compagne(k, val) >= 2;
     if(!largo) spuntoni++;
-    if(v.n >= 3 && largo && val > c.h + .20){ c.tv = ora; c.mob = 1; mobili++; }
+    /* Lo strato veloce serve a riconoscere una persona che ti passa davanti:
+       salta ogni conferma, perche' una persona non ha il tempo di farsi
+       confermare. Ma proprio per questo e' la porta da cui entrano i muri
+       invisibili peggiori — quelli che nessun filtro riesce poi a smentire.
+       Nei segni piantati a mano le celle colpevoli erano quasi tutte marcate
+       "qualcuno sta passando", a tre o quattro metri di distanza, dove non
+       c'era nessuno: a quella distanza il sensore sbaglia di mezzo metro e un
+       suo abbaglio diventa una persona che non esiste.
+       Una persona con cui una creatura puo' scontrarsi e' vicina. Oltre i due
+       metri e mezzo lo strato veloce non si attiva piu': se li' c'e' davvero
+       qualcuno, basta che resti fermo un paio di secondi ed entra nella mappa
+       normale, come un mobile. */
+    const dqui = vicinanza.get(k);
+    if(v.n >= 3 && largo && val > c.h + .20 && dqui !== undefined && dqui < 2.5){
+      c.tv = ora; c.mob = 1; mobili++;
+    }
     c.hv = val;
+    /* Da che distanza e' stata presa la lettura grezza di questa passata.
+       Serve a giudicarla con lo stesso metro del resto: una lettura fatta da
+       quattro metri non puo' dichiarare un gradino di mezzo metro, nemmeno
+       passando per lo strato veloce. */
+    c.dv = vicinanza.get(k);
     /* Lo strato lento sale in fretta ma a scatti limitati e scende piano, e
        sale SOLO se anche la passata precedente diceva la stessa cosa. Cosi'
        una persona che attraversa non lascia dietro di se' una scia di
@@ -2798,7 +2835,19 @@ function scandaglia(frame, dt){
          lo stesso muro fantasma rinasceva appena lo scavo smetteva. */
       const pretesa = 2 + Math.min(3, c.ko);
       const freno = 1 / (1 + Math.min(3, c.ko) * .6);
-      if(largo && (val <= GRID.soglia || c.su >= pretesa) && Math.abs(val - prec) < .15)
+      /* E soprattutto: ad ALZARE una cella ha diritto solo chi la sta
+         guardando da vicino quanto il piu' vicino che l'ha mai guardata.
+         Il sensore sbaglia in eccesso con la distanza, sempre nello stesso
+         verso; se ogni lettura potesse alzare, basterebbe guardare una volta
+         da quattro metri perche' il bordo di un tappeto diventi un gradino da
+         mezzo metro — e infatti i muri invisibili segnalati a mano erano
+         quasi tutti cosi': cose vere, gonfiate da lontano.
+         Le letture lontane restano utili: possono confermare e possono
+         abbassare, perche' in difetto il sensore non sbaglia. */
+      const vista = vicinanza.get(k);
+      const puoAlzare = vista === undefined || vista <= (c.dmin === undefined ? 99 : c.dmin) + .5;
+      if(puoAlzare && largo && (val <= GRID.soglia || c.su >= pretesa) &&
+         Math.abs(val - prec) < .15)
         c.h += Math.min(val - c.h, .30) * .45 * freno;
     } else {
       /* Una cella che era stata segnata come "qualcuno sta passando" torna
@@ -2834,7 +2883,23 @@ function scandaglia(frame, dt){
       c.vert = (c.vert || 0) * .9;        // qui c'e' solo pavimento: si dimentica
     }
     const dq = vicinanza.get(k);
-    if(dq !== undefined && dq < (c.dmin === undefined ? 99 : c.dmin)) c.dmin = dq;
+    const vecchiaD = c.dmin === undefined ? 99 : c.dmin;
+    if(dq !== undefined && dq < vecchiaD){
+      /* TI SEI AVVICINATO: si rimisura da capo.
+         Finora, una cella gonfiata da quattro metri si teneva quell'altezza
+         anche quando le passavi accanto: la misura buona arrivava, ma trovava
+         la casella gia' convinta e la spostava di pochi centimetri per volta.
+         Era questo a rendere i muri invisibili cosi' testardi — li vedevi da
+         vicino e restavano li'. Quando la distanza di osservazione cala di
+         quasi un metro, quello che la cella credeva di sapere non vale piu':
+         vince la lettura nuova, che e' fatta meglio. */
+      if(dq < vecchiaD - .8 && vecchiaD < 90){
+        c.h = val; c.hv = val; c.su = 0;
+        c.vi = Math.min(c.vi, 6); c.al = Math.min(c.al, val > GRID.soglia ? 6 : 0);
+        c.tv = -1e9; c.mob = 0;
+      }
+      c.dmin = dq;
+    }
     c.n = Math.min(60, c.n + v.n);
     fusi++;
   });
@@ -5415,7 +5480,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v68';
+const BUILD = 'v69';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 

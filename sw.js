@@ -2,7 +2,7 @@
    Rete prima, cache come rete di scorta: online prendi sempre l'ultima
    versione pubblicata, offline parte comunque l'ultima che hai aperto.
    Il contrario (cache prima) ti bloccherebbe su una versione vecchia. */
-const CACHE = 'campo-vivo-v68';
+const CACHE = 'campo-vivo-v69';
 const SHELL = ['./', './index.html', './manifest.webmanifest'];
 
 self.addEventListener('install', e => {
@@ -22,8 +22,16 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if(url.origin !== location.origin) return;      // font e CDN non li tocco
 
+  /* Il documento si chiede SEMPRE al server, scavalcando la cache del
+     browser. GitHub Pages dice a Chrome di tenersi la pagina per dieci
+     minuti, e in quei dieci minuti il telefono serviva la versione vecchia
+     senza nemmeno provare a chiedere: tu caricavi l'aggiornamento e l'app
+     continuava a partire com'era. Con 'reload' la richiesta parte davvero, e
+     se la rete non c'e' si ricade sulla copia salvata come prima. */
+  const documento = req.mode === 'navigate' || /\/(index\.html)?(\?|$)/.test(url.pathname + url.search);
+
   e.respondWith(
-    fetch(req).then(res => {
+    fetch(documento ? new Request(req, {cache: 'reload'}) : req).then(res => {
       const copia = res.clone();
       caches.open(CACHE).then(c => c.put(req, copia)).catch(() => {});
       return res;
