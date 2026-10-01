@@ -392,7 +392,13 @@
       </div>
       <div class="optrow">
         <input type="checkbox" id="optWire">
-        <label for="optWire">Mostra il reticolo della geometria rilevata. <b style="color:#5FD3C4">Azzurro</b> = volume che blocca il passaggio, <b style="color:#FFA92E">arancione</b> = volume che nasconde ciò che sta dietro, <b style="color:#7CFF6B">verde</b> = rilievo misurato dal sensore di profondità (più chiaro = più alto), <b style="color:#FF5747">rosso</b> = qualcosa che si sta muovendo lì adesso, grigio scuro = pavimento già mappato.</label>
+        <label for="optWire">Mostra la retinatura di quello che l'app ha capito della stanza, così vedi dove sbaglia senza doverglielo dire.
+        <b style="color:#7CFF6B">Verde</b> = superficie su cui le creature camminano (più chiaro = più alta),
+        <b style="color:#B85CFF">viola</b> = faccia verticale, muro o anta: ci sbattono contro e non ci salgono,
+        <b style="color:#FF9E2E">arancione</b> = rilievo già smentito dal sensore, sorvegliato speciale,
+        <b style="color:#FF5747">rosso</b> = qualcosa che si muove lì adesso,
+        grigio scuro = pavimento.
+        <b style="color:#5FD3C4">Azzurro</b> e <b style="color:#FFA92E">arancio</b> a scatola = volumi che bloccano o nascondono.</label>
       </div>
     </div>
   </div>
@@ -1368,12 +1374,35 @@ function gridOb(x, z, alt, veloce){
 }
 
 /* La superficie calpestabile piu' alta sotto (x,z), non oltre maxY. */
+/* IL RITAGLIO DEI PIANI.
+   ARCore non restituisce il bordo vero di un ripiano: lo allarga. Il piano
+   del tuo bancone continua nel vuoto per mezzo metro oltre il bancone, e una
+   creatura che ci cammina sopra finisce sospesa in aria davanti alla parete.
+   Era questo a mettere le creature per aria, non un muro invisibile: un
+   PAVIMENTO invisibile.
+   Qui il piano viene ritagliato con quello che il sensore di profondita' ha
+   misurato davvero: se in quel punto la mappa dice che non c'e' niente a
+   quell'altezza — e lo dice avendoci guardato abbastanza — il piano li' non
+   vale. Dove la mappa non sa ancora niente il piano resta valido, perche'
+   togliere un ripiano vero e' peggio che tenerne uno finto. */
+function pianoReggeQui(ob, x, z){
+  if(ob.src !== 'webxr') return true;            // mappato a mano o dalla griglia: si fida
+  if(!GRID.on || !GRID.celle.size) return true;  // senza profondita' non si giudica
+  const k = gkey(x, z);
+  if(k < 0) return true;
+  const c = GRID.celle.get(k);
+  if(!c || c.n < GRID.minN * 2) return true;     // guardato poco: nel dubbio regge
+  /* La mappa dice che li' la roba arriva molto piu' in basso del piano. */
+  return c.h > ob.top - .22;
+}
+
 function surfaceAt(x, z, maxY, pad){
   let best = WORLD.floorY;
   for(const ob of WORLD.obstacles){
     if(!ob.walkable) continue;
     const t = WORLD.floorY + ob.top;
-    if(t <= maxY + STEP_UP && t > best && inFoot(ob, x, z, pad || 0)) best = t;
+    if(t <= maxY + STEP_UP && t > best && inFoot(ob, x, z, pad || 0)
+       && pianoReggeQui(ob, x, z)) best = t;
   }
   const g = gridAt(x, z, 0, false);          // per calpestare conta solo la stanza ferma
   if(g && g.c.h > GRID.soglia){
@@ -1387,7 +1416,8 @@ function surfaceAt(x, z, maxY, pad){
 function blockerAt(x, z, standY, pad){
   for(const ob of WORLD.obstacles){
     const t = WORLD.floorY + ob.top;
-    if(t > standY + STEP_UP && inFoot(ob, x, z, pad || 0)) return ob;
+    if(t > standY + STEP_UP && inFoot(ob, x, z, pad || 0)
+       && pianoReggeQui(ob, x, z)) return ob;
   }
   /* La soglia per la griglia e' piu' alta di STEP_UP: il rumore del sensore
      a quattro metri vale qualche centimetro, e con una soglia stretta il
@@ -1549,7 +1579,12 @@ async function detectCaps(){
 }
 
 async function enterXR(){
-  const opt = ['depth-sensing','plane-detection','hit-test','dom-overlay','anchors','light-estimation'];
+  /* 'mesh-detection' chiede al sistema la maglia tridimensionale della
+     stanza invece dei soli piani: dove c'e', e' molto piu' fedele — segue i
+     bordi veri dei mobili invece di allargarli in rettangoli. Sta in fondo
+     alla lista perche' se il browser non la conosce rifiuta tutta la
+     sessione, e il ciclo qui sotto sfoltisce dalla coda. */
+  const opt = ['depth-sensing','plane-detection','hit-test','dom-overlay','anchors','light-estimation','mesh-detection'];
   let session = null;
   // provo con tutto, poi sfoltisco: un browser che non conosce una feature rifiuta l'intera sessione
   for(let i = opt.length; i >= 0; i--){
@@ -1643,6 +1678,74 @@ function scartaPiano(plane, known){
   if(known && known.ob) dropObstacle(known.ob);
   seenPlanes.set(plane, {stamp:plane.lastChangedTime, ob:null});
 }
+
+/* ==========================================================================
+   LA MAGLIA DELL'AMBIENTE
+   --------------------------------------------------------------------------
+   Alcuni telefoni, oltre ai piani, danno la maglia tridimensionale della
+   stanza: triangoli che seguono i bordi veri dei mobili invece di allargarli
+   in rettangoli. Dove c'e', e' la cosa migliore che il sistema sappia dire, e
+   batte sia i piani sia la profondita' grezza.
+   Qui i suoi vertici vengono riversati nella stessa griglia di altezze che
+   l'app usa gia': niente di nuovo da imparare per il resto del programma, e
+   se il telefono la maglia non la da' tutto continua come prima.
+   ========================================================================== */
+const MESH = {c: 0, triangoli: 0, viste: new WeakSet(), ora: 0, disponibile: false};
+let meshClock = 0;
+
+function scandagliaMaglia(frame, dt){
+  if(!frame || !frame.detectedMeshes) return;
+  MESH.disponibile = true;
+  meshClock -= dt;
+  if(meshClock > 0) return;
+  meshClock = .45;
+
+  let nuove = 0, tri = 0;
+  frame.detectedMeshes.forEach(mesh => {
+    /* Solo quelle cambiate: una maglia ferma non va riletta ottanta volte. */
+    const segno = mesh.lastChangedTime;
+    if(MESH.viste.has(mesh) && MESH.viste.get === undefined){ /* WeakSet non tiene valori */ }
+    const pose = frame.getPose(mesh.meshSpace, xrRefSpace);
+    if(!pose) return;
+    const v = mesh.vertices, idx = mesh.indices;
+    if(!v || !v.length) return;
+    const p = pose.transform.position, o = pose.transform.orientation;
+    const q = new THREE.Quaternion(o.x, o.y, o.z, o.w);
+    const _p = new THREE.Vector3();
+    nuove++;
+    /* Un vertice ogni tre: la maglia e' fitta e la griglia ha celle da dodici
+       centimetri, prenderli tutti sarebbe lavoro buttato. */
+    for(let i = 0; i + 2 < v.length; i += 9){
+      _p.set(v[i], v[i+1], v[i+2]).applyQuaternion(q);
+      const wx = p.x + _p.x, wy = p.y + _p.y, wz = p.z + _p.z;
+      const alt = wy - WORLD.floorY;
+      if(alt < -.3 || alt > 2.6) continue;
+      const k = gkey(wx, wz);
+      if(k < 0) continue;
+      tri++;
+      let c = GRID.celle.get(k);
+      if(!c){
+        if(GRID.celle.size >= GRID.maxCelle) continue;
+        c = {h: Math.max(0, alt), n: 0, hv: Math.max(0, alt), tv: -1e9, mob: 0,
+             su: 0, vi: 0, al: 0, ko: 0, dirs: 0, vert: 0};
+        GRID.celle.set(k, c);
+      }
+      /* La maglia ha piu' credito della profondita' grezza: la cella sale
+         subito alla quota che dice lei, e scende altrettanto in fretta se la
+         maglia dice che li' non c'e' piu' niente. */
+      const q2 = Math.max(0, alt);
+      c.h += (q2 - c.h) * .55;
+      c.hv = c.h;
+      c.n = Math.min(60, c.n + 3);
+      c.vi += 1; if(q2 > GRID.soglia) c.al += 1;
+      if(c.vi > 60){ c.vi >>= 1; c.al >>= 1; }
+      c.dirs |= 255;                 // la maglia vale come visto da ogni parte
+      c.ko = 0;
+    }
+  });
+  MESH.c = nuove; MESH.triangoli = tri; MESH.ora = performance.now();
+}
+
 let planeClock = 0;
 
 /* ARCore rivede i piani in continuazione mentre ti guardi intorno. Prima qui
@@ -2623,7 +2726,11 @@ function disegnaGriglia(){
       col[n*3] = 1; col[n*3+1] = .34; col[n*3+2] = .30;
     } else if(c.h < GRID.soglia || !confermata(c)){   // pavimento, o rilievo non confermato
       col[n*3] = .16; col[n*3+1] = .30; col[n*3+2] = .36;
-    } else {                                     // rilievo: dal verde al giallo
+    } else if(c.vert > VERTICALE){               // faccia verticale: viola, non ci si sale
+      col[n*3] = .72; col[n*3+1] = .36; col[n*3+2] = 1;
+    } else if(c.ko > 1){                         // gia' smentita piu' volte: arancio, sorvegliata
+      col[n*3] = 1; col[n*3+1] = .62; col[n*3+2] = .18;
+    } else {                                     // ripiano su cui si cammina: dal verde al giallo
       const t = Math.min(1, (c.h - GRID.soglia) / 1.2);
       col[n*3] = .30 + t*.70; col[n*3+1] = 1; col[n*3+2] = .38 - t*.30;
     }
@@ -5019,7 +5126,8 @@ function setChip(){
   els.chip.classList.toggle('bad', PERF.lost);
   if(PERF.lost){ els.chipMode.textContent = 'contesto perso'; els.chipGeo.textContent = ''; return; }
   els.chipMode.textContent = (nomi[WORLD.mode] || '?') + ' ' + BUILD;
-  els.chipGeo.textContent = WORLD.mode === 'xr' ? 'piani automatici'
+  els.chipGeo.textContent = WORLD.mode === 'xr'
+    ? (MESH.disponibile ? 'maglia + piani' : 'piani automatici')
     : (WORLD.mode === 'desk' ? 'senza fotocamera' : 'mappa manuale');
 }
 
@@ -5134,7 +5242,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v64';
+const BUILD = 'v65';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
@@ -5250,6 +5358,9 @@ function loopBody(time, frame){
     try { occlusione(frame, camPose().p); }
     catch(e){ DEPTH.errori++; }
 
+    /* Se il telefono da' la maglia si usa quella per prima: e' piu' fedele
+       del sensore grezzo e ne corregge gli abbagli. */
+    try { scandagliaMaglia(frame, dt); } catch(e){ }
     try { scandaglia(frame, dt); }
     catch(e){ DEPTH.errori++; GRID.on = false; ev('griglia disattivata: ' + ((e && e.message) || e)); }
 
