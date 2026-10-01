@@ -80,10 +80,50 @@
   #chip{position:fixed;top:calc(env(safe-area-inset-top) + 60px);left:12px;z-index:6;
     font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);
     border:1px solid var(--line);padding:4px 8px;border-radius:2px;background:rgba(12,17,22,.7);
-    pointer-events:none;display:flex;gap:7px;align-items:center}
+    pointer-events:none;display:flex;gap:7px;align-items:center;
+    /* Il chip cresce con quello che ha da dire e su un telefono stretto
+       arrivava sotto il contatore, che sta nell'angolo opposto. Qui si ferma
+       prima: il contatore e' quello che si guarda, il chip e' diagnostica. */
+    max-width:calc(100vw - 144px);white-space:nowrap;overflow:hidden}
   #chip b{color:var(--sodium);font-weight:500;letter-spacing:.22em}
   #chip u{text-decoration:none;color:var(--probe)}
   #chip i{font-style:normal;color:var(--bone)}
+  /* Il contatore sta nell'angolo opposto al chip del modo, con lo stesso
+     linguaggio: non deve sembrare un pezzo di un'altra interfaccia. */
+  #conta{position:fixed;top:calc(env(safe-area-inset-top) + 60px);right:12px;z-index:6;
+    font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim);
+    border:1px solid var(--line);padding:5px 9px;border-radius:2px;
+    background:rgba(12,17,22,.7);pointer-events:none;text-align:right;
+    /* Larghezza fissa: con la riga delle rare piena il riquadro cresceva
+       fino a scavalcare il chip di sinistra. Il chip sa quanto spazio
+       lasciargli solo se questo non cambia mai misura. */
+    display:flex;flex-direction:column;gap:2px;align-items:flex-end;width:118px}
+  #conta b{color:var(--bone);font-weight:500;font-size:19px;line-height:1;
+    letter-spacing:.04em;font-variant-numeric:tabular-nums}
+  #conta i{font-style:normal;color:var(--sodium);font-size:8px}
+  #conta u{text-decoration:none;font-size:8px;letter-spacing:.10em;color:var(--dim);
+    display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+  #conta u s{text-decoration:none;font-variant-numeric:tabular-nums}
+  /* La barra della registrazione: sta in basso come la barra della mappa,
+     perche' e' la stessa cosa — stai usando l'app guardandoti intorno, non
+     leggendo un menu. */
+  #recbar{position:fixed;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 96px);
+    z-index:9;display:none;flex-direction:column;gap:8px;padding:11px 13px;
+    border:1px solid var(--line);border-radius:3px;background:rgba(9,13,17,.93)}
+  #recbar.on{display:flex}
+  #recTop{display:flex;justify-content:space-between;align-items:center;
+    font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+  #recSpia{width:9px;height:9px;border-radius:50%;background:#FF5747;
+    animation:pulsa 1.1s infinite;flex:none}
+  @keyframes pulsa{0%,100%{opacity:1}50%{opacity:.25}}
+  #recTempo{font-variant-numeric:tabular-nums;color:var(--bone);letter-spacing:.1em}
+  #recHint{font-size:11px;line-height:1.55;color:var(--dim)}
+  #recHint b{color:var(--sodium)}
+  #recRow{display:flex;gap:8px}
+  #recRow button{flex:1}
+  #recSegna{border-color:#FF5747;color:#FF5747}
+  #recConto{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--probe);
+    font-variant-numeric:tabular-nums}
   #chip.bad{border-color:var(--contact)}
   #chip.bad b{color:var(--contact)}
   #diag{font-size:10.5px;line-height:1.8;color:var(--dim);white-space:pre;
@@ -228,6 +268,12 @@
 
 <div id="tape" aria-hidden="true"><div id="ticks"></div><div id="centerline"></div></div>
 <div id="chip"><span>modo</span><b id="chipMode">—</b><u id="chipGeo"></u><i id="chipFps"></i></div>
+<div id="conta" aria-live="polite">
+  <span>comparse</span>
+  <b id="contaTot">0</b>
+  <i id="contaOra">nessuna in scena</i>
+  <u id="contaRare"></u>
+</div>
 
 <div id="crosshair"></div>
 
@@ -258,6 +304,18 @@
     <button id="openSheet">Schedario</button>
     <button id="reseed" class="ghost">Rigenera</button>
   </div>
+</div>
+
+<div id="recbar">
+  <div id="recTop"><b id="recSpia"></b><span id="recTempo">45s</span></div>
+  <div id="recHint">Gira lentamente su te stesso e cammina per la stanza.<br>
+    Quando <b>vedi una creatura bloccata da un muro che non esiste</b>,
+    inquadra quel punto e premi il tasto rosso.</div>
+  <div id="recRow">
+    <button id="recSegna" class="tiny">Qui non c'è niente</button>
+    <button id="recStop" class="tiny ghost">Ferma e salva</button>
+  </div>
+  <div id="recConto"></div>
 </div>
 
 <div id="toast"></div>
@@ -323,6 +381,15 @@
         <input type="checkbox" id="optGriglia" checked>
         <label for="optGriglia">Ricostruisci l'ambiente dal sensore di profondità, non solo dai piani rilevati: piante, poltrone e oggetti a terra diventano solidi con la loro sagoma vera. Togli e rimetti la spunta per svuotare la memoria della stanza.</label>
       </div>
+      <div class="optrow" style="align-items:flex-start">
+        <span style="color:#FF5747;font-size:15px;line-height:1">◉</span>
+        <label><b>Registra il sensore</b> — quarantacinque secondi di letture
+        vere del tuo telefono, salvate in un file. Serve a capire dove nascono
+        i muri invisibili: finora li ho corretti su una stanza simulata, non
+        sulla tua. Mentre registri, ogni volta che vedi una creatura fermarsi
+        contro il nulla, inquadra quel punto e premi il tasto rosso: quei
+        segni valgono piu' di tutto il resto del file.</label>
+      </div>
       <div class="optrow">
         <input type="checkbox" id="optWire">
         <label for="optWire">Mostra il reticolo della geometria rilevata. <b style="color:#5FD3C4">Azzurro</b> = volume che blocca il passaggio, <b style="color:#FFA92E">arancione</b> = volume che nasconde ciò che sta dietro, <b style="color:#7CFF6B">verde</b> = rilievo misurato dal sensore di profondità (più chiaro = più alto), <b style="color:#FF5747">rosso</b> = qualcosa che si sta muovendo lì adesso, grigio scuro = pavimento già mappato.</label>
@@ -330,6 +397,7 @@
     </div>
   </div>
   <footer>
+    <button id="recAvvia">Registra il sensore</button>
     <button id="mapStart">Mappa ambiente</button>
     <button id="mescola">Metti in scena</button>
     <button id="popola" class="key">Rigenera tutto</button>
@@ -668,7 +736,7 @@ const els = {};
 ['gate','start','err','feed','ticks','tName','tMeta','reseed','toast','sheet','scrim',
  'openSheet','closeSheet','drop','file','optKey','lib','empty','popola','capText',
  'chipMode','chipGeo','mapbar','mapStep','mapHint','presets','mapUndo','mapExit',
- 'mapStart','crosshair','obs','eyeH','eyeHv','optWire','mapBlurb','chipFps','diag','chip','arAgain','nCre','nCrev','optFlip','optOcc','optGriglia','optTondo','installa','quotaImp','quotaImpv','mescola','optVolumi']
+ 'mapStart','crosshair','obs','eyeH','eyeHv','optWire','mapBlurb','chipFps','diag','chip','arAgain','nCre','nCrev','optFlip','optOcc','optGriglia','optTondo','installa','quotaImp','quotaImpv','mescola','optVolumi','conta','contaTot','contaOra','contaRare','recbar','recTempo','recHint','recSegna','recStop','recConto','recAvvia']
  .forEach(k => els[k] = $(k));
 
 /* ==========================================================================
@@ -916,6 +984,7 @@ function renderLibrary(){
     card.querySelector('.kill').addEventListener('click', () => {
       creatures.filter(c => c.asset === a).forEach(c => { scene.remove(c.root); if(c.pip) c.pip.remove(); });
       creatures = creatures.filter(c => c.asset !== a);
+      aggiornaConta();
       library = library.filter(x => x !== a);
       cancellaScheda(a.id);
       renderLibrary();
@@ -1176,6 +1245,27 @@ const _ghit = {c:null, x:0, z:0, h:0};
 /* Un rilievo conta solo se il sensore lo conferma nella maggior parte delle
    letture: sotto il 60 per cento e' rumore e la cella vale come pavimento. */
 const confermata = c => c.al * 5 >= c.vi * 3;
+
+/* DA QUANTE PARTI L'HAI VISTA.
+   Un sensore che sbaglia, sbaglia da una posizione precisa: su una parete
+   scura, in controluce, da un certo angolo, la lettura torna accorciata e il
+   punto cade in mezzo alla stanza. Spostandoti di un metro quella stessa
+   parete si legge giusta. Ecco perche' lo scavo da solo non bastava: il muro
+   falso veniva cancellato guardandolo di lato e ricreato tornando a guardarlo
+   da dove nasceva, e si fermava a meta' strada in un equilibrio stabile.
+   Qui ogni cella tiene a mente da quali OTTO settori di provenienza e' stata
+   vista in rilievo. Una cella mai smentita vale anche da una direzione sola —
+   una parete la guardi sempre da dentro la stanza, non puoi girarci intorno.
+   Ma una cella che e' gia' stata contraddetta, per tornare a bloccare deve
+   farsi vedere da almeno due parti diverse. Un mobile vero ci riesce appena
+   fai due passi; un artefatto del sensore non ci riesce mai, perche' esiste
+   solo lungo quella linea di vista. */
+const settoreDa = (dx, dz) => (Math.atan2(dx, dz) * 4 / Math.PI + 8.5 | 0) & 7;
+const quantiSettori = m => {
+  let n = 0;
+  for(let i = 0; i < 8; i++) if(m & (1 << i)) n++;
+  return n;
+};
 /* pad > 0: chi cammina ha un raggio, quindi guarda anche le celle attorno e
    tiene la piu' alta. pad <= 0: solo la cella sotto i piedi. */
 function gridAt(x, z, pad, veloce){
@@ -1195,6 +1285,10 @@ function gridAt(x, z, pad, veloce){
     const fresca = veloce && (GRID.ora - c.tv < GRID.vita) && c.hv > c.h;
     const a = fresca ? c.hv : c.h;
     if(!fresca && a > GRID.soglia && !confermata(c)) continue;
+    /* Una cella gia' smentita almeno una volta non torna a bloccare finche'
+       non si fa vedere da due direzioni diverse: e' la prova che non e' un
+       artefatto di quella singola linea di vista. */
+    if(!fresca && a > GRID.soglia && c.ko > 0 && quantiSettori(c.dirs) < 2) continue;
     if(!best || a > bh){ best = c; bh = a; bx = px; bz = pz; }
   }
   if(!best) return null;
@@ -1864,7 +1958,12 @@ const _sv = new THREE.Vector3();
 function scava(cx, cy, cz, fine, D){
   const dx = fine.x - cx, dy = fine.y - cy, dz = fine.z - cz;
   const passo = .16 / Math.max(D, .001);          // 16 cm per volta lungo il raggio
-  const stop = 1 - .30 / Math.max(D, .001);       // ci si ferma prima del bersaglio
+  /* Ci si ferma ben prima del bersaglio. Prima erano trenta centimetri e non
+     bastavano: il sensore ha qualche punto percentuale di rumore, che a
+     quattro metri e mezzo vale una ventina di centimetri, e un raggio che
+     cade un po' oltre il muro si mette a scavare il muro stesso. Era questo
+     che mangiava le pareti vere. */
+  const stop = 1 - .48 / Math.max(D, .001);
   for(let t = .35 / Math.max(D, .001); t < stop; t += passo){
     const qx = cx + dx*t, qz = cz + dz*t;
     const k = gkey(qx, qz);
@@ -1872,10 +1971,19 @@ function scava(cx, cy, cz, fine, D){
     const c = GRID.celle.get(k);
     if(!c || c.n < 2) continue;
     const quota = (cy + dy*t) - WORLD.floorY;     // altezza del raggio qui
-    if(c.h <= quota + .10) continue;              // non sporge: nessuna smentita
-    c.h += (quota - c.h) * .35;
+    if(c.h <= quota + .18) continue;              // non sporge abbastanza: non prova niente
+    /* Chi si e' fatto vedere da tre parti diverse e in rilievo quasi sempre
+       e' un muro, non un abbaglio: lo si puo' limare, non demolire. Cosi' un
+       raggio radente non abbatte una parete, ma un fantasma — che da altre
+       direzioni non si e' mai visto — cade come prima. */
+    const solido = quantiSettori(c.dirs) >= 3 && c.al > 14;
+    c.h += (quota - c.h) * (solido ? .06 : .35);
+    if(solido){ scavate++; continue; }            // limata e basta: niente castigo
     c.tv = -1e9; c.mob = 1;                       // e non e' nemmeno "qualcuno che passa"
     if(c.al > 0) c.al--;
+    c.ko = Math.min(6, (c.ko || 0) + 1);          // segnata: ha gia' mentito una volta
+    /* Da questa parte si e' visto che non c'e': quel settore non vale piu'. */
+    c.dirs &= ~(1 << settoreDa(qx - cx, qz - cz));
     scavate++;
   }
 }
@@ -1884,6 +1992,326 @@ function scava(cx, cy, cz, fine, D){
    passate al secondo. Ogni lettura viene riportata nel mondo e assegnata a una
    cella; per cella si tiene il SECONDO valore piu' alto della passata, non il
    massimo, cosi' un singolo pixel sporco non produce una colonna fantasma. */
+
+/* ==========================================================================
+   REGISTRATORE DEL SENSORE
+   --------------------------------------------------------------------------
+   Fin qui i muri invisibili li ho corretti al buio: il sensore di profondita'
+   sta sul telefono di chi usa l'app, io ho solo un simulatore scritto a mano.
+   Un simulatore sbaglia come immagino io che sbagli un sensore, non come
+   sbaglia il tuo.
+   Questo registra quarantacinque secondi di letture vere — dove stava il
+   telefono, dove guardava, e la mappa di profondita' campionata — e ci mette
+   dentro due cose che il sensore da solo non puo' dire: dove la persona ha
+   visto un muro che non esiste, e che forma aveva la mappa costruita in quel
+   momento. Con quelle si taratura sui fatti invece che sulle ipotesi.
+   Il file esce in JSON compresso: una registrazione intera sta in un paio di
+   centinaia di kilobyte.
+   ========================================================================== */
+const REC = {
+  attivo: false, t0: 0, durata: 45000, lato: 24,
+  frame: [], segni: [], letture: 0, saltati: 0
+};
+
+function recAvvia(){
+  if(REC.attivo) return;
+  if(!DEPTH.attiva || !DEPTH.tarata){
+    toast('il sensore di profondità non è attivo: avvia la sessione AR');
+    return;
+  }
+  REC.attivo = true; REC.t0 = performance.now();
+  REC.frame = []; REC.segni = []; REC.letture = 0; REC.saltati = 0;
+  els.recbar.classList.add('on');
+  recAggiorna();
+  ev('registrazione del sensore avviata');
+}
+
+function recAggiorna(){
+  if(!REC.attivo) return;
+  const resta = Math.max(0, REC.durata - (performance.now() - REC.t0));
+  els.recTempo.textContent = Math.ceil(resta/1000) + 's';
+  els.recConto.textContent = REC.frame.length + ' passate · ' +
+    REC.segni.length + (REC.segni.length === 1 ? ' segno' : ' segni');
+  if(resta <= 0) recChiudi();
+}
+
+/* Il segno: la persona inquadra il punto dove la creatura si e' fermata
+   contro il nulla e preme. Si salva da dove guardava e in che direzione —
+   il punto sul pavimento lo ricavo io dopo, incrociando con la mappa. */
+function recSegna(){
+  if(!REC.attivo) return;
+  const {p, q} = camPose();
+  const f = new THREE.Vector3(0,0,-1).applyQuaternion(q);
+  REC.segni.push({
+    t: Math.round(performance.now() - REC.t0),
+    c: [+p.x.toFixed(3), +p.y.toFixed(3), +p.z.toFixed(3)],
+    d: [+f.x.toFixed(3), +f.y.toFixed(3), +f.z.toFixed(3)],
+    /* Cosa dice la mappa in quel momento, lungo la direzione di sguardo:
+       e' la prova del misfatto, la cella che blocca dove non c'e' niente. */
+    muro: recSondaAvanti(p, f)
+  });
+  toast('segnato · ' + REC.segni.length);
+  recAggiorna();
+}
+
+/* Cammina in avanti lungo lo sguardo e riporta la prima cella che bloccherebbe
+   una creatura, con la sua altezza e quanto e' stata confermata. */
+function recSondaAvanti(p, f){
+  for(let t = .3; t < 5; t += .06){
+    const x = p.x + f.x*t, z = p.z + f.z*t;
+    const g = gridAt(x, z, 0, false);
+    if(g && g.c && g.c.h > GRID.soglia){
+      return {d: +t.toFixed(2), x: +x.toFixed(3), z: +z.toFixed(3),
+              h: +g.c.h.toFixed(3), n: g.c.n|0, vi: g.c.vi|0, al: g.c.al|0,
+              mob: g.c.mob ? 1 : 0};
+    }
+  }
+  return null;
+}
+
+function recChiudi(){
+  if(!REC.attivo) return;
+  REC.attivo = false;
+  els.recbar.classList.remove('on');
+  recSalva();
+}
+
+/* La mappa com'e' alla fine: solo le celle che contano qualcosa, in forma
+   compatta. Serve a vedere quali sono diventate muro e con che storia. */
+function recMappa(){
+  const out = [];
+  GRID.celle.forEach((c, k) => {
+    if(!(c.h > .05)) return;
+    out.push([ (k / 4096 | 0) - GRID_OFF, (k % 4096) - GRID_OFF,
+               Math.round(c.h*1000), c.n|0, c.vi|0, c.al|0, c.mob ? 1 : 0 ]);
+  });
+  return out;
+}
+
+/* Una passata registrata: la posa del telefono, i quattro numeri della
+   proiezione e le profondita' in millimetri interi. Gli interi sono la
+   differenza fra un file da mezzo mega e uno da tre. */
+function recPassata(info, cam, P, M){
+  const N = REC.lato, M0 = .04, MS = .92;
+  const d = new Array(N*N);
+  let i = 0, buone = 0;
+  for(let iy = 0; iy < N; iy++){
+    const ny = M0 + MS * (iy + .5) / N;
+    const dy = DEPTH.flipY ? 1 - ny : ny;
+    for(let ix = 0; ix < N; ix++){
+      const nx = M0 + MS * (ix + .5) / N;
+      let D = 0;
+      try { D = info.getDepthInMeters(nx, dy); } catch(e){ D = 0; }
+      const mm = (D > 0 && D < 12) ? Math.round(D*1000) : 0;
+      if(mm) buone++;
+      d[i++] = mm;
+    }
+  }
+  REC.letture += N*N; REC.saltati += N*N - buone;
+  const e = M.elements;
+  REC.frame.push({
+    t: Math.round(performance.now() - REC.t0),
+    /* La matrice del mondo per intero, arrotondata: da qui ricavo posizione,
+       direzione e assi senza doverli ricostruire a naso. */
+    m: [e[0],e[1],e[2], e[4],e[5],e[6], e[8],e[9],e[10], e[12],e[13],e[14]]
+        .map(v => +v.toFixed(5)),
+    p: [+P[0].toFixed(6), +P[5].toFixed(6), +P[8].toFixed(6), +P[9].toFixed(6)],
+    y: +WORLD.floorY.toFixed(4),
+    d
+  });
+  recAggiorna();
+}
+
+async function recSalva(){
+  const pacco = {
+    versione: BUILD,
+    quando: new Date().toISOString(),
+    telefono: navigator.userAgent,
+    schermo: [innerWidth, innerHeight, devicePixelRatio],
+    /* Tutto quello che serve a rifare i conti identici a quelli dell'app. */
+    taratura: {
+      pavimento: +WORLD.floorY.toFixed(4),
+      flipY: !!DEPTH.flipY,
+      cella: GRID.cella, portata: GRID.portata, vicino: GRID.vicino,
+      soglia: GRID.soglia, minN: GRID.minN, periodo: GRID.periodo,
+      lato: REC.lato, margine: [.04, .92]
+    },
+    letture: REC.letture, saltati: REC.saltati,
+    frame: REC.frame,
+    segni: REC.segni,
+    mappaFinale: recMappa()
+  };
+  const testo = JSON.stringify(pacco);
+  let blob = new Blob([testo], {type:'application/json'});
+  let nome = 'campo-vivo-sensore-' + new Date().toISOString().slice(0,19).replace(/[:T]/g,'-') + '.json';
+  /* Compresso se il telefono sa farlo: si passa da un paio di mega a poche
+     centinaia di kilobyte, e un file grosso su mobile e' un attrito vero. */
+  try {
+    if(typeof CompressionStream === 'function'){
+      const cs = new Response(blob.stream().pipeThrough(new CompressionStream('gzip')));
+      blob = await cs.blob(); nome += '.gz';
+    }
+  } catch(e){ /* niente compressione: si manda il json intero */ }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nome; a.style.display = 'none';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 4000);
+  toast(REC.frame.length + ' passate salvate · ' + Math.round(blob.size/1024) + ' KB');
+  ev('registrazione salvata: ' + nome + ' (' + Math.round(blob.size/1024) + ' KB)');
+}
+
+
+/* ==========================================================================
+   L'INTERROGATORIO
+   --------------------------------------------------------------------------
+   Lo scavo e' passivo: smentisce un muro solo se per caso un raggio ci passa
+   attraverso. Ma i muri che danno fastidio sono pochi e si sanno quali sono —
+   sono quelli contro cui una creatura si e' appena fermata. Quelli si vanno a
+   interrogare uno per uno, puntandoci la lettura di profondita' addosso e
+   chiedendo al sensore: dietro quel punto, cosa c'e'?
+   Se la risposta e' "molto piu' lontano", li' non c'e' niente e il muro cade
+   subito, in quella stessa passata. Se la risposta e' "piu' vicino", vuol
+   dire che c'e' qualcosa davanti che lo copre e non si tocca niente: cosi'
+   un divano visto da dietro un tavolo non viene cancellato per sbaglio.
+   Costa una ventina di letture per passata su oltre duemila. Tutto sul
+   telefono, mentre giochi, senza che nessuno guardi i dati.
+   ========================================================================== */
+const SOSPETTE = new Map();          // chiave cella -> quando l'ha bloccata
+const INT = {
+  margine: .34,      // quanto piu' lontana dev'essere la lettura per smentire
+  perPassata: 14,    // quante sospette si interrogano ogni volta
+  giro: 24,          // piu' quante celle a rotazione, come controllo di fondo
+  cursore: 0,
+  assolte: 0, cadute: 0, chieste: 0, totCadute: 0
+};
+
+/* Segnalata da chi ci sbatte: la creatura si e' fermata qui. */
+function segnalaMuro(x, z){
+  if(!GRID.on) return;
+  const k = gkey(x, z);
+  if(k < 0) return;
+  SOSPETTE.set(k, GRID.ora);
+  /* Si tiene corta: se ne accumulano poche e le piu' vecchie scadono. */
+  if(SOSPETTE.size > 90){
+    const vecchie = [...SOSPETTE.entries()].sort((a,b) => a[1]-b[1]).slice(0, 30);
+    vecchie.forEach(([kk]) => SOSPETTE.delete(kk));
+  }
+}
+
+/* Il nocciolo: una cella, la si guarda e si chiede al sensore cosa c'e'.
+   Torna  1 se e' stata smentita, 0 se confermata o non verificabile. */
+function interroga(k, c, info, cam, P, M, ax){
+  const ix = (k / 4096 | 0) - GRID_OFF, iz = (k % 4096) - GRID_OFF;
+  const px = (ix + .5) * GRID.cella, pz = (iz + .5) * GRID.cella;
+  /* Si mira a meta' altezza della colonna: la cima e' il punto peggio
+     misurato, il pavimento direbbe solo che il pavimento c'e'. */
+  const py = WORLD.floorY + c.h * .62;
+  const vx = px - ax.cx, vy = py - ax.cy, vz = pz - ax.cz;
+  /* Distanza dal piano della fotocamera, che e' quello che il sensore
+     restituisce: non la distanza in linea d'aria. */
+  const zz = vx*ax.fx + vy*ax.fy + vz*ax.fz;
+  if(zz < .45 || zz > GRID.portata) return 0;
+  const xx = vx*ax.rx + vy*ax.ry + vz*ax.rz;
+  const yy = vx*ax.ux + vy*ax.uy + vz*ax.uz;
+  const ndcX = (xx / zz) * P[0] - P[8];
+  const ndcY = (yy / zz) * P[5] - P[9];
+  if(ndcX < -1 || ndcX > 1 || ndcY < -1 || ndcY > 1) return 0;
+  const nx = (ndcX + 1) * .5, ny = (1 - ndcY) * .5;
+  /* I bordi del fotogramma sono la parte peggio misurata: la' non si giudica. */
+  if(nx < .06 || nx > .94 || ny < .06 || ny > .94) return 0;
+  let D;
+  try { D = info.getDepthInMeters(nx, DEPTH.flipY ? 1 - ny : ny); } catch(e){ return 0; }
+  INT.chieste++;
+  if(!(D > .4) || D > GRID.portata + 1.5) return 0;       // lettura inutile
+  if(D < zz - .12){ INT.assolte++; return 0; }            // c'e' qualcosa davanti: non si giudica
+
+  /* Qui stava l'errore della prima versione: confrontavo le due distanze e
+     chiedevo che la lettura fosse molto piu' lontana. Funziona per un muro
+     alto, non per uno basso — il raggio che ci passa attraverso va a battere
+     sul pavimento subito dietro, e la differenza di distanza e' una manciata
+     di centimetri. Quindi un muretto fantasma di venticinque centimetri
+     veniva assolto ogni volta.
+     Il confronto giusto non e' fra distanze ma fra ALTEZZE: si ricostruisce
+     dove e' finito davvero il raggio e si guarda se, passando sopra la
+     cella, era piu' basso della cima che la cella dichiara. Se lo era, quella
+     cima avrebbe dovuto fermarlo e non l'ha fermato. */
+  const k2 = D / zz;                              // quanto piu' in la' e' finito
+  const ex = ax.cx + (px - ax.cx) * k2;
+  const ey = ax.cy + (py - ax.cy) * k2;
+  const ez = ax.cz + (pz - ax.cz) * k2;
+  /* Il raggio dev'essere finito oltre la cella, non dentro. */
+  const dOrCella = Math.hypot(px - ax.cx, pz - ax.cz);
+  const dOrFine  = Math.hypot(ex - ax.cx, ez - ax.cz);
+  if(dOrFine < dOrCella + GRID.cella * .8){ INT.assolte++; return 0; }
+  /* E deve essere passato SOTTO la cima dichiarata: se passa sopra non
+     prova niente. Un dito di margine per il rumore del sensore. */
+  const quotaPassaggio = py - WORLD.floorY;
+  if(quotaPassaggio > c.h - .10){ INT.assolte++; return 0; }
+
+  /* Dove e' andato a finire il raggio: quella e' l'altezza vera. */
+  const quota = Math.max(0, ey - WORLD.floorY);
+  const giu = Math.min(c.h, Math.max(quota, 0));
+  /* Stessa prudenza dello scavo: a una cella che si e' fatta vedere in
+     rilievo da tre parti diverse, e quasi sempre, non si crede sulla parola
+     di una lettura sola. Le si toglie il settore da cui e' stata smentita e
+     la si lima appena; se e' un abbaglio continuera' a essere smentita e
+     scendera' comunque, se e' un muro si riprende alla prossima occhiata.
+     Senza questo freno le pareti vere si consumavano di un terzo. */
+  const solido = quantiSettori(c.dirs) >= 3 && c.al > 14;
+  c.h += (giu - c.h) * (solido ? .10 : .55);
+  c.hv = c.h; c.tv = -1e9; c.mob = 0;
+  c.dirs &= ~(1 << settoreDa(px - ax.cx, pz - ax.cz));
+  if(solido){ INT.cadute++; return 1; }
+  c.al = Math.max(0, (c.al|0) - 2);
+  c.ko = Math.min(6, (c.ko || 0) + 2);
+  if(c.h < .05){ c.n = 0; c.su = 0; }
+  INT.cadute++; INT.totCadute++;
+  return 1;
+}
+
+/* Un giro di interrogatori: prima le celle segnalate da chi ci ha sbattuto,
+   poi un pezzo di tutte le altre celle alte, a rotazione. */
+function interrogatorio(info, cam, P, M){
+  if(!GRID.celle.size) return;
+  const e = M.elements;
+  const ax = {
+    cx: e[12], cy: e[13], cz: e[14],
+    rx: e[0], ry: e[1], rz: e[2],      // destra
+    ux: e[4], uy: e[5], uz: e[6],      // su
+    fx: -e[8], fy: -e[9], fz: -e[10]   // avanti, l'asse ottico
+  };
+  INT.assolte = 0; INT.cadute = 0; INT.chieste = 0;
+
+  let fatte = 0;
+  for(const [k, quando] of SOSPETTE){
+    if(fatte >= INT.perPassata) break;
+    const c = GRID.celle.get(k);
+    if(!c || c.h <= GRID.soglia){ SOSPETTE.delete(k); continue; }
+    interroga(k, c, info, cam, P, M, ax);
+    fatte++;
+    /* Una sospetta smentita o scesa sotto soglia esce dalla lista. */
+    if(c.h <= GRID.soglia) SOSPETTE.delete(k);
+    if(GRID.ora - quando > 20000) SOSPETTE.delete(k);
+  }
+
+  /* Il controllo di fondo: anche senza che nessuna creatura ci sbatta, le
+     celle alte vanno riviste ogni tanto. Si scorre la mappa un pezzo per
+     volta, cosi' il costo resta lo stesso con cento celle o con centomila. */
+  const chiavi = GRID.celle;
+  let visitate = 0, saltate = 0;
+  const it = chiavi.entries();
+  let n = 0;
+  for(const [k, c] of it){
+    if(n++ < INT.cursore) continue;
+    if(visitate >= INT.giro) break;
+    if(c.h > GRID.soglia){ interroga(k, c, info, cam, P, M, ax); visitate++; }
+    saltate++;
+  }
+  INT.cursore += saltate;
+  if(INT.cursore >= chiavi.size) INT.cursore = 0;
+}
+
 function scandaglia(frame, dt){
   if(!GRID.on || !DEPTH.attiva || !DEPTH.tarata || !frame) return;
   GRID.clock -= dt;
@@ -1908,6 +2336,13 @@ function scandaglia(frame, dt){
   if(!(Math.abs(p00) > 1e-6) || !(Math.abs(p11) > 1e-6)) return;
   const M = cam.matrixWorld;
   const cx0 = M.elements[12], cy0 = M.elements[13], cz0 = M.elements[14];
+
+  /* Se si sta registrando, questa stessa passata finisce nel file: la posa,
+     la proiezione e la mappa di profondita' campionata piu' fitta al centro.
+     Si legge a parte invece di riusare il campionamento qui sotto perche'
+     quello cambia risoluzione con gli fps, e un file con la griglia che
+     cambia sotto i piedi non si puo' analizzare. */
+  if(REC.attivo) recPassata(info, cam, P, M);
 
   /* Il costo e' tutto qui dentro: una lettura per texel campionato. Se gli
      fps calano si scende di passo invece di far scattare la scena. */
@@ -1963,6 +2398,10 @@ function scandaglia(frame, dt){
          dire "li' non c'e' niente".
          Qui il raggio viene ripercorso all'indietro: ogni cella che sporge
          sopra la sua traiettoria e' impossibile, e viene abbassata. */
+      /* Prima si scavava lungo un raggio su quattro e solo oltre un metro e
+         venti: troppo poco e troppo lontano. I muri fantasma peggiori nascono
+         a un passo da te, dove il sensore sbaglia per difetto, ed erano
+         proprio quelli che nessun raggio andava mai a smentire. */
       if((ix + iy) % 4 === 0 && D > 1.2) scava(cx0, cy0, cz0, _gv, D);
     }
   }
@@ -2004,7 +2443,11 @@ function scandaglia(frame, dt){
     let c = GRID.celle.get(k);
     if(!c){
       if(GRID.celle.size >= GRID.maxCelle) return;
-      c = {h: val, n: 0, hv: val, tv: -1e9, mob: 0, su: 0, vi: 0, al: 0}; GRID.celle.set(k, c);
+      /* ko = quante volte questa cella e' stata smentita da una lettura che
+         le passava attraverso. Una cella recidiva ha gia' mentito: per
+         risalire le si chiede molta piu' prova che a una vergine. */
+      c = {h: val, n: 0, hv: val, tv: -1e9, mob: 0, su: 0, vi: 0, al: 0, ko: 0, dirs: 0};
+      GRID.celle.set(k, c);
     }
     /* Strato veloce: valore grezzo dell'ultima passata, senza smorzamento.
        Serve una manciata di campioni nella stessa cella, cosi' un pixel
@@ -2031,8 +2474,14 @@ function scandaglia(frame, dt){
     /* E deve durare: due passate di fila d'accordo, non una sola. */
     if(val > c.h + .06) c.su++; else c.su = 0;
     if(val > c.h){
-      if(largo && (val <= GRID.soglia || c.su >= 2) && Math.abs(val - prec) < .15)
-        c.h += Math.min(val - c.h, .30) * .45;
+      /* Piu' volte e' stata smentita, piu' prove servono per rialzarla: due
+         passate d'accordo bastano a una cella pulita, una recidiva ne vuole
+         fino a cinque e sale piu' piano. E' la memoria degli errori: senza,
+         lo stesso muro fantasma rinasceva appena lo scavo smetteva. */
+      const pretesa = 2 + Math.min(3, c.ko);
+      const freno = 1 / (1 + Math.min(3, c.ko) * .6);
+      if(largo && (val <= GRID.soglia || c.su >= pretesa) && Math.abs(val - prec) < .15)
+        c.h += Math.min(val - c.h, .30) * .45 * freno;
     } else {
       /* Una cella che era stata segnata come "qualcuno sta passando" torna
          giu' in fretta: se la persona resta ferma qualche secondo entra nella
@@ -2047,11 +2496,22 @@ function scandaglia(frame, dt){
        lettura sballata solo ogni tanto. Il rapporto fra i due e' cio' che
        distingue un ripiano da uno spuntone di rumore, e nessun filtro
        istantaneo puo' farlo. */
-    c.vi++; if(val > GRID.soglia) c.al++;
+    c.vi++;
+    if(val > GRID.soglia){
+      c.al++;
+      /* Da che parte stavi quando l'hai vista in rilievo. */
+      c.dirs |= 1 << settoreDa(
+        ((k / 4096 | 0) - GRID_OFF + .5) * GRID.cella - cx0,
+        ((k % 4096) - GRID_OFF + .5) * GRID.cella - cz0);
+    }
     if(c.vi > 60){ c.vi >>= 1; c.al >>= 1; }
     c.n = Math.min(60, c.n + v.n);
     fusi++;
   });
+  /* Adesso che la mappa e' aggiornata, si vanno a interrogare i muri
+     sospetti con lo stesso fotogramma di profondita' appena usato. */
+  interrogatorio(info, cam, P, M);
+
   GRID.gen++;
   GRID.letture = letti; GRID.campioni = buoni; GRID.scarti = scarti; GRID.fusi = fusi;
   GRID.mobili = mobili; GRID.spuntoni = spuntoni;
@@ -2922,7 +3382,7 @@ const FASCE = {
   comune:      {peso:100,  eti:'comune',      col:'#7f8b9c'},
   frequente:   {peso: 52,  eti:'poco comune', col:'#63C7A6'},
   rara:        {peso: 20,  eti:'rara',        col:'#6FA8FF'},
-  rarissima:   {peso:  8,  eti:'rarissima',   col:'#FF7BD5'},
+  rarissima:   {peso: 8.08, eti:'rarissima',   col:'#FF7BD5'},
   /* Con otto epiche e cinque leggendarie il peso per specie scende, se no la
      fascia nel suo insieme diventa comune. Quello che si tiene fermo e' ogni
      quanto esce UNA epica o UNA leggendaria, non quale.
@@ -2933,8 +3393,8 @@ const FASCE = {
      fascia altrettanto spesso ogni sua specie deve pesare di piu'), e le due
      fasce alte sono ora piu' frequenti della rarissima, che esce una ogni 26.
      L'ordine delle etichette e quello delle probabilita' non coincidono. */
-  epico:       {peso: 5.88, eti:'EPICA',       col:'#C77BFF'},
-  leggendario: {peso: 7.69, eti:'LEGGENDARIA', col:'#FFC845'}
+  epico:       {peso: 3.37, eti:'EPICA',       col:'#C77BFF'},
+  leggendario: {peso: 4.90, eti:'LEGGENDARIA', col:'#FFC845'}
 };
 const ORDINE_FASCE = ['comune','frequente','rara','rarissima','epico','leggendario'];
 const RANGO = {
@@ -3024,6 +3484,29 @@ function specieACaso(){
   return SPECIES[SPECIES.length - 1];
 }
 
+/* Quante ne sono comparse da quando hai azzerato l'area. Non coincide con
+   quelle che vedi: la popolazione in scena cresce solo fino al tetto, poi
+   nascono ancora — mano a mano che esplori zone nuove — ma il numero a video
+   resta li'. Per questo si mostrano tutti e due i conti, piu' quello delle
+   rare, che e' la cosa che uno vuole davvero sapere. */
+const CONTA = {tot:0, rarissima:0, epico:0, leggendario:0};
+
+function aggiornaConta(){
+  if(!els.contaTot) return;
+  els.contaTot.textContent = CONTA.tot;
+  const n = creatures.length;
+  els.contaOra.textContent = n === 0 ? 'nessuna in scena'
+    : n === 1 ? '1 in scena' : n + ' in scena';
+  /* Le tre fasce alte in sigla, ognuna del colore che ha gia' nello
+     schedario: due lettere si leggono a colpo d'occhio, il colore dice
+     quale fascia senza bisogno di una legenda. */
+  const SIGLE = [['leggendario','LG'], ['epico','EP'], ['rarissima','RR']];
+  els.contaRare.innerHTML = SIGLE
+    .filter(([k]) => CONTA[k] > 0)
+    .map(([k, sg]) => '<s style="color:' + FASCE[k].col + '">' + CONTA[k] + ' ' + sg + '</s>')
+    .join('');
+}
+
 function aggiungi(pos){
   /* Le immagini importate convivono con le specie procedurali invece di
      sostituirle: bastava una foto perche' il bestiario sparisse. */
@@ -3039,9 +3522,12 @@ function aggiungi(pos){
   els.ticks.parentNode.appendChild(pip);
   c.pip = pip;
   creatures.push(c);
+  CONTA.tot++;
   /* Un incontro raro va annunciato, altrimenti passa inosservato proprio
      perche' e' raro: nasce dietro le spalle e non te ne accorgi mai. */
   const rg = c.spec && c.spec.rango;
+  if(CONTA[rg] !== undefined) CONTA[rg]++;
+  aggiornaConta();
   if(rg === 'leggendario'){
     toast('★ ' + c.nome.toUpperCase() + ' ★  creatura leggendaria');
     ev('LEGGENDARIA in scena: ' + c.nome);
@@ -3109,8 +3595,12 @@ function seed(n){
   creatures.forEach(c => scene.remove(c.root));
   creatures = [];
   document.querySelectorAll('.pip').forEach(p => p.remove());
+  /* Rigenerando si riparte da capo davvero, contatore compreso: lasciare il
+     totale della sessione precedente su una scena nuova sarebbe fuorviante. */
+  CONTA.tot = CONTA.rarissima = CONTA.epico = CONTA.leggendario = 0;
   const {p} = camPose();
   for(let i=0;i<n;i++) aggiungi(freeSpot(p));
+  aggiornaConta();
   toast('area azzerata, girati per popolarla');
 }
 
@@ -3230,7 +3720,17 @@ const saltabile = (ob, c) => ob.walkable &&
   (WORLD.floorY + ob.top) - c.standY <= JUMP_MAX * c.agile &&
   Math.min(ob.hw, ob.hd) > c.raggio * .9;
 
+/* Avvistare o sbattere contro qualcosa e' il momento piu' informativo che
+   l'app abbia: se quel qualcosa non esiste, la prova e' proprio li' davanti
+   all'obiettivo. L'ostacolo viene messo nella lista di chi va interrogato
+   alla prossima lettura del sensore. Solo quelli nati dalla griglia: i piani
+   di ARCore e i mobili mappati a mano non si discutono. */
+function sospetta(ob){
+  if(ob && ob.griglia) segnalaMuro(ob.cx, ob.cz);
+}
+
 function avvista(c, ob){
+  sospetta(ob);
   c.stato = 'avvista';
   c.reagisceTot = c.reagisce = .5 + Math.random()*.7;
   c.meta = null;
@@ -3238,6 +3738,7 @@ function avvista(c, ob){
 }
 
 function impatta(c, ob){
+  sospetta(ob);
   c.stato = 'urto';
   c.reagisceTot = c.reagisce = .8 + Math.random()*.6;
   c.meta = null;
@@ -4273,7 +4774,7 @@ function camPose(){
 function initDrag(){
   let last = null;
   const pt = e => e.touches ? {x:e.touches[0].clientX, y:e.touches[0].clientY} : {x:e.clientX, y:e.clientY};
-  const inUI = e => e.target.closest('#sheet, #readout, #gate, #mapbar');
+  const inUI = e => e.target.closest('#sheet, #readout, #gate, #mapbar, #recbar');
   const dn = e => { if(!inUI(e)) last = pt(e); };
   const mv = e => {
     if(!last || orientEnabled || WORLD.mode === 'xr') return;
@@ -4336,7 +4837,7 @@ function tapCreature(ev){
 function initTap(){
   addEventListener('click', e => {
     if(els.gate.style.display !== 'none') return;
-    if(e.target.closest('#sheet, #readout, #mapbar')) return;
+    if(e.target.closest('#sheet, #readout, #mapbar, #recbar')) return;
     if(WORLD.mode === 'xr') return;      // in XR usa l'evento select
     if(MAP.on){ mapTap(); return; }
     tapCreature(e);
@@ -4484,12 +4985,16 @@ function initSheet(){
       const pip = document.createElement('div'); pip.className='pip';
       pip.innerHTML='<i></i><b></b>'; pip.querySelector('b').textContent = nuovo.nome;
       els.ticks.parentNode.appendChild(pip); nuovo.pip = pip;
-      creatures.push(nuovo); messe++;
+      creatures.push(nuovo); messe++; CONTA.tot++;
     }
+    aggiornaConta();
     toast(messe ? messe + ' schede messe in scena' : 'nessuna scheda da mettere');
     shut();
   });
   els.mapStart.addEventListener('click', () => { shut(); mapEnter(); });
+  els.recAvvia.addEventListener('click', () => { shut(); recAvvia(); });
+  els.recSegna.addEventListener('click', e => { e.stopPropagation(); recSegna(); });
+  els.recStop.addEventListener('click', e => { e.stopPropagation(); recChiudi(); });
 
   els.file.addEventListener('change', e => { ingest(e.target.files); e.target.value = ''; });
   ['dragenter','dragover'].forEach(ev => els.drop.addEventListener(ev, e => {
@@ -4566,7 +5071,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v59';
+const BUILD = 'v63';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
