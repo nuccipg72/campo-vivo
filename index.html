@@ -1233,6 +1233,7 @@ const GRID = {
   campioni: 0, fusi: 0, letture: 0, scarti: 0
 };
 const GRID_OFF = 2048;
+GRID.inciampi = 0; GRID.ultimoErrore = null; GRID.doveErrore = null;
 function gkey(x, z){
   const ix = Math.floor(x / GRID.cella) + GRID_OFF;
   const iz = Math.floor(z / GRID.cella) + GRID_OFF;
@@ -2378,6 +2379,14 @@ async function recSalva(){
       lato: REC.lato, margine: [.04, .92]
     },
     letture: REC.letture, saltati: REC.saltati,
+    /* Se la ricostruzione ha avuto problemi, il motivo esatto finisce qui. */
+    inciampi: {
+      quanti: DEPTH.errori | 0,
+      diFila: GRID.inciampi | 0,
+      griglia: !!GRID.on,
+      messaggio: GRID.ultimoErrore || null,
+      dove: GRID.doveErrore || null
+    },
     frame: REC.frame,
     segni: REC.segni,
     mappaFinale: recMappa()
@@ -5202,6 +5211,8 @@ function updateDiag(){
       flag(DEPTH.attiva && !DEPTH.centro ? 'NESSUN DATO' : '') + '\n' +
     'campioni     <b>' + DEPTH.campioni + '</b> validi · <b>' + DEPTH.occluse + '</b> occluse · ' +
       DEPTH.scarti + ' scartati\n' +
+    (GRID.ultimoErrore ? 'INCIAMPO    <b style="color:#FF5747">' +
+       GRID.ultimoErrore.slice(0,60) + '</b><br>' : '') +
     'pavimento    <b>' + (SUOLO.pronto ? (SUOLO.scarto >= 0 ? '+' : '') +
       SUOLO.scarto.toFixed(3) + ' m</b> in ' + SUOLO.correzioni + ' ritocchi'
       : 'in attesa di letture</b>') + '<br>' +
@@ -5365,7 +5376,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v66';
+const BUILD = 'v67';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
@@ -5484,8 +5495,30 @@ function loopBody(time, frame){
     /* Se il telefono da' la maglia si usa quella per prima: e' piu' fedele
        del sensore grezzo e ne corregge gli abbagli. */
     try { scandagliaMaglia(frame, dt); } catch(e){ }
-    try { scandaglia(frame, dt); }
-    catch(e){ DEPTH.errori++; GRID.on = false; ev('griglia disattivata: ' + ((e && e.message) || e)); }
+    /* Un inciampo non deve spegnere la ricostruzione per sempre.
+       Prima bastava una sola eccezione qui dentro e GRID.on andava a false:
+       da quel momento l'app non mappava piu' niente, la mappa restava
+       congelata a com'era e tu continuavi a girare per casa con una stanza
+       vecchia di dieci secondi. Nelle registrazioni si vede benissimo — le
+       scansioni si fermano di colpo a 8,5 secondi e non riprendono piu'.
+       Ora l'errore si annota e si va avanti: solo se si ripete venti volte
+       di fila la griglia si arrende, e in ogni caso il motivo resta scritto
+       dove si puo' leggerlo. */
+    try { scandaglia(frame, dt); GRID.inciampi = 0; }
+    catch(e){
+      DEPTH.errori++;
+      GRID.inciampi = (GRID.inciampi || 0) + 1;
+      const msg = (e && (e.message || e.name)) || String(e);
+      if(!GRID.ultimoErrore || GRID.ultimoErrore !== msg){
+        GRID.ultimoErrore = msg;
+        GRID.doveErrore = (e && e.stack ? String(e.stack).split('\n')[1] || '' : '').trim().slice(0,120);
+        ev('la griglia è inciampata: ' + msg + ' — ' + GRID.doveErrore);
+      }
+      if(GRID.inciampi >= 20){
+        GRID.on = false;
+        ev('griglia disattivata dopo 20 inciampi di fila: ' + msg);
+      }
+    }
 
     try { syncPlanes(frame, dt); }
     catch(e){ window.__fatal('rilevamento piani', (e && e.message) || String(e)); }
