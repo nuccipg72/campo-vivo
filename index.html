@@ -1258,6 +1258,119 @@ const confermata = c => c.al * 5 >= c.vi * 3;
    di taglio, arriva a venti o trenta centimetri e deve restare calpestabile. */
 const VERTICALE = .50;
 
+/* ==========================================================================
+   IL PAVIMENTO SI TARA DA SOLO
+   --------------------------------------------------------------------------
+   Questa non e' un'ipotesi: viene da 144.000 letture registrate sul telefono
+   di chi usa l'app. WebXR dichiara il pavimento a quota zero, e il tracking
+   ci crede. Ma il sensore di profondita' ha un suo scarto, e su quel telefono
+   il pavimento misurato stava dodici centimetri piu' in alto. La soglia oltre
+   la quale una cella diventa un rilievo e' diciotto. Risultato: a due metri e
+   mezzo il pavimento stesso superava la soglia, l'ottantanove per cento della
+   mappa diventava "roba in rilievo", e le creature camminavano a quindici
+   centimetri da terra — quelle che sembravano volare.
+   Nessun filtro a valle poteva rimediare: la mappa partiva storta.
+   Qui la quota del pavimento viene misurata invece che creduta. Si accumula
+   l'istogramma delle letture basse, si cerca il picco — il pavimento e' la
+   superficie piu' rappresentata di qualunque stanza — e la quota si sposta
+   piano verso quel picco. Tutto a bordo, in qualunque stanza, senza che
+   nessuno debba dire niente. */
+const SUOLO = {
+  bin: .02, campioni: new Int32Array(90), n: 0,   // da -0.60 a +1.20 m
+  base: -.60, pronto: false, scarto: 0, correzioni: 0, ultima: 0
+};
+
+function suoloRaccogli(alt){
+  /* Solo le letture che possono essere pavimento: sopra non si sa, sotto e'
+     rumore. Il campo e' largo perche' lo scarto da correggere puo' essere di
+     mezzo metro. */
+  if(alt < -.55 || alt > 1.15) return;
+  const i = (alt - SUOLO.base) / SUOLO.bin | 0;
+  if(i < 0 || i >= SUOLO.campioni.length) return;
+  SUOLO.campioni[i]++; SUOLO.n++;
+}
+
+/* Il picco dell'istogramma, raffinato col baricentro dei vicini: il pavimento
+   e' un piano, quindi la sua firma e' una punta stretta e altissima. */
+function suoloPicco(){
+  const c = SUOLO.campioni;
+  if(SUOLO.n < 6000) return null;               // troppo poche letture per decidere
+  /* Il pavimento non e' il picco piu' GROSSO: in un corridoio il piano di un
+     bancone puo' raccogliere altrettante letture, e inseguendo il massimo
+     l'app si alzava il pavimento di mezzo metro appiattendo la stanza.
+     Il pavimento e' il picco piu' BASSO fra quelli veri — sotto di lui non
+     c'e' niente, per definizione. Si scorre dal basso e ci si ferma al primo
+     che conta davvero. */
+  let tot = 0;
+  for(let i = 0; i < c.length; i++) tot += c[i];
+  if(!tot) return null;
+  /* La significativita' si guarda su una finestra di sei centimetri, non su
+     un singolo scalino da due: il pavimento misurato e' sparso di qualche
+     centimetro e un bin solo non arriva mai alla soglia. */
+  const minimo = tot * .10;
+  let imax = -1, vmax = 0;
+  for(let i = 1; i < c.length-1; i++){
+    let fin = 0;
+    for(let j = Math.max(0,i-1); j <= Math.min(c.length-1,i+1); j++) fin += c[j];
+    if(fin < minimo) continue;
+    imax = i; vmax = fin; break;                // il primo dal basso: quello e' il pavimento
+  }
+  if(imax < 0) return null;
+  let somma = 0, peso = 0;
+  for(let i = Math.max(0,imax-2); i <= Math.min(c.length-1,imax+2); i++){
+    somma += c[i] * (SUOLO.base + (i+.5)*SUOLO.bin); peso += c[i];
+  }
+  if(!peso) return null;
+  /* Il pavimento e' la superficie piu' rappresentata di una stanza: il suo
+     picco si prende una fetta grossa di tutte le letture basse. Se il picco
+     piu' alto non arriva a un quinto del totale non e' un pavimento — stai
+     guardando un muro, o un mobile, e spostare la quota sarebbe un disastro.
+     Senza questo controllo, in una prova in cui la fotocamera fissava una
+     parete, l'app si e' spostata il pavimento sotto i piedi e si e' mangiata
+     il divano. */
+  if(peso < SUOLO.n * .20) return null;
+  return {quota: somma/peso, forza: vmax, quota_peso: peso/SUOLO.n};
+}
+
+/* Spostare il pavimento vuol dire spostare tutto quello che ci sta sopra: le
+   altezze della griglia sono misurate da li'. Si trasla la mappa invece di
+   buttarla, cosi' la stanza gia' vista non va persa. */
+function suoloApplica(delta){
+  WORLD.floorY += delta;
+  GRID.celle.forEach(c => {
+    c.h = Math.max(0, c.h - delta);
+    c.hv = Math.max(0, c.hv - delta);
+  });
+  GRID.obCache.clear();
+  creatures.forEach(cr => { cr.standY += delta; cr.pos.y += delta; });
+  SUOLO.correzioni++;
+  SUOLO.scarto += delta;
+}
+
+function suoloTara(){
+  const p = suoloPicco();
+  if(!p) return;
+  SUOLO.pronto = true;
+  /* La quota del picco e' misurata rispetto al pavimento che l'app crede:
+     se non e' zero, l'app sta sbagliando di tanto. */
+  const errore = p.quota;
+  if(Math.abs(errore) < .015) return;             // gia' a posto
+  /* Si corregge un pezzo per volta: una stanza con un tappeto o un gradino
+     non deve far saltare il pavimento da un fotogramma all'altro. */
+  /* E comunque non si va lontano: oltre mezzo metro di scarto non e' piu'
+     una taratura, e' un errore da qualche altra parte. */
+  const passo = V.clamp(errore * .25, -.06, .06);
+  /* Diciotto centimetri — quanto la soglia di rilievo — sono il massimo
+     pavimento che il tracking dichiara e quello che il sensore misura. Oltre,
+     non e' piu' taratura: e' un errore da cercare altrove, e insistere
+     significherebbe appiattire la stanza. */
+  if(Math.abs(SUOLO.scarto + passo) > .18) return;
+  suoloApplica(passo);
+  /* L'istogramma si sposta con il pavimento: si riazzera e si riempie di
+     nuovo con la nuova quota. */
+  SUOLO.campioni.fill(0); SUOLO.n = 0;
+}
+
 /* DA QUANTE PARTI L'HAI VISTA.
    Un sensore che sbaglia, sbaglia da una posizione precisa: su una parete
    scura, in controluce, da un certo angolo, la lettura torna accorciata e il
@@ -2504,6 +2617,9 @@ function scandaglia(frame, dt){
       const ndcX = nx*2 - 1;
       _gv.set((ndcX + p02) * D / p00, (ndcY + p12) * D / p11, -D).applyMatrix4(M);
       const alt = _gv.y - WORLD.floorY;
+      /* Prima di qualunque filtro: anche le letture che la griglia scarta
+         servono a capire dove sia davvero il pavimento. */
+      if(D > 1.1) suoloRaccogli(alt);
       if(alt < -.4 || alt > 2.6){ scarti++; continue; }
       /* Il cuneo cieco davanti ai piedi. Sotto il bordo basso dell'inquadratura
          il pavimento non si vede: nessuna lettura puo' smentire quello che ci
@@ -2674,6 +2790,10 @@ function scandaglia(frame, dt){
     c.n = Math.min(60, c.n + v.n);
     fusi++;
   });
+  /* Prima di tutto: il pavimento sta dove l'app crede? Se no, si corregge,
+     perche' ogni altra misura parte da li'. */
+  suoloTara();
+
   /* Adesso che la mappa e' aggiornata, si vanno a interrogare i muri
      sospetti con lo stesso fotogramma di profondita' appena usato. */
   interrogatorio(info, cam, P, M);
@@ -5082,6 +5202,9 @@ function updateDiag(){
       flag(DEPTH.attiva && !DEPTH.centro ? 'NESSUN DATO' : '') + '\n' +
     'campioni     <b>' + DEPTH.campioni + '</b> validi · <b>' + DEPTH.occluse + '</b> occluse · ' +
       DEPTH.scarti + ' scartati\n' +
+    'pavimento    <b>' + (SUOLO.pronto ? (SUOLO.scarto >= 0 ? '+' : '') +
+      SUOLO.scarto.toFixed(3) + ' m</b> in ' + SUOLO.correzioni + ' ritocchi'
+      : 'in attesa di letture</b>') + '<br>' +
     'creature     <b>' + creatures.length + ' / ' + popolazioneObiettivo() + '</b> (tetto ' + WORLD.count + ')' +
       (library.length ? '  ·  ' + creatures.filter(c=>c.kind==='sprite').length + ' importate su ' +
         library.length + ' schede' : '') + '\n' +
@@ -5242,7 +5365,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v65';
+const BUILD = 'v66';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
