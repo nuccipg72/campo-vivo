@@ -1223,6 +1223,7 @@ const GRID = {
   on: true, cella: .12, celle: new Map(), obCache: new Map(), tmp: new Map(),
   minN: 4, maxCelle: 90000, periodo: .12, clock: 0, gen: 0,
   portata: 4.5, vicino: 1.25, soglia: .18, scavate: 0, lato: 48, latoFisso: 0, disegno: 0,
+  vicinanza: new Map(),
   /* Due strati nella stessa cella. Quello lento (h) e' la stanza: sale piano,
      scende piano, si fida solo di cio' che resta fermo. Quello veloce (hv) e'
      chi passa: vale una passata sola e scade dopo sette decimi di secondo.
@@ -1258,6 +1259,30 @@ const confermata = c => c.al * 5 >= c.vi * 3;
    faccia che guarda te. Mezzo metro e' prudente: il bordo di un tavolo, visto
    di taglio, arriva a venti o trenta centimetri e deve restare calpestabile. */
 const VERTICALE = .50;
+
+/* QUANTO LONTANO L'HAI VISTA.
+   Cinque registrazioni dicono che il pavimento misurato sale con la distanza:
+   fra sei e quattordici centimetri per ogni metro. A quattro metri il
+   pavimento sta trenta o quaranta centimetri troppo in alto — cioe' quanto un
+   rilievo basso. E infatti dei muri invisibili segnalati a mano, cinque su
+   quattordici erano esattamente questo: rilievi di venti o trenta centimetri
+   a piu' di tre metri da chi guardava.
+   Da qui la regola, che non ha bisogno di tarature ne' di stime che oscillano:
+   una lettura presa da lontano non puo' INVENTARE un rilievo basso, perche' a
+   quella distanza l'errore e' grande quanto il rilievo che pretende di aver
+   visto. Puo' confermare un muro alto — li' l'errore non basta a spiegare un
+   metro e mezzo — ma per un gradino di venti centimetri bisogna esserci
+   andati vicino. E appena ti avvicini, la cella viene rimisurata e vale. */
+/* La pendenza peggiore misurata sulle cinque registrazioni: quattordici
+   centimetri di errore per ogni metro di distanza. Un rilievo e' credibile
+   solo se e' PIU ALTO dell'errore che il sensore puo' aver commesso li':
+   a un metro bastano quindici centimetri, a quattro metri ne servono
+   sessanta. Sotto quella soglia non si puo' distinguere un gradino vero dal
+   pavimento che si solleva, e allora non si decide — si aspetta di
+   avvicinarsi, e appena la cella viene riletta da vicino la soglia si
+   abbassa da sola. */
+const ERRORE_PER_METRO = .22;
+const sogliaCredibile = dmin => Math.max(GRID.soglia, (dmin || 0) * ERRORE_PER_METRO);
 
 /* ==========================================================================
    IL PAVIMENTO SI TARA DA SOLO
@@ -1415,6 +1440,13 @@ function gridAt(x, z, pad, veloce){
        non si fa vedere da due direzioni diverse: e' la prova che non e' un
        artefatto di quella singola linea di vista. */
     if(!fresca && a > GRID.soglia && c.ko > 0 && quantiSettori(c.dirs) < 2) continue;
+    /* E un rilievo vale solo se e' piu' alto dell'errore possibile alla
+       distanza da cui l'hai guardato. Vale anche per lo strato veloce, quello
+       che serve a riconoscere le persone: cinque dei muri invisibili
+       segnalati a mano erano marcati "qualcuno sta passando di qui", e non
+       c'era nessuno — erano letture lontane e sbagliate che quello strato
+       lasciava passare senza chiedere conferma a nessuno. */
+    if(a < sogliaCredibile(c.dmin === undefined ? 99 : c.dmin)) continue;
     if(!best || a > bh){ best = c; bh = a; bx = px; bz = pz; }
   }
   if(!best) return null;
@@ -2611,6 +2643,7 @@ function scandaglia(frame, dt){
   const M0 = .04, MS = .92;
   const N = GRID.lato;
   const tmp = GRID.tmp; tmp.clear();
+  const vicinanza = GRID.vicinanza; vicinanza.clear();
   let letti = 0, buoni = 0, scarti = 0;
 
   for(let iy = 0; iy < N; iy++){
@@ -2644,6 +2677,9 @@ function scandaglia(frame, dt){
       const k = gkey(_gv.x, _gv.z);
       if(k < 0){ scarti++; continue; }
       buoni++;
+      /* La distanza piu' corta a cui questa cella e' mai stata letta. */
+      const dq0 = vicinanza.get(k);
+      if(dq0 === undefined || D < dq0) vicinanza.set(k, D);
       const t = tmp.get(k);
       /* Oltre al punto piu' alto si tiene anche il piu' BASSO visto in questa
          passata. La differenza fra i due dice che cosa sia quella cella, e lo
@@ -2727,7 +2763,8 @@ function scandaglia(frame, dt){
       /* ko = quante volte questa cella e' stata smentita da una lettura che
          le passava attraverso. Una cella recidiva ha gia' mentito: per
          risalire le si chiede molta piu' prova che a una vergine. */
-      c = {h: val, n: 0, hv: val, tv: -1e9, mob: 0, su: 0, vi: 0, al: 0, ko: 0, dirs: 0, vert: 0};
+      c = {h: val, n: 0, hv: val, tv: -1e9, mob: 0, su: 0, vi: 0, al: 0, ko: 0, dirs: 0,
+           vert: 0, dmin: 99};
       GRID.celle.set(k, c);
     }
     /* Strato veloce: valore grezzo dell'ultima passata, senza smorzamento.
@@ -2796,6 +2833,8 @@ function scandaglia(frame, dt){
     } else if(v.a <= .12){
       c.vert = (c.vert || 0) * .9;        // qui c'e' solo pavimento: si dimentica
     }
+    const dq = vicinanza.get(k);
+    if(dq !== undefined && dq < (c.dmin === undefined ? 99 : c.dmin)) c.dmin = dq;
     c.n = Math.min(60, c.n + v.n);
     fusi++;
   });
@@ -5376,7 +5415,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v67';
+const BUILD = 'v68';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
