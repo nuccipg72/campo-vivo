@@ -4458,6 +4458,31 @@ function turnAway(c){
   c.t = Math.min(c.t, 1.6);
 }
 
+/* IL RAGGIO DI CASA.
+   Ogni meta veniva scelta rispetto alla creatura, mai rispetto a te: un passo
+   dopo l'altro le creature finivano a venti metri, cioe' in un'altra stanza.
+   Da li' le vedevi oltre la porta, sospese contro un muro — e non erano
+   sospese affatto: stavano in piedi sul pavimento della cucina, solo che il
+   muro in mezzo non le nascondeva.
+   Il campo delle creature e' intorno a te. Se una meta cade troppo lontana la
+   si riporta dentro, e la creatura si gira verso casa invece di continuare ad
+   allontanarsi. */
+const RAGGIO_CASA = 5.5;
+
+function tienilaVicina(c){
+  if(!c.meta) return;
+  let tu;
+  try { tu = camPose().p; } catch(e){ return; }
+  const dx = c.meta.x - tu.x, dz = c.meta.z - tu.z;
+  const d = Math.hypot(dx, dz);
+  if(d <= RAGGIO_CASA) return;
+  /* Si riporta la meta dentro il raggio lungo la stessa direzione, con un po'
+     di varieta' perche' non si accalchino tutte sulla stessa circonferenza. */
+  const k = (RAGGIO_CASA * (.45 + Math.random()*.45)) / d;
+  c.meta.x = tu.x + dx*k;
+  c.meta.z = tu.z + dz*k;
+}
+
 function newWanderTarget(c){
   const onTop = c.standY > WORLD.floorY + STEP_UP;
   /* Chi e' salito su un mobile punta spesso fuori dal suo perimetro: cosi'
@@ -4475,6 +4500,7 @@ function newWanderTarget(c){
   const a = Math.random()*Math.PI*2;
   const r = 1.3 + Math.random()*3.4;          // prima 0,6-2,7 m: troppo corto
   c.meta = new THREE.Vector3(c.pos.x + Math.sin(a)*r, 0, c.pos.z + Math.cos(a)*r);
+  tienilaVicina(c);
 }
 
 function stepMove(c, dt){
@@ -5525,7 +5551,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v71';
+const BUILD = 'v72';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
