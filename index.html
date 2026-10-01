@@ -1252,6 +1252,15 @@ const _ghit = {c:null, x:0, z:0, h:0};
    nessuno finisce a camminare sulla testa di una persona. */
 /* Un rilievo conta solo se il sensore lo conferma nella maggior parte delle
    letture: sotto il 60 per cento e' rumore e la cella vale come pavimento. */
+/* Da quanto la mappa non viene piu' aggiornata. Oltre qualche secondo quello
+   che c'e' scritto non e' piu' la stanza di adesso: e' la stanza di prima, e
+   tenerne conto significa far sbattere le creature contro muri che non ci
+   sono piu' — o che non ci sono mai stati. Meglio nessun ostacolo che un
+   ostacolo di mezzo minuto fa. */
+const VECCHIAIA = 4000;        // ms oltre i quali la mappa non blocca piu'
+const mappaFresca = () => !FERMO.ultimaBuona ||
+  (performance.now() - FERMO.ultimaBuona) < VECCHIAIA;
+
 const confermata = c => c.al * 5 >= c.vi * 3;
 
 /* QUANTO DEVE ESSERE STATA COERENTE.
@@ -1433,6 +1442,7 @@ const quantiSettori = m => {
    tiene la piu' alta. pad <= 0: solo la cella sotto i piedi. */
 function gridAt(x, z, pad, veloce){
   if(!GRID.on || !GRID.celle.size) return null;
+  if(!mappaFresca()) return null;              // la stanza di mezzo minuto fa non vale
   const s = GRID.cella;
   const r = pad > .01 ? Math.min(2, Math.round(pad / s)) : 0;
   let best = null, bh = -9, bx = 0, bz = 0;
@@ -2436,6 +2446,12 @@ async function recSalva(){
     },
     letture: REC.letture, saltati: REC.saltati,
     /* Se la ricostruzione ha avuto problemi, il motivo esatto finisce qui. */
+    /* Perche' la ricostruzione si e' fermata, se si e' fermata. */
+    fermo: {
+      motivo: FERMO.motivo, saltate: FERMO.saltate | 0,
+      daQuando: FERMO.motivo ? Math.round(performance.now() - FERMO.da) : 0,
+      ultimaBuona: Math.round(performance.now() - (FERMO.ultimaBuona || 0))
+    },
     inciampi: {
       quanti: DEPTH.errori | 0,
       diFila: GRID.inciampi | 0,
@@ -2625,8 +2641,23 @@ function interrogatorio(info, cam, P, M){
   if(INT.cursore >= chiavi.size) INT.cursore = 0;
 }
 
+/* Perche' una passata non e' stata fatta. Finora scandaglia usciva in sei
+   punti diversi senza dire quale, e quando il sensore smetteva di rispondere
+   l'app tirava avanti zitta con la mappa di prima: una registrazione aveva 66
+   letture in 45 secondi, e i muri contro cui le creature sbattevano erano la
+   stanza com'era mezzo minuto prima, non com'e' adesso. */
+const FERMO = {motivo: null, da: 0, saltate: 0, ultimaBuona: 0};
+
+function scandagliaStop(motivo){
+  if(FERMO.motivo !== motivo){ FERMO.motivo = motivo; FERMO.da = performance.now(); }
+  FERMO.saltate++;
+}
+
 function scandaglia(frame, dt){
-  if(!GRID.on || !DEPTH.attiva || !DEPTH.tarata || !frame) return;
+  if(!GRID.on) return scandagliaStop('griglia spenta');
+  if(!DEPTH.attiva) return scandagliaStop('profondità non attiva');
+  if(!DEPTH.tarata) return scandagliaStop('profondità non tarata');
+  if(!frame) return scandagliaStop('nessun fotogramma');
   GRID.clock -= dt;
   if(GRID.clock > 0) return;
   GRID.clock = GRID.periodo;
@@ -2634,12 +2665,14 @@ function scandaglia(frame, dt){
   let info = null, cam = null;
   try {
     const vp = frame.getViewerPose(xrRefSpace);
-    if(!vp || !vp.views.length) return;
+    if(!vp || !vp.views.length) return scandagliaStop('nessuna posa dal visore');
     info = frame.getDepthInformation(vp.views[0]);
     const xc = renderer.xr.getCamera(camera);
     cam = (xc && xc.cameras && xc.cameras[0]) || xc || camera;
-  } catch(e){ return; }
-  if(!info || !cam) return;
+  } catch(e){ return scandagliaStop('errore: ' + ((e && (e.message||e.name)) || e)); }
+  if(!info) return scandagliaStop('il sensore non dà più profondità');
+  if(!cam) return scandagliaStop('nessuna camera');
+  FERMO.motivo = null; FERMO.ultimaBuona = performance.now();
 
   /* Deproiezione senza invertire nulla: da una matrice di proiezione
      prospettica si ricava direttamente il punto in spazio vista, e la
@@ -5324,6 +5357,11 @@ function updateDiag(){
       DEPTH.scarti + ' scartati\n' +
     (GRID.ultimoErrore ? 'INCIAMPO    <b style="color:#FF5747">' +
        GRID.ultimoErrore.slice(0,60) + '</b><br>' : '') +
+    'sensore     <b' + (mappaFresca() ? '>' : ' style="color:#FF5747">') +
+      (FERMO.motivo ? 'fermo: ' + FERMO.motivo + ' da ' +
+        ((performance.now()-FERMO.da)/1000).toFixed(1) + ' s'
+       : 'legge · ultima ' + ((performance.now()-(FERMO.ultimaBuona||performance.now()))/1000).toFixed(1) + ' s fa') +
+      '</b><br>' +
     'pavimento    <b>' + (SUOLO.pronto ? (SUOLO.scarto >= 0 ? '+' : '') +
       SUOLO.scarto.toFixed(3) + ' m</b> in ' + SUOLO.correzioni + ' ritocchi'
       : 'in attesa di letture</b>') + '<br>' +
@@ -5487,7 +5525,7 @@ function initMapUI(){
    ========================================================================== */
 /* Strumentazione: senza questi numeri un blocco su un telefono altrui e'
    indistinguibile da mille cause diverse. */
-const BUILD = 'v70';
+const BUILD = 'v71';
 const PERF = {n:0, t0:0, fps:0, dtMax:0, dtLast:0, lost:false, stallo:0, vRestart:0,
               pose:0, noPose:0, fpsMin:999};
 
